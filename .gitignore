@@ -150,3 +150,6 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Claude Code — generated skill upload zips (rebuilt by .claude/scripts/sync-skills.sh)
+.claude/skill-zips/

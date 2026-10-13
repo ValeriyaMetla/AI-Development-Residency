@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/scripts/sync-skills.sh\" >/dev/null 2>&1 || true",
+            "statusMessage": "Syncing project skills to ~/.claude/skills"
+          }
+        ]
+      }
+    ]
+  }
+}
