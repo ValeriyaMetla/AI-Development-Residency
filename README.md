@@ -17,8 +17,9 @@ with AI (Claude Code) as part of the Tech Fleet **AI Development Residency**
 
 ## Community AI Workflow Studio
 
-**Helping nonprofits build and run responsible AI — the policies, the working processes,
-and the living system that keep AI use safe as it grows.**
+**Helping nonprofits build and run responsible AI, step by step — from AI policy, to
+reusable governed skills, to workflows, to agents, with your standards built into every
+level.**
 
 ### The problem
 
@@ -29,30 +30,38 @@ organizations least able to afford consultants are exactly the ones without poli
 processes, or oversight. Governance is the clearest, most universal gap in the sector,
 and static policy templates serve it poorly: they hand you a PDF, not a process.
 
-### What it does (governance first)
+### The four-step progression
 
-Community AI Workflow Studio closes that gap as a **living system, not a one-time
-document.** Through a guided agentic intake, it helps an organization produce and
-maintain:
+The Studio is a path a nonprofit grows along. Each step builds on the one before it, and
+the governance set in Step 1 is built into every step above.
 
-1. **Documentation** — a tailored AI use policy and data-handling rules, grounded in
-   human-authored standards.
-2. **Working processes** — per-task guardrail checklists, human-review checkpoints, and
-   escalation paths that staff actually use.
-3. **A living governance system** — new AI uses are assessed, policies are versioned, and
-   guidance updates as the organization's AI use grows.
+1. **Governance & AI policy** *(the foundation)* — a guided intake turns the
+   organization's mission, programs, and constraints into a tailored AI use policy,
+   data-handling rules, and review processes. It produces living documentation, not a
+   one-time PDF, and these rules become the guardrails everything else inherits.
+2. **Skills** — reusable, named abilities for specific tasks, with the organization's
+   governance baked in (privacy, accessibility, AI disclosure, human review). Run a skill
+   and it does the task the same safe way every time — no prompt-writing required.
+3. **Workflows** — skills chained into a multi-step job that runs the same way start to
+   finish, still fully governed.
+4. **Agents** *(coming soon)* — AI that chooses which skills to run toward a goal, always
+   inside the guardrails from Step 1. Kept last on purpose: for sensitive nonprofit work,
+   predictable and safe comes before autonomous.
+
+**Governance is the foundation, not just the first step** — the policy set in Step 1 flows
+up into every skill, workflow, and agent above it.
 
 ### How it works (the architecture)
 
-Three shared layers plus pluggable workflow modules:
+Three shared layers power every step:
 
 | Layer | What it is |
 |-------|------------|
 | **Org Brain** | The organization's curated knowledge (mission, programs, constraints), retrieved into every task so output is specific to that nonprofit. |
 | **Responsible-AI standards library** | Human-authored standards grounded in sources such as the NIST AI Risk Management Framework, WCAG, and the OWASP Top 10 for LLMs. The AI applies standards; it does not invent ethical criteria. |
-| **Workflow modules** | Governance modules first; do-the-work modules on the roadmap. Each reads the Org Brain and the standards. |
+| **Skills & workflows** | Governed task units (skills) and the chains that compose them (workflows). Each reads the Org Brain and the standards. |
 
-Each module runs a genuine agentic loop:
+Each skill runs a genuine agentic loop:
 
 ```
 Plan → Retrieve (standards + Org Brain) → Draft → Challenger self-critique → Revise → Finalize
@@ -84,9 +93,10 @@ on its own. It drafts and safeguards; a human always reviews and acts.
 - **Avoids the landmines.** No client PII, no case-management-system integration, and no
   prioritization or risk-scoring — the exact things the sector distrusts.
 
-On the roadmap, the same engine extends to **do-the-work modules** (drafting a donor
-message, a case note, a funder report), so an organization first establishes its
-governance and then applies it to real tasks.
+From there, the same engine powers **governed skills** (drafting a donor message, a
+report, an update) and the **workflows** that compose them — so an organization sets its
+ground rules first, then applies them to real work. **Agents** are the next rung, on the
+roadmap.
 
 ---
 
@@ -103,21 +113,23 @@ whether they adopt and use them, before heavy build.
 **The MVP** — an agent that takes an organization from intake to (1) a usable governance
 starter and (2) a few governed work products that visibly apply it:
 
-- **Must — engine + governance:** org intake (a lean Org Brain) → retrieve relevant
+- **Must — Step 1: governance.** Org intake (a lean Org Brain) → retrieve relevant
   standards → tailored **AI use policy** + **1–2 working-process artifacts** (a guardrail
   checklist and a human-review process) → provenance labels → a **Challenger** pass that
   flags gaps → human review → save/export.
-- **Must — 2–3 do-the-work modules** that bake the org's governance (guardrails +
+- **Must — Step 2: 2–3 governed skills** that bake the org's governance (guardrails +
   provenance) into each output: **donor thank-you / appeal**, **impact / board report**,
   and a **general communications / newsletter draft**. Low-risk; no client data.
-- **Should:** living-system lite (track AI uses; re-run on a new one); a one-page staff
-  guideline; a fourth module (e.g., grant-narrative first draft).
-- **Could:** funder/cohort view; full standards-library browse; versioned releases.
-- **Won't (MVP):** modules touching client PII or decisions about people (case notes,
-  resource/eligibility matching); registry/DAO governance; verifying the full standards
-  library; multi-tenant funder deployment; sending or acting on anything.
+- **Should — Step 3:** one example **workflow** that composes those skills; living-system
+  lite (track AI uses; re-run on a new one); a one-page staff guideline.
+- **Could:** a fourth skill (e.g., grant-narrative first draft); funder/cohort view; full
+  standards-library browse; versioned releases.
+- **Won't (MVP):** **Step 4 agents**; skills touching client PII or decisions about people
+  (case notes, resource/eligibility matching); registry/DAO governance; verifying the full
+  standards library; multi-tenant funder deployment; sending or acting on anything.
 
-**Build order:** engine → governance → one module (prove it) → the remaining modules.
+**Build order:** engine → governance → one skill (prove it) → the remaining skills → one
+workflow.
 
 ---
 
@@ -147,8 +159,8 @@ The weekly coding challenges build the product piece by piece.
 | 3 | Host a web app | Deployed skeleton: org intake + database |
 | 4 | Build an AI chatbot | The core agent: intake → retrieve standards → draft policy |
 | 5 | Security / PenTest | Harden privacy & security of the governance tool |
-| 6 | PWA + microservices | Add the working-processes module + Challenger agent |
-| 7 | Integrate apps | Export (Word / Google Docs / Notion) + standards-library wiring |
+| 6 | PWA + microservices | Add 2–3 governed skills + the Challenger self-critique |
+| 7 | Integrate apps | Compose a workflow; export (Word / Google Docs / Notion) |
 | 8 | SEO / AEO | Landing page and positioning |
 | Post-curriculum (Dec–Feb) | Self-directed | Concierge test, validate with nonprofits & funders, refine standards, polish |
 
