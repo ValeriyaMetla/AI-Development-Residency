@@ -17,111 +17,107 @@ with AI (Claude Code) as part of the Tech Fleet **AI Development Residency**
 
 ## Community AI Workflow Studio
 
-**An org-aware, ethical AI workspace for nonprofits — one shared Org Brain, many
-workflows, with responsible-AI guardrails built into every result.**
+**Helping nonprofits build and run responsible AI — the policies, the working processes,
+and the living system that keep AI use safe as it grows.**
 
 ### The problem
 
-Nonprofits have adopted AI widely but shallowly: surveys put adoption at 76–92%, yet
-only ~7% report meaningful impact, and roughly two-thirds describe their use as
-reactive, one-off prompting. Teams are stretched thin, governance is almost absent
-(only ~7–10% have any AI policy), and the people doing the work — case managers,
-fundraisers, program staff — don't know where to start or how to use AI *safely* for
-sensitive, mission-critical tasks.
+Nonprofits have adopted AI widely but shallowly. Surveys put adoption high while only
+about 7% report meaningful impact, most use is reactive and un-governed, and only a small
+share have any AI policy at all. Funders increasingly expect responsible AI — yet the
+organizations least able to afford consultants are exactly the ones without policies,
+processes, or oversight. Governance is the clearest, most universal gap in the sector,
+and static policy templates serve it poorly: they hand you a PDF, not a process.
 
-Generic chatbots don't solve this: they start from zero every session, know nothing
-about the organization, and won't proactively protect vulnerable-client data or flag an
-unsupported claim.
+### What it does (governance first)
 
-### What it does
+Community AI Workflow Studio closes that gap as a **living system, not a one-time
+document.** Through a guided agentic intake, it helps an organization produce and
+maintain:
 
-The Studio does the actual work — it drafts the donor letter, structures the case note,
-shortlists the resources — grounded in the organization's own knowledge and checked
-against responsible-AI standards before a human ever sees it.
+1. **Documentation** — a tailored AI use policy and data-handling rules, grounded in
+   human-authored standards.
+2. **Working processes** — per-task guardrail checklists, human-review checkpoints, and
+   escalation paths that staff actually use.
+3. **A living governance system** — new AI uses are assessed, policies are versioned, and
+   guidance updates as the organization's AI use grows.
 
-It is built from three shared layers plus pluggable workflow modules:
+### How it works (the architecture)
 
-1. **Org Brain** *(the moat)* — the organization's curated knowledge: mission, programs,
-   voice, constraints. Built once; every workflow reads from it; it gets richer with use.
-2. **Responsible-AI layer** — a curated [standards library](#responsible-ai-standards-library)
-   that powers per-workflow guardrails and labels every output by its basis.
-3. **Workflow modules** *(per domain)* — fundraising, case management, resource
-   navigation, reporting. Each reads the Org Brain and runs through the agent loop.
+Three shared layers plus pluggable workflow modules:
 
-A **discovery front door** guides an unsure user (e.g. "I'm a case manager and I don't
-know what to automate") toward their first workflow.
+| Layer | What it is |
+|-------|------------|
+| **Org Brain** | The organization's curated knowledge (mission, programs, constraints), retrieved into every task so output is specific to that nonprofit. |
+| **Responsible-AI standards library** | Human-authored standards grounded in sources such as the NIST AI Risk Management Framework, WCAG, and the OWASP Top 10 for LLMs. The AI applies standards; it does not invent ethical criteria. |
+| **Workflow modules** | Governance modules first; do-the-work modules on the roadmap. Each reads the Org Brain and the standards. |
 
-### How a workflow runs (the agentic loop)
-
-Each module runs a genuine multi-step agent loop — the core of the Advanced Agentic
-Workflows specialization:
+Each module runs a genuine agentic loop:
 
 ```
-Plan → Retrieve (Org Brain) → Draft → Self-critique (Challenger) → Revise → Finalize
+Plan → Retrieve (standards + Org Brain) → Draft → Challenger self-critique → Revise → Finalize
 ```
 
-The **Challenger** step is adversarial self-review: the agent critiques its own draft
-against the responsible-AI standards and fixes what it finds — removing an inferred
-detail that wasn't in the source, lowering the reading level, flagging an uncertain fact
-for human verification — *before* the user sees the result.
-
-Every statement in the finished document carries a **provenance label**:
-`user-supplied` · `source-backed` · `AI-suggested` · `requires-verification`. Nothing
-is presented as more certain than it is.
-
-### Why it is personalized, not a template mill
-
-Output is **generated** from each organization's Org Brain, not selected from a library.
-Two nonprofits with different missions, programs, and voices cannot produce the same
-document: the agent retrieves and weaves *their* facts, and different contexts trigger
-different responsible-AI checks. Swap the Org Brain and every org-specific value changes.
+The **Challenger** reviews each draft against the standards and flags gaps or unverified
+claims before a person sees it. Every statement carries a **provenance label**
+(user-supplied, source-backed, AI-suggested, or requires-verification), and a person
+reviews and approves before anything is adopted.
 
 ### What it is not
 
-The Studio supports human decisions. It does **not**:
-
-- Certify that a workflow is safe, compliant, or approved.
-- Make client eligibility, referral, or other decisions about people.
-- Replace legal, privacy, technical, or service-domain review.
-- Send, publish, or take external action on its own — a human always reviews and acts.
-- Handle real personal data in this prototype (synthetic examples only).
+The Studio supports human decisions. It does **not** certify compliance, make decisions
+about people, score or prioritize anyone, replace legal or privacy review, or send or act
+on its own. It drafts and safeguards; a human always reviews and acts.
 
 ---
 
-## Responsible AI Standards Library
+## Why governance is the lead wedge
 
-The Studio applies responsible-AI standards **written and reviewed by people** — the AI
-does not invent ethical criteria. The library is an in-progress set of human-authored
-standards organized across key categories — accuracy & grounding, privacy, fairness,
-accessibility, human oversight, safety, transparency, security, evaluation, and
-accountability. Each standard is grounded in an authoritative source (NIST AI RMF,
-NIST AI 600-1, WCAG 2.2, National CLAS Standards, SAMHSA, OWASP LLM, and others) and
-marked with its derivation and review status.
+- **Most validated need.** The governance gap is the single most consistent finding across
+  nonprofit-AI research, and it spans every sub-sector (human services, housing, reentry,
+  refugee services).
+- **Hard to DIY, funder-aligned.** Nonprofits can't easily write a real policy or process,
+  and funders increasingly require responsible AI — which opens a funder-as-buyer path.
+- **Not a wrapper.** The moat is the curated, sourced standards library, a structured
+  process, persistence (governance that evolves), and provenance — none of which a general
+  chatbot provides.
+- **Avoids the landmines.** No client PII, no case-management-system integration, and no
+  prioritization or risk-scoring — the exact things the sector distrusts.
 
-**In the MVP, a thin, module-specific slice is used** — for the first module, a handful
-of standards (data minimization, evidence grounding, AI-involvement disclosure, plain
-language, human review). The full library, its versioned release model, and its
-governance are the product's long-term moat and roadmap, not MVP scope.
+On the roadmap, the same engine extends to **do-the-work modules** (drafting a donor
+message, a case note, a funder report), so an organization first establishes its
+governance and then applies it to real tasks.
 
 ---
 
-## MVP scope
+## MVP scope (residency)
 
-The first shippable version proves the whole thesis with one deep module:
+**Riskiest assumption:** a nonprofit (or a funder on its behalf) will trust and *actually
+adopt* an AI-generated governance system — and *use* the governed work products that apply
+it — as its real policy, process, and output.
 
-- Capture an organization's **Org Brain**.
-- Run **one workflow module** (fundraising / donor communications) end-to-end through the
-  real agent loop.
-- Apply the **responsible-AI slice** and **provenance labels** to the output.
-- Persist each run (inputs, self-critique log, final draft, review status) to the database.
-- A **human review / approve** step before anything is considered done.
+**Cheapest test first:** a concierge run — manually produce a governance pack *and* two or
+three governed work drafts for 2–3 real nonprofits (with AI behind the scenes) and see
+whether they adopt and use them, before heavy build.
 
-Deferred (Should / Could / Won't): additional modules, live org-switcher, semantic
-retrieval, the full standards library, multi-tenant governance, and any real-PII or
-live-integration features.
+**The MVP** — an agent that takes an organization from intake to (1) a usable governance
+starter and (2) a few governed work products that visibly apply it:
 
-**Riskiest assumption being tested:** a non-technical, AI-anxious nonprofit worker will
-trust and *actually use* an AI-generated, ethically-guarded document for a real task.
+- **Must — engine + governance:** org intake (a lean Org Brain) → retrieve relevant
+  standards → tailored **AI use policy** + **1–2 working-process artifacts** (a guardrail
+  checklist and a human-review process) → provenance labels → a **Challenger** pass that
+  flags gaps → human review → save/export.
+- **Must — 2–3 do-the-work modules** that bake the org's governance (guardrails +
+  provenance) into each output: **donor thank-you / appeal**, **impact / board report**,
+  and a **general communications / newsletter draft**. Low-risk; no client data.
+- **Should:** living-system lite (track AI uses; re-run on a new one); a one-page staff
+  guideline; a fourth module (e.g., grant-narrative first draft).
+- **Could:** funder/cohort view; full standards-library browse; versioned releases.
+- **Won't (MVP):** modules touching client PII or decisions about people (case notes,
+  resource/eligibility matching); registry/DAO governance; verifying the full standards
+  library; multi-tenant funder deployment; sending or acting on anything.
+
+**Build order:** engine → governance → one module (prove it) → the remaining modules.
 
 ---
 
@@ -136,26 +132,25 @@ These are initial choices and may change.
 | Hosting | Vercel |
 | AI model access | Claude (Anthropic) via server-side API routes only |
 | Development | GitHub for version control; Claude Code for AI-assisted development |
-| Design approach | Deterministic rules for standard selection, labeling, and report structure; AI agents for drafting, retrieval, and self-critique |
+| Design approach | Deterministic rules for standard selection, labeling, and report structure; AI agents for intake, drafting, and self-critique |
 
 ---
 
 ## Roadmap (aligned to the residency schedule)
 
-The weekly coding challenges build the product piece by piece — learning each skill as
-its component is needed.
+The weekly coding challenges build the product piece by piece.
 
 | Weeks | Residency focus | Product milestone |
 |-------|-----------------|-------------------|
 | 1 (Oct) | GitHub + Claude Code; specialization | Research paper; repo; product chosen |
 | 2 | Product specifications | Product spec / PRD |
-| 3 | Host a web app | Deployed skeleton: Org Brain intake + database |
-| 4 | Build an AI chatbot | The agent loop for module 1 |
-| 5 | Security / PenTest | Harden privacy & security of the ethics layer |
-| 6 | PWA + microservices | Restructure as PWA; add a second module |
-| 7 | Integrate apps | Export / integration + saved-workflow library |
-| 8 | SEO / AEO | Landing page and go-to-market |
-| Post-curriculum (Dec–Feb) | Self-directed | Validate with real nonprofits, measure hours saved, pilot & polish |
+| 3 | Host a web app | Deployed skeleton: org intake + database |
+| 4 | Build an AI chatbot | The core agent: intake → retrieve standards → draft policy |
+| 5 | Security / PenTest | Harden privacy & security of the governance tool |
+| 6 | PWA + microservices | Add the working-processes module + Challenger agent |
+| 7 | Integrate apps | Export (Word / Google Docs / Notion) + standards-library wiring |
+| 8 | SEO / AEO | Landing page and positioning |
+| Post-curriculum (Dec–Feb) | Self-directed | Concierge test, validate with nonprofits & funders, refine standards, polish |
 
 ---
 
