@@ -51,6 +51,9 @@ the governance set in Step 1 is built into every step above.
 **Governance is the foundation, not just the first step** — the policy set in Step 1 flows
 up into every skill, workflow, and agent above it.
 
+The Studio also teaches as you use it: over time, a team learns to build and adjust its own
+skills — so it grows their AI know-how, not just produces documents.
+
 ### How it works (the architecture)
 
 Three shared layers power every step:
