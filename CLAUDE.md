@@ -31,6 +31,8 @@ not optional suggestions.
 - **technical-planning** — Apply when choosing a stack or architecture, making a
   significant technical decision, or breaking a feature into tasks (the *how*).
   (ADRs + YAGNI)
+- **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
+  to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
 
 ## Default expectations
 
@@ -38,3 +40,16 @@ not optional suggestions.
 - Verify work with tests and review before calling it done.
 - Document the *why*, and keep docs current with the code.
 - Prefer the minimum viable scope; cut rather than add.
+
+## Skill usage receipts
+
+At the end of every task that produced work, report a compact **🧾 Skill receipts** block:
+
+- **Which** skill(s) you applied, by name.
+- **Why** — what in the request triggered each one.
+- **How** — what you did differently because of it.
+
+Keep it to a line or two per skill. If no skills applied, say so in one line
+("🧾 No skills applied — outside their scope"). This covers skills applied from the list
+above, not only those invoked through the Skill tool (a hook logs the tool calls separately
+to `.claude/skill-usage.log`).

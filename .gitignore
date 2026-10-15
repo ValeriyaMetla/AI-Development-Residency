@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 
 # Claude Code — generated skill upload zips (rebuilt by .claude/scripts/sync-skills.sh)
 .claude/skill-zips/
+
+# Claude Code — deterministic skill-usage audit log (written by the PostToolUse hook)
+.claude/skill-usage.log
