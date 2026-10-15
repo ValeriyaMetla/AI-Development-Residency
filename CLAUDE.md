@@ -25,6 +25,12 @@ not optional suggestions.
   (Diátaxis + developer-doc practices)
 - **mvp-scoping** — Apply when planning a product, defining an MVP, or prioritizing
   what to build or cut. (Lean Startup + user stories + MoSCoW)
+- **product-specs** — Apply when writing or reviewing a product spec / PRD, feature
+  brief, requirements, or acceptance criteria (the *what* and *why*). (PRD practice +
+  user stories)
+- **technical-planning** — Apply when choosing a stack or architecture, making a
+  significant technical decision, or breaking a feature into tasks (the *how*).
+  (ADRs + YAGNI)
 
 ## Default expectations
 
