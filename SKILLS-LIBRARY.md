@@ -12,18 +12,41 @@ what they contain, and what's coming next.
 
 ---
 
-## How this library works
-
 - **Folders are flat.** Each skill is `.claude/skills/<name>/SKILL.md`. There are no
   category subfolders — the categories below are an *organizing index*, not directories.
 - **Naming:** `lowercase-hyphen`, descriptive, matches the folder name.
-- **Every skill follows the same template:** keyword-rich description → intent line →
-  numbered rules grounded in an authority → checklist → "when unsure" → "based on".
 - **Status legend:** ✅ built · 🔨 in progress · ⬜ planned
-- **To add a skill:** first **produce the draft `SKILL.md` as a file in chat and get Val's
-  approval** (Val may want to do more research) — nothing lands in the repo before that.
-  Then: (1) create `.claude/skills/<name>/SKILL.md`, (2) add a line to
-  [`CLAUDE.md`](CLAUDE.md), (3) paste its content into this library under its category.
+
+> This section is the **single source of truth** for how a skill is shaped and built.
+> Other docs (HANDOFF.md, Week 1/README.md) link here instead of repeating it.
+
+### Skill template (canonical)
+
+Every `SKILL.md` has the same six parts, in order:
+
+1. **description** — keyword-rich; what it does *first*, then "Use when…" + triggers; third
+   person; ≤1024 chars. This is how Claude knows *when* to trigger the skill.
+2. **intent** — a one-line statement of what the skill enforces.
+3. **numbered rules** — grounded in an authoritative source.
+4. **checklist** — "before calling it done".
+5. **"when unsure"** — a guardrail for ambiguous cases.
+6. **"based on"** — the sources it cites.
+
+### How skills are built (canonical)
+
+1. **Research first.** Find the *authoritative* source (OWASP, Nielsen, WCAG, Anthropic
+   docs, Lean Startup, etc.). Judge source quality — prefer primary/standard sources over
+   vendor blogs.
+2. **Write on the template above.** Keep it concise — only what Claude doesn't already
+   know; body well under 500 lines.
+3. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
+   surfaced in chat. **Nothing lands in the repo yet.** Val reviews it (and may do more
+   research), then approves.
+4. **Install — only after approval:** (1) create `.claude/skills/<name>/SKILL.md`,
+   (2) add a line to [`CLAUDE.md`](CLAUDE.md), (3) paste its content into this library
+   under its category and flip ⬜ to ✅.
+5. **Commit & push** (Val does this hands-on to keep practicing):
+   `git add . && git commit -m "Add <name> skill" && git push`
 
 ---
 
@@ -55,7 +78,7 @@ what they contain, and what's coming next.
 | W7 | Dec 14 | Integrate Apps | `api-integration` ⬜ |
 | W8 | Dec 21 | SEO / AEO Strategy | `seo-aeo` ⬜ |
 
-*(`responsible-ai` and `rag-retrieval` slot in wherever the product needs them — likely around W4.)*
+*(`responsible-ai` and `rag-retrieval` slot in wherever the work needs them — likely around W4.)*
 
 ---
 
@@ -74,7 +97,7 @@ description: Enforces disciplined MVP scoping — naming the core assumption to 
 
 # MVP / Product Scoping
 
-An MVP is the fastest way to learn whether an idea works with the least effort — not a shrunken version of the final product. Scope around the learning you need, ship it, then decide whether to pivot or persevere. This skill follows the Lean Startup, user stories, and MoSCoW prioritization.
+An MVP is the fastest way to learn whether an idea works with the least effort — not a shrunken version of the final product. Scope around the learning you need, ship it, then decide whether to pivot or persevere. This skill follows the Lean Startup, user stories, and MoSCoW prioritization. Once the MVP is scoped, its stories feed [[product-specs]] (the detailed spec) and [[technical-planning]] (how to build it).
 
 ## Start with the assumption, not the features
 
