@@ -25,12 +25,28 @@ what they contain, and what's coming next.
 Every `SKILL.md` has the same six parts, in order:
 
 1. **description** — keyword-rich; what it does *first*, then "Use when…" + triggers; third
-   person; ≤1024 chars. This is how Claude knows *when* to trigger the skill.
+   person; ≤1024 chars. This is the *primary* trigger. Claude tends to **under-trigger**
+   skills, so make the description a little **"pushy"** — name concrete contexts and phrases
+   (e.g. "…use whenever the user mentions X, Y, or Z, even if they don't say 'skill'").
 2. **intent** — a one-line statement of what the skill enforces.
 3. **numbered rules** — grounded in an authoritative source.
 4. **checklist** — "before calling it done".
 5. **"when unsure"** — a guardrail for ambiguous cases.
 6. **"based on"** — the sources it cites.
+
+### Authoring principles (canonical)
+
+Grounded in [Anthropic's Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices):
+
+- **Concise is the #1 rule.** The context window is shared — add only what Claude doesn't
+  already know. Challenge every line: "does this justify its token cost?"
+- **Match degrees of freedom to the task.** Use *high freedom* (prose, principles) when many
+  approaches are valid and judgment matters; *low freedom* (exact steps/scripts, "don't
+  modify this command") when a task is fragile and must be done one consistent way.
+- **Progressive disclosure — split when a skill outgrows one file.** Keep `SKILL.md` under
+  ~500 lines. Past that, move detail into a `references/` folder, link to it **one level
+  deep** from `SKILL.md`, and add a table of contents to any reference file over ~100 lines.
+  Bundle `scripts/` for deterministic work and `assets/` for output templates when useful.
 
 ### How skills are built (canonical)
 
@@ -39,13 +55,17 @@ Every `SKILL.md` has the same six parts, in order:
    vendor blogs.
 2. **Write on the template above.** Keep it concise — only what Claude doesn't already
    know; body well under 500 lines.
-3. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
+3. **Prove it helps (quick eval).** Before calling it done, run 2–3 realistic test prompts
+   the skill targets — once *with* the skill and once *without* it (baseline) — and confirm
+   the with-skill version is actually better. The skill should fix a *real* gap, not an
+   imagined one.
+4. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
    surfaced in chat. **Nothing lands in the repo yet.** Val reviews it (and may do more
    research), then approves.
-4. **Install — only after approval:** (1) create `.claude/skills/<name>/SKILL.md`,
+5. **Install — only after approval:** (1) create `.claude/skills/<name>/SKILL.md`,
    (2) add a line to [`CLAUDE.md`](CLAUDE.md), (3) paste its content into this library
    under its category and flip ⬜ to ✅.
-5. **Commit & push** (Val does this hands-on to keep practicing):
+6. **Commit & push** (Val does this hands-on to keep practicing):
    `git add . && git commit -m "Add <name> skill" && git push`
 
 ---
