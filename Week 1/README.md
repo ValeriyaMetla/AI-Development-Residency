@@ -3,6 +3,9 @@
 This is my Week 1 coding challenge: a set of six Claude **Skills** that teach Claude to
 perform enterprise-level development tasks consistently.
 
+> **Snapshot:** this page reflects the Week 1 submission (6 skills). The library has grown
+> since — for the current, complete set see [`SKILLS-LIBRARY.md`](../SKILLS-LIBRARY.md).
+
 > **Where the skill files live:** the skills are kept in one place —
 > [`.claude/skills/`](../.claude/skills/) at the repository root — because that is the
 > only location Claude Code loads skills from. This README (under `Week 1/`) is the
@@ -42,11 +45,7 @@ added as a foundational product-development skill for building a first MVP.
 
 ## How each skill is structured
 
-Every `SKILL.md` follows the same research-backed template:
-
-1. A specific, keyword-rich **description** (so Claude knows when to trigger it)
-2. A short intent line
-3. **Numbered rules** grounded in an authoritative source
-4. A **checklist** Claude runs before calling the work done
-5. A **"when unsure"** guardrail
-6. A **"based on"** section citing the sources
+Every `SKILL.md` follows the same six-part, research-backed template (description → intent
+→ numbered rules → checklist → "when unsure" → "based on"). The template is defined
+canonically in [`SKILLS-LIBRARY.md`](../SKILLS-LIBRARY.md) ("How this library works") — see
+there for the authoritative version.
