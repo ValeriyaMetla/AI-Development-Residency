@@ -68,6 +68,61 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
 6. **Commit & push** (Val does this hands-on to keep practicing):
    `git add . && git commit -m "Add <name> skill" && git push`
 
+### How the skills relate (governance)
+
+The skills work as a composing team, not a relay race: **no two skills own the same
+*decision*, but many skills apply to one *task*.** For any task, one skill is *accountable*
+for a concern; others are *consulted* and contribute their slice.
+
+- **Strategy** — `mvp-scoping` → `product-specs` → `technical-planning` (the bet → the
+  *what & why* → the *how*); each hands off to the next.
+- **Build quality** — `ux-usability`, `accessibility`, `documentation`: consulted on any UI
+  or writing.
+- **Gate** — `secure-coding` (consulted on untrusted data) → `testing-code-review` (the
+  final gate before "done").
+- **Oversight** — `skill-evaluation` audits whether each skill still earns its seat.
+
+Rules of thumb: one accountable owner per responsibility; skills compose on a task; beware
+over-splitting into trivially-small skills; re-evaluate skills as models and standards
+change.
+
+**The org chart** (solid = hand-off, the next skill becomes accountable; dashed =
+consulted / oversight):
+
+```mermaid
+flowchart TD
+    SE["skill-evaluation<br/>oversight · audits every skill"]
+
+    subgraph S["Tier 1 · Strategy (what → how)"]
+      direction LR
+      MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"]
+    end
+
+    subgraph B["Tier 2 · Build quality"]
+      direction LR
+      UX["ux-usability<br/>usability & flows"] -. consults .- A["accessibility<br/>WCAG 2.2 AA"]
+      D["documentation<br/>READMEs, APIs"]
+    end
+
+    subgraph G["Tier 3 · Security & verification"]
+      direction LR
+      SEC["secure-coding<br/>consulted · untrusted data"] -. flags .-> TCR["testing-code-review<br/>final gate · tests + review"]
+    end
+
+    SE -. oversees .-> S
+    TP --> B
+    B --> G
+
+    classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
+    classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
+    classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
+    classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
+    class MVP,PS,TP strat;
+    class UX,A,D build;
+    class SEC,TCR gate;
+    class SE over;
+```
+
 ---
 
 ## Status overview
