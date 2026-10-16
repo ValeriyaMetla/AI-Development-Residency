@@ -23,13 +23,13 @@ new skills in a fresh chat.
 - **The living library:** [`SKILLS-LIBRARY.md`](SKILLS-LIBRARY.md) — full content of every
   built skill + stubs for planned ones, organized by 6 categories, with the week roadmap.
   **This is the source of truth.**
-- **Startup enforcement:** [`CLAUDE.md`](CLAUDE.md) — loads every session, lists the skills.
-- **Week 1 submission:** [`Week 1/README.md`](Week%201/README.md).
+- **Startup enforcement:** [`CLAUDE.md`](../CLAUDE.md) — loads every session, lists the skills.
+- **Week 1 submission:** [`Week 1 Coding Challenge/README.md`](../Week%201%20Coding%20Challenge/README.md).
 
-## Current state (as of Oct 14, 2026)
+## Current state (as of Oct 16, 2026)
 
-**Built (8):** secure-coding · ux-usability · accessibility · testing-code-review ·
-documentation · mvp-scoping · product-specs · technical-planning.
+**Built (9):** secure-coding · ux-usability · accessibility · testing-code-review ·
+documentation · mvp-scoping · product-specs · technical-planning · skill-evaluation.
 **Planned (12):** prompt-engineering · agentic-workflow-design · rag-retrieval ·
 ai-evaluation · responsible-ai · clean-code · error-handling-logging · security-testing ·
 deployment · git-workflow · api-integration · seo-aeo.
@@ -49,8 +49,8 @@ The full residency roadmap (which skill for which week) lives in
 
 ## Conventions & preferences
 
-- **DRY** — one source of truth. No duplicated skill copies (Week 1 folder links to the
-  real skills; don't re-copy them).
+- **DRY** — one source of truth. No duplicated skill copies (the Week 1 Coding Challenge
+  folder links to the real skills; don't re-copy them).
 - **Naming:** `lowercase-hyphen`, descriptive, matches folder name.
 - **No `.DS_Store`** in git (already in `.gitignore`).
 - Commit ≠ push — remember to push after committing.
@@ -64,6 +64,6 @@ The full residency roadmap (which skill for which week) lives in
 
 Open a session in `~/Desktop/AI-Development-Residency` and paste:
 
-> "Continue my skills library. Read HANDOFF.md and SKILLS-LIBRARY.md, then let's build the
+> "Continue my skills library. Read docs/HANDOFF.md and docs/SKILLS-LIBRARY.md, then let's build the
 > Week 3 skills (deployment and git-workflow) using the research-first method.
 > Teach me as we go."
