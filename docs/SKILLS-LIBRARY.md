@@ -18,7 +18,7 @@ what they contain, and what's coming next.
 - **Status legend:** ✅ built · 🔨 in progress · ⬜ planned
 
 > This section is the **single source of truth** for how a skill is shaped and built.
-> Other docs (HANDOFF.md, the Week 1 Coding Challenge README) link here instead of repeating it.
+> Other docs (such as the Week 1 Coding Challenge README) link here instead of repeating it.
 
 ### Skill template (canonical)
 
