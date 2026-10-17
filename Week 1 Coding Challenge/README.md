@@ -3,8 +3,8 @@
 Navigation hub for my Week 1 submission — links to everything created this week.
 
 ## My submission
-- [Week 1 homework write-up](Week-1-Homework.md) — the assignment write-up (this folder)
-- [Homework in Notion](https://app.notion.com/p/AI-Dev-Residency-Submission-WEEK-1-HOMEWORK-3f7975c3b95080fab45ecfe3f0fd1705?source=copy_link) — full write-up, written by hand
+- [Week 1 homework write-up](Week-1-Homework.md)
+- [Homework in Notion](https://app.notion.com/p/AI-Dev-Residency-Submission-WEEK-1-HOMEWORK-3f7975c3b95080fab45ecfe3f0fd1705?source=copy_link)
 
 ## The skills I built (Week 1 deliverable)
 The skills live in [`.claude/skills/`](../.claude/skills/) — the only location Claude Code loads skills from, so they stay at the repo root rather than in this folder:
