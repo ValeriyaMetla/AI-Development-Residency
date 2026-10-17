@@ -15,9 +15,6 @@ The skills live in [`.claude/skills/`](../.claude/skills/) — the only location
 - [testing-code-review](../.claude/skills/testing-code-review/SKILL.md) — Testing Pyramid + Google review practices
 - [documentation](../.claude/skills/documentation/SKILL.md) — Diátaxis framework
 - [mvp-scoping](../.claude/skills/mvp-scoping/SKILL.md) — Lean Startup + user stories + MoSCoW
-
-Added since Week 1:
-
 - [product-specs](../.claude/skills/product-specs/SKILL.md) — PRD practice + user stories
 - [technical-planning](../.claude/skills/technical-planning/SKILL.md) — Architecture Decision Records (ADRs) + YAGNI
 - [skill-evaluation](../.claude/skills/skill-evaluation/SKILL.md) — baseline comparison + evaluation-driven development
