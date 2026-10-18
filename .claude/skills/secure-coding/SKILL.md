@@ -5,6 +5,8 @@ description: Enforces secure coding defenses against the OWASP Top 10 — access
 
 # Secure Coding
 
+## Intent
+
 Apply these practices whenever code touches untrusted input, credentials, access decisions, or sensitive data. Security is not a final step — build it in from the first line. This skill is grounded in the OWASP Top 10 and OWASP Secure Coding Practices.
 
 ## Core rules (mapped to the OWASP Top 10)
