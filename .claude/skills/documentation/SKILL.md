@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Enforces clear, maintainable documentation — READMEs, code comments, and API/reference docs — using the Diátaxis framework and proven developer-doc practices so others can understand and maintain the code. Use when writing or updating a README, docstrings, code comments, API references, guides, or any explanation of how code works or how to use it.
+description: Enforces clear, maintainable documentation — READMEs, code comments, and API/reference docs — using the Diátaxis framework and proven developer-doc practices so others can understand and maintain the code. Use when writing or updating a README, docstrings, code comments, API references, guides, or any explanation of how code works or how to use it. Do NOT use for PRDs (use product-specs) or ADRs/architecture decisions (use technical-planning) — those doc types are owned elsewhere.
 ---
 
 # Documentation
