@@ -1,6 +1,6 @@
 ---
 name: secure-coding
-description: Enforces secure coding defenses against the OWASP Top 10 — access control, encryption, injection prevention, safe secrets handling, and input validation. Use when writing, reviewing, or modifying code that handles user input, authentication, passwords, secrets, API keys, access control, file uploads, database queries, external requests, or data from any untrusted source.
+description: Enforces secure coding defenses against the OWASP Top 10 — access control, encryption, injection prevention, safe secrets handling, and input validation. Use when writing, reviewing, or modifying code that handles user input, authentication, passwords, secrets, API keys, access control, file uploads, database queries, external requests, or data from any untrusted source. Do NOT use for general test coverage or code-review quality (use testing-code-review).
 ---
 
 # Secure Coding
