@@ -5,6 +5,8 @@ description: Enforces clear, maintainable documentation — READMEs, code commen
 
 # Documentation
 
+## Intent
+
 Good documentation lets someone else (including future you) understand and use the code without asking. Write for the reader, keep it current, and match each piece to its purpose. This skill follows the Diátaxis framework and established developer-documentation practices.
 
 ## Know which of the four doc types you are writing (Diátaxis)
