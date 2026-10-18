@@ -1,6 +1,6 @@
 ---
 name: product-specs
-description: Enforces clear product specifications (PRDs) — leading with the problem and the user, setting goals and non-goals before features, writing prioritized testable requirements as user stories with acceptance criteria, and defining success metrics and open questions. Use when writing or reviewing a product spec, PRD, feature brief, requirements doc, or acceptance criteria — anything describing WHAT to build and WHY before any code.
+description: Enforces clear product specifications (PRDs) — leading with the problem and the user, setting goals and non-goals before features, writing prioritized testable requirements as user stories with acceptance criteria, and defining success metrics and open questions. Use when writing or reviewing a product spec, PRD, feature brief, requirements doc, or acceptance criteria — anything describing WHAT to build and WHY before any code. Do NOT use for the initial MVP bet or what-to-cut decisions (use mvp-scoping), or for HOW to build it (use technical-planning).
 ---
 
 # Product Specifications (PRD)
