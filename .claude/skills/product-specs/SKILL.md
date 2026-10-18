@@ -22,7 +22,7 @@ A product spec aligns everyone on *what* to build and *why* before anyone writes
 ## Write requirements that are testable
 
 5. **Capture requirements as user stories** — "As a [user], I want [goal], so that [benefit]" — describing observable behavior, not intentions. (Same form as [[mvp-scoping]].)
-6. **Give each story acceptance criteria.** Use Given-When-Then, specific and measurable. "Search results appear within 2 seconds," not "search should be fast." Cover error states and edge cases, not only the happy path.
+6. **Give every story acceptance criteria** in Given-When-Then form — the testable-AC standard owned by [[mvp-scoping]]. The spec is where you make them *exhaustive*: enumerate error states and edge cases, not just the happy path.
 7. **Prioritize every requirement.** Label must / should / could (or P0/P1/P2) so the team knows what's essential versus deferrable. Align this with the MoSCoW cut from [[mvp-scoping]] when one exists.
 
 ## Keep the "how" out
@@ -33,7 +33,7 @@ A product spec aligns everyone on *what* to build and *why* before anyone writes
 
 9. **Define success metrics with a measurement method,** and add a counter-metric where a metric could be gamed (e.g. "time-on-page up" guarded by "task-completion rate not down").
 10. **Record open questions and risks** with an owner for each. Write down what you don't know instead of silently assuming it.
-11. **Treat the spec as living and get it reviewed.** Have design and engineering review before it's "final"; update it when the team's understanding changes. Don't write it alone — blind spots go unchallenged.
+11. **Treat the spec as living and get it reviewed.** Have design and engineering review it before it's "final"; working solo or with AI, still get a second pass — a stakeholder, a peer, or at minimum a deliberate fresh re-read later. Update it when understanding changes. A single unchallenged pass leaves blind spots unreviewed.
 
 ## Checklist before calling a spec "done"
 
@@ -46,7 +46,7 @@ A product spec aligns everyone on *what* to build and *why* before anyone writes
 - [ ] No implementation details (those live in the technical plan)
 - [ ] Success metrics have a measurement method and a counter-metric
 - [ ] Open questions and risks are listed with owners
-- [ ] Design and engineering have reviewed it
+- [ ] Reviewed by someone other than the author (design/eng, a stakeholder, or a deliberate fresh pass)
 
 ## When unsure
 
@@ -57,3 +57,13 @@ If a statement describes *how* to build something, it probably belongs in [[tech
 - PRD best practices — problem-first structure, goals/non-goals, testable requirements, success metrics, open questions (Marty Cagan / SVPG and common industry PRD practice)
 - User stories and acceptance criteria (Agile / Mike Cohn), Given-When-Then — shared with [[mvp-scoping]]
 - MoSCoW prioritization (DSDM) — must / should / could
+
+## Examples
+
+**Acceptance criterion — ❌ vague vs ✅ testable**
+- ❌ "Donor search should be fast and return good results."
+- ✅ "Given a donor name, when I search, then matching results appear within 2 seconds; if there are none, an empty-state message is shown." *(measurable + covers the edge case)*
+
+**Measurable goal — ❌ vs ✅**
+- ❌ "Improve donor engagement."
+- ✅ "Raise the share of thank-you emails sent within 48h of a gift from 40% → 80% this quarter." *(named metric, baseline, target, timeframe)*
