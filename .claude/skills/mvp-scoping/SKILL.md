@@ -5,6 +5,8 @@ description: Enforces disciplined MVP scoping — naming the core assumption to 
 
 # MVP / Product Scoping
 
+## Intent
+
 An MVP is the fastest way to learn whether an idea works with the least effort — not a shrunken version of the final product. Scope around the learning you need, ship it, then decide whether to pivot or persevere. This skill follows the Lean Startup, user stories, and MoSCoW prioritization. Once the MVP is scoped, its stories feed [[product-specs]] (the detailed spec) and [[technical-planning]] (how to build it).
 
 ## Start with the assumption, not the features
