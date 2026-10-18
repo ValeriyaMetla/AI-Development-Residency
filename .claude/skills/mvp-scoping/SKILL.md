@@ -1,6 +1,6 @@
 ---
 name: mvp-scoping
-description: Enforces disciplined MVP scoping — naming the core assumption to test, capturing needs as user stories, and cutting to the minimum with MoSCoW prioritization — so the first version ships fast and produces real learning. Use when planning a product, defining an MVP, deciding what features to build or cut, writing user stories, or prioritizing a backlog.
+description: Enforces disciplined MVP scoping — naming the core assumption to test, capturing needs as user stories, and cutting to the minimum with MoSCoW prioritization — so the first version ships fast and produces real learning. Use when planning a product, defining an MVP, deciding what features to build or cut, writing user stories, or prioritizing a backlog. Do NOT use for a full detailed spec/PRD (use product-specs) or for architecture and implementation (use technical-planning).
 ---
 
 # MVP / Product Scoping
