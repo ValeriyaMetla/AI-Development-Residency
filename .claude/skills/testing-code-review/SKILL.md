@@ -1,6 +1,6 @@
 ---
 name: testing-code-review
-description: Enforces meaningful automated testing (testing pyramid) and rigorous code review (Google's review priorities) so changes are correct, maintainable, and verified before they ship. Use when writing tests, reviewing a pull request or diff, checking a change for bugs, or deciding whether code is ready to merge.
+description: Enforces meaningful automated testing (testing pyramid) and rigorous code review (Google's review priorities) so changes are correct, maintainable, and verified before they ship. Use when writing tests, reviewing a pull request or diff, checking a change for bugs, or deciding whether code is ready to merge. Do NOT use as the authority on security specifics — consult secure-coding for those.
 ---
 
 # Testing & Code Review
