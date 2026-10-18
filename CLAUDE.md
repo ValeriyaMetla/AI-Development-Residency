@@ -41,6 +41,22 @@ not optional suggestions.
 - Document the *why*, and keep docs current with the code.
 - Prefer the minimum viable scope; cut rather than add.
 
+## Building and changing skills
+
+The skill files in `.claude/skills/<name>/SKILL.md` are the source of truth — they are
+what Claude actually loads. `docs/SKILLS-LIBRARY.md` holds the canonical template, the
+build method, and the governance/index. If the two ever disagree, the files win.
+
+When creating or changing any skill:
+
+1. Follow the canonical template and "How skills are built" method in
+   `docs/SKILLS-LIBRARY.md`.
+2. Draft the full `SKILL.md` in chat for review first — nothing lands in the repo until
+   approved.
+3. It is not done until: the `SKILL.md` file is updated, `docs/SKILLS-LIBRARY.md` reflects
+   it in the same commit, and triggering is re-tested (it fires on its own phrases plus a
+   paraphrase, and not on an unrelated prompt).
+
 ## Skill usage receipts
 
 At the end of every task that produced work, report a compact **🧾 Skill receipts** block:
