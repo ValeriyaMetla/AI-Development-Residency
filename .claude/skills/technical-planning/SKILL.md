@@ -1,6 +1,6 @@
 ---
 name: technical-planning
-description: Enforces lightweight technical planning before coding — choosing the simplest stack that fits, recording significant choices as Architecture Decision Records (ADRs) with context, decision, and all consequences, and breaking a feature into small verifiable tasks. Use when choosing a stack or architecture, making a significant technical decision, structuring a project, writing an ADR, or turning a spec into an implementation plan.
+description: Enforces lightweight technical planning before coding — choosing the simplest stack that fits, recording significant choices as Architecture Decision Records (ADRs) with context, decision, and all consequences, and breaking a feature into small verifiable tasks. Use when choosing a stack or architecture, making a significant technical decision, structuring a project, writing an ADR, or turning a spec into an implementation plan. Do NOT use for the product WHAT/WHY (use product-specs) or MVP scoping (use mvp-scoping).
 ---
 
 # Technical Planning
