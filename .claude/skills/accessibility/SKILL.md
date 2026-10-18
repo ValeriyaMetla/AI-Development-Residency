@@ -5,6 +5,8 @@ description: Enforces accessible interfaces that work for people with disabiliti
 
 # Accessibility
 
+## Intent
+
 Build interfaces usable by everyone, including people who use screen readers, keyboards only, or need high contrast. Accessibility is a requirement, not an enhancement. This skill follows WCAG 2.2 Level AA, organized by the four POUR principles.
 
 ## Perceivable — users can sense the content
