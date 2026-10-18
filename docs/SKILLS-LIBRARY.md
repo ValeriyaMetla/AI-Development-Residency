@@ -23,7 +23,13 @@ what they contain, and what's coming next.
 
 ### Skill template (canonical)
 
-Every `SKILL.md` has the same six parts, in order:
+Every `SKILL.md` opens with **YAML frontmatter** — fenced by `---` above and below — holding
+`name` (kebab-case, matches the folder name) and `description`. **Forbidden** anywhere in
+frontmatter: angle brackets `< >`, and names starting with `claude` or `anthropic` (both
+silently break upload). Optional frontmatter fields: `metadata:` (e.g. `author`, `version`),
+`allowed-tools:`, and `license:`.
+
+The body then has the same six core parts, in order (plus an optional seventh):
 
 1. **description** — keyword-rich; what it does *first*, then "Use when…" + triggers; third
    person; ≤1024 chars. This is the *primary* trigger. Claude tends to **under-trigger**
@@ -34,6 +40,8 @@ Every `SKILL.md` has the same six parts, in order:
 4. **checklist** — "before calling it done".
 5. **"when unsure"** — a guardrail for ambiguous cases.
 6. **"based on"** — the sources it cites.
+7. **examples** *(optional)* — one good/bad pair for skills where the rules need judgment
+   (e.g. `ux-usability`, `clean-code`); skip for mechanical skills.
 
 ### Authoring principles (canonical)
 
@@ -48,6 +56,8 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
   ~500 lines. Past that, move detail into a `references/` folder, link to it **one level
   deep** from `SKILL.md`, and add a table of contents to any reference file over ~100 lines.
   Bundle `scripts/` for deterministic work and `assets/` for output templates when useful.
+- **No `README.md` inside a skill folder.** All documentation lives in `SKILL.md` or
+  `references/`. (Repo- and week-level READMEs are separate and fine.)
 
 ### How skills are built (canonical)
 
@@ -55,11 +65,15 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
    docs, Lean Startup, etc.). Judge source quality — prefer primary/standard sources over
    vendor blogs.
 2. **Write on the template above.** Keep it concise — only what Claude doesn't already
-   know; body well under 500 lines.
+   know; body well under 500 lines. *Tip: iterate on one hard task until Claude succeeds,
+   then extract the winning approach into the skill — faster signal than broad testing.*
 3. **Prove it helps (quick eval).** Before calling it done, run 2–3 realistic test prompts
    the skill targets — once *with* the skill and once *without* it (baseline) — and confirm
    the with-skill version is actually better. The skill should fix a *real* gap, not an
-   imagined one.
+   imagined one. Then **test triggering**: run the skill's own trigger phrases plus 1–2
+   paraphrases and confirm it loads, and one unrelated prompt and confirm it does *not* — a
+   skill that doesn't fire can't help. (To debug triggering, ask Claude *"When would you use
+   the X skill?"* — it quotes the description back, exposing what's missing.)
 4. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
    surfaced in chat. **Nothing lands in the repo yet.** Val reviews it (and may do more
    research), then approves.
@@ -88,7 +102,9 @@ for a concern; others are *consulted* and contribute their slice.
 
 Rules of thumb: one accountable owner per responsibility; skills compose on a task; beware
 over-splitting into trivially-small skills; re-evaluate skills as models and standards
-change.
+change; enable only the skills a task needs, not the whole library — too many enabled at
+once degrades context and triggering. (Progressive disclosure already *loads* selectively
+per task; this is about not *enabling* dozens globally — a growing-library concern.)
 
 **The org chart** (solid = hand-off, the next skill becomes accountable; dashed =
 consulted / oversight):
