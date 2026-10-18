@@ -5,10 +5,11 @@ Residency: the full content ("script") of each built skill, plus planned skills 
 to the weeks that need them. This is the single source of truth for what skills exist,
 what they contain, and what's coming next.
 
-> The skills themselves live as working files in `.claude/skills/<name>/SKILL.md` (and
-> are synced to `~/.claude/skills/` for account-wide use). This document mirrors their
-> content in one place for reading, planning, and review. When you change a skill,
-> update it here too.
+> The skill files in `.claude/skills/<name>/SKILL.md` are the **source of truth** — they
+> are what Claude loads (and are synced to `~/.claude/skills/` for account-wide use). This
+> document is the standard + index that mirrors them for reading, planning, and review.
+> **If the two ever disagree, the files win.** When you change a skill, update it here in
+> the same commit.
 
 ---
 
@@ -65,6 +66,9 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
 5. **Install — only after approval:** (1) create `.claude/skills/<name>/SKILL.md`,
    (2) add a line to [`CLAUDE.md`](../CLAUDE.md), (3) paste its content into this library
    under its category and flip ⬜ to ✅.
+   **Definition of done:** the `SKILL.md` file, its entry in this library, and a re-test of
+   triggering (it fires on its own phrases plus a paraphrase, and not on an unrelated
+   prompt) all land in the **same commit** — never the file alone.
 6. **Commit & push** (Val does this hands-on to keep practicing):
    `git add . && git commit -m "Add <name> skill" && git push`
 
