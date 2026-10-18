@@ -23,6 +23,29 @@ Plan the *how* once the *what* is clear (see [[product-specs]]). Good planning i
 7. **Note the alternatives you considered and why you rejected them.** This is the second-most valuable part of an ADR after the consequences.
 8. **Keep ADRs short and in version control** (e.g. an `adr/` or `docs/decisions/` directory, one file per decision). Don't edit an accepted ADR to change the decision — write a new one that supersedes it, preserving the history.
 
+### ADR template (copy this)
+
+```markdown
+# ADR-NNN: <names the decision, not the problem>
+
+- **Status:** Proposed | Accepted | Deprecated | Superseded by ADR-NNN
+- **Date:** YYYY-MM-DD
+
+## Context
+<forces at play — technical, team, time, cost — including the ones in tension>
+
+## Decision
+<what we will do>
+
+## Alternatives considered
+- <option> — rejected because <reason>
+
+## Consequences
+- **Positive:** <what gets better>
+- **Negative:** <the trade-off a future reader must know before undoing this>
+- **Neutral:** <side effects that are neither>
+```
+
 ## Break the work into small tasks
 
 9. **Decompose the feature into small, independently verifiable tasks** before coding. Each task should be completable and testable on its own, ideally in a single commit or PR.
