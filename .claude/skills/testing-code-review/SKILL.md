@@ -5,6 +5,8 @@ description: Enforces meaningful automated testing (testing pyramid) and rigorou
 
 # Testing & Code Review
 
+## Intent
+
 Quality comes from verifying work, not assuming it. This skill covers two jobs: writing automated tests (based on the testing pyramid) and reviewing code (based on Google's engineering practices). Apply them before calling any change "done."
 
 ## Writing tests — follow the testing pyramid
