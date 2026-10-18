@@ -5,6 +5,8 @@ description: Evaluates whether a Claude Skill actually works — testing it agai
 
 # Skill Evaluation
 
+## Intent
+
 A skill is instructions Claude follows blindly, so a weak skill quietly degrades every task that triggers it. Don't trust a skill because it reads well — prove it helps. This skill covers how to evaluate a SKILL before relying on it. Grounded in Anthropic's `skill-creator` and the official Skill authoring best practices.
 
 ## Measure against a baseline — this is the core move
