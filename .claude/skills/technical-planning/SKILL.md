@@ -7,7 +7,7 @@ description: Enforces lightweight technical planning before coding — choosing 
 
 ## Intent
 
-Plan the *how* once the *what* is clear (see [[product-specs]]). Good planning is lightweight: pick the simplest design that meets the requirements, record the decisions that are expensive to reverse, and slice the work into small pieces you can verify. The goal is a plan someone else could pick up — not a large document no one reads.
+Plan the *how* once the *what* is clear (see [[product-specs]]). Good planning is lightweight: pick the simplest design that meets the requirements, record the decisions that are expensive to reverse, and slice the work into small pieces you can verify. The goal is a plan someone else could pick up — not a large document no one reads. It follows lightweight Architecture Decision Record (ADR) practice (Nygard) and YAGNI.
 
 ## Choose the simplest thing that works
 
