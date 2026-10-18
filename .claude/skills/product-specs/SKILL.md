@@ -5,6 +5,8 @@ description: Enforces clear product specifications (PRDs) — leading with the p
 
 # Product Specifications (PRD)
 
+## Intent
+
 A product spec aligns everyone on *what* to build and *why* before anyone writes code. It describes the problem, the user, and the desired outcome — never the implementation. If you can't state the problem, the feature isn't ready. This skill follows established PRD practice and reuses the user-story and acceptance-criteria standards from [[mvp-scoping]].
 
 ## Lead with the problem, not the feature
