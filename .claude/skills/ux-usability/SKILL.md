@@ -5,6 +5,8 @@ description: Designs clear, efficient, role-aware user experiences grounded in N
 
 # UX / Usability
 
+## Intent
+
 Good UX means users accomplish their goal with minimum confusion and effort. Design for the person using it, not for the person building it. This skill is grounded in Jakob Nielsen's 10 Usability Heuristics (Nielsen Norman Group) and enterprise UX best practices.
 
 ## Core rules (usability foundations)
