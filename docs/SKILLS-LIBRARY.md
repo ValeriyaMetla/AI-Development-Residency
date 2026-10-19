@@ -93,8 +93,8 @@ The skills work as a composing team, not a relay race: **no two skills own the s
 *decision*, but many skills apply to one *task*.** For any task, one skill is *accountable*
 for a concern; others are *consulted* and contribute their slice.
 
-- **Strategy** — `mvp-scoping` → `product-specs` → `technical-planning` (the bet → the
-  *what & why* → the *how*); each hands off to the next.
+- **Strategy** — `problem-framing` → `mvp-scoping` → `product-specs` → `technical-planning`
+  (the problem → the bet → the *what & why* → the *how*); each hands off to the next.
 - **Build quality** — `ux-usability`, `accessibility`, `documentation`: consulted on any UI
   or writing.
 - **Gate** — `secure-coding` (consulted on untrusted data) → `testing-code-review` (the
@@ -114,9 +114,9 @@ consulted / oversight):
 flowchart TD
     SE["skill-evaluation<br/>oversight · audits every skill"]
 
-    subgraph S["Tier 1 · Strategy (what → how)"]
+    subgraph S["Tier 1 · Strategy (problem → how)"]
       direction LR
-      MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"]
+      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"]
     end
 
     subgraph B["Tier 2 · Build quality"]
@@ -138,7 +138,7 @@ flowchart TD
     classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
     classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
-    class MVP,PS,TP strat;
+    class PF,MVP,PS,TP strat;
     class UX,A,D build;
     class SEC,TCR gate;
     class SE over;
@@ -150,14 +150,14 @@ flowchart TD
 
 | Category | Skills | Built |
 |---|---|---|
-| 1. Product & Planning | mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ | 3 / 3 |
+| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ | 4 / 4 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 9 built · 12 planned**
+**Total: 10 built · 12 planned**
 
 ---
 
@@ -166,7 +166,7 @@ flowchart TD
 | Week | Due | Challenge | Skills |
 |---|---|---|---|
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
-| W2 | Oct 26 | Product Specifications | `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ |
+| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ |
 | W3 | Nov 2 | Host a Web App | `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
@@ -183,6 +183,12 @@ flowchart TD
 > Each **built** skill links to its `SKILL.md` — the source of truth. Planned skills show intended scope. (This is an index, not a copy, so it cannot drift.)
 
 ## 1. Product & Planning
+
+### problem-framing ✅
+*Grounded in: Tech Fleet Product Requirements Masterclass + 5 Whys · [`SKILL.md`](../.claude/skills/problem-framing/SKILL.md)*
+
+
+Discovery before solutions: dig to the ROOT (5 Whys), break the problem into aspects, write a formal problem statement + problem checklist, and convert it to a user story. The new front of the strategy chain — feeds [[mvp-scoping]] and [[product-specs]].
 
 ### mvp-scoping ✅
 *Grounded in: Lean Startup + user stories + MoSCoW · [`SKILL.md`](../.claude/skills/mvp-scoping/SKILL.md)*
