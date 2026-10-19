@@ -23,6 +23,9 @@ not optional suggestions.
   ships. (Testing pyramid + Google review practices)
 - **documentation** — Apply when writing or updating READMEs, comments, or API docs.
   (Diátaxis + developer-doc practices)
+- **problem-framing** — Apply when framing or validating a problem before any solution:
+  finding the root (5 Whys), writing a problem statement / problem checklist, or running
+  discovery. (Tech Fleet Masterclass + 5 Whys)
 - **mvp-scoping** — Apply when planning a product, defining an MVP, or prioritizing
   what to build or cut. (Lean Startup + user stories + MoSCoW)
 - **product-specs** — Apply when writing or reviewing a product spec / PRD, feature
