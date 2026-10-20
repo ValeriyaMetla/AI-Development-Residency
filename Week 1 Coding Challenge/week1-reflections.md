@@ -1,5 +1,5 @@
 # Week 1 Reflections — Choosing a Specialization
-Link to the Week 1 Reflections on Github: github.com
+Link to the Week 1 Reflections on Notion: https://app.notion.com/p/Choosing-Specialisation-WEEK-1-HOMEWORK-3ff975c3b95080c28c9dd592a7b7688a?source=copy_link
 
 *AI Development Residency · Week 1 Homework*
 
