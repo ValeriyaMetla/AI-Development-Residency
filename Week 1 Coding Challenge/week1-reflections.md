@@ -1,4 +1,5 @@
 # Week 1 Reflections — Choosing a Specialization
+Link to the Week 1 Reflections on Github: github.com
 
 *AI Development Residency · Week 1 Homework*
 
