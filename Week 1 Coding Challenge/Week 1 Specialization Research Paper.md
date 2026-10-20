@@ -12,7 +12,7 @@ Anthropic (2024a) provides a helpful distinction here and splits these systems i
 
 What makes any of this "agentic" is the loop: the AI reasons, acts, checks the result, and tries again. That simple cycle is what lets a system break a big job into steps, catch its own mistakes, and handle problems it can't fully plan out in advance. It is the engine behind today's coding assistants and research tools — and behind the product I describe later in this paper.
 
-This paper carries a second subject that is, for me, the heart of the work: **responsible AI**. I am choosing advanced agentic workflows as my specialization, but my real focus is building them *ethically* — because an agentic system acts on its own, using tools, making choices, and affecting real people, so building one responsibly is inseparable from building one at all. Guardrails, human oversight, transparency, fairness, and responsible-AI standards are not a final checklist; they are part of the design from the first line. That conviction runs through every section that follows, and it is the reason the product I propose is itself a governance tool: it uses agentic workflows to help organizations adopt AI responsibly.
+This paper carries a second subject that is, for me, the heart of the work: **responsible AI**. I am choosing advanced agentic workflows as my specialization, but my real focus is building them *ethically* — because an agentic system acts on its own, using tools, making choices, and affecting real people, so building one responsibly is inseparable from building one at all. Guardrails, human oversight, transparency, fairness, and responsible-AI standards are not a final checklist; they are part of the design from the first line. That conviction runs through every section that follows, and it is the reason the product I propose is itself a governance tool: it uses agentic workflows to help under-resourced organizations — the ones serving the people most exposed to AI's harms — adopt AI responsibly and equitably.
 
 ## Why This Specialization Matters to My Career
 
@@ -69,7 +69,7 @@ Building these systems takes a team across product, engineering, and governance.
 - **Evaluation.** Because agents aren't fully predictable, teams write test cases and check results continually, not just once.
 - **Red-teaming and security.** People try to break the agent — for instance with prompt injection — and add defenses, guided by resources like the OWASP Top 10 for LLMs (OWASP, 2025).
 - **Responsible-AI review.** Ethics, privacy, and domain reviewers check for fairness, privacy, and accuracy, and make sure human oversight is real (NIST, 2023).
-- **Domain and community input.** Experts and the people affected weigh in on whether the agent behaves well in context.
+- **Participatory and community co-design.** Experts and the people affected — ideally as co-designers, not just reviewers — weigh in on whether the agent behaves well in context and help shape the rules it follows.
 - **Monitoring.** After launch, teams watch how it performs, look into problems, and keep adjusting.
 
 A good agentic product depends on product, engineering, and responsible-AI people working closely together.
@@ -93,6 +93,7 @@ Getting good at this means learning both a toolkit and the thinking behind it.
 - **Evaluation thinking** — defining what "good" means and measuring it, including red-teaming for failures like prompt injection (OWASP, 2025).
 - **Responsible-AI and governance** — the deepest learning curve for this project, and the skill I most want to build (expanded below).
 - **Product and domain judgment** — knowing what to automate, where a person must stay in control, and what the people affected actually need.
+- **Inclusive design literacy** — participatory and co-design methods, trauma-informed design principles (SAMHSA, 2014), and design justice (Costanza-Chock, 2020), so the people most affected help shape the product and it does no harm.
 
 **Responsible-AI and governance — the core skill.** This is the heart of the specialization for me. It means reading the major frameworks — the NIST AI Risk Management Framework (NIST, 2023), the EU AI Act's four risk tiers (European Union, 2024), and the ISO/IEC 42001 AI management-system standard (ISO/IEC, 2023) — and then *translating* them into something operational: a concrete risk model (the factors that make an AI use risky — how sensitive the data is, who is affected, how consequential the decision is, how much autonomy the AI has) and a guardrail library (the required controls — consent, data minimization, human review, scope limits) mapped to each level of risk. A key design judgment sits here: the consequential decision — *how risky is this use?* — should run on transparent, inspectable rules, not an opaque model, so that the governance tool is itself governable.
 
@@ -121,6 +122,8 @@ One distinction shapes the whole design. Under the hood, every rung runs the sam
 
 So the product is the workflow-versus-agent distinction turned into a growth path: Skills and Workflows keep the human in control of the steps; Agents hand that control to the AI only once the guardrails and the user's trust are in place.
 
+The real differentiator lives in that standards library, which has two tiers. The first is a **compliance baseline** — the NIST AI Risk Management Framework (NIST, 2023), the EU AI Act (European Union, 2024), and ISO/IEC 42001 (ISO/IEC, 2023) — that any serious governance tool can cite. The second is a co-designed **Justice Layer**: guardrails that operationalize equity, justice, and trauma-informed principles into concrete checks the agent pulls when a task touches vulnerable people or a consequential decision. Compliance frameworks tell an organization what to avoid; the Justice Layer helps it actively do right by the people it serves — and that layer, not the baseline everyone shares, is what sets the product apart.
+
 ### How a user climbs it
 
 The ladder is climbed through a task-first loop, so no one has to write policy before getting value. A new organization **seeds** a baseline policy in a few minutes of guided intake, then **does real work** through Skills — each run governed by that baseline and logged to the AI-use registry. The registry of real decisions **becomes** the organization's living AI policy and its audit trail: governance learned by doing, not read upfront. As patterns repeat, Skills are **composed** into Workflows; as trust grows, the organization **delegates** multi-step goals to Agents. The ladder is the roadmap; the loop is how they climb it.
@@ -128,6 +131,16 @@ The ladder is climbed through a task-first loop, so no one has to write policy b
 ### Why ethics is the heart, not a feature
 
 The platform is designed around limits as much as abilities. It *assists*; it never makes decisions about people, never scores or ranks individuals, and never predicts outcomes like risk or eligibility — a deliberate boundary that keeps it clear of the well-documented harms of predictive scoring in high-stakes settings. Every output is labeled by where it came from (something the user said, something backed by a standard, an AI suggestion, or something that still needs checking), and a person always has the final say. Because governance is set once at the Policy rung and inherited by every Skill, Workflow, and Agent above it, responsible AI is not a review stage at the end — it is the foundation the whole product stands on.
+
+### How I will design it: participatory, trauma-informed, and justice-driven
+
+How a governance tool is built should embody what it stands for, so the design method mirrors the mission. Three commitments shape it.
+
+**Participatory-informed.** The people affected help design the rules, at two levels. Each organization co-designs *its own* policy — the Step-1 intake and the registry that accumulates from real use are the organization authoring its governance, not receiving it. The shared Justice Layer is co-designed with affected communities and practitioners; my first co-design partner is Tech Fleet itself, whose teams use AI and can shape which equity principles belong. I call this participatory-*informed* on purpose: in the residency timeframe it means a handful of co-design interviews and an advisory loop, not a full research program.
+
+**Trauma-informed.** Many frontline users work under stress and serve people who have experienced harm, so the platform follows trauma-informed principles (SAMHSA, 2014): it coaches rather than scolds when it flags a risky use, stays transparent about what the AI did and why, keeps a person in control of every decision, minimizes sensitive data, and checks outputs for stigmatizing or deficit-based language. Each principle becomes a concrete check or interface rule, not a slogan.
+
+**Equity and justice-driven.** Following design-justice principles (Costanza-Chock, 2020) — center the most affected, treat people as experts in their own lives, and shift power rather than only widen access — the organization owns and can export its governance registry (no lock-in), baseline safety is never paywalled, and the platform refuses to score, rank, or predict about people. That refusal is a deliberate stance against the documented harms of predictive risk scoring in high-stakes settings. The goal is not only safe AI, but *just* AI.
 
 ### How it maps to the specialization
 
@@ -147,6 +160,8 @@ Anthropic. (2024a). *Building effective agents.* https://www.anthropic.com/resea
 
 Anthropic. (2024b). *Introducing the Model Context Protocol.* https://www.anthropic.com/news/model-context-protocol
 
+Costanza-Chock, S. (2020). *Design justice: Community-led practices to build the worlds we need.* The MIT Press. https://design-justice.pubpub.org/
+
 European Union. (2024). *Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act).* Official Journal of the European Union. https://eur-lex.europa.eu/eli/reg/2024/1689/oj
 
 International Organization for Standardization & International Electrotechnical Commission. (2023). *ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system.* https://www.iso.org/standard/81230.html
@@ -160,6 +175,8 @@ NonprofitPRO. (2025). *Nonprofit AI adoption hits 92%, but only 7% see major imp
 Open Worldwide Application Security Project. (2025). *OWASP top 10 for large language model applications.* https://owasp.org/www-project-top-10-for-large-language-model-applications/
 
 Shinn, N., Cassano, F., Berman, E., Gopinath, A., Narasimhan, K., & Yao, S. (2023). *Reflexion: Language agents with verbal reinforcement learning.* arXiv. https://arxiv.org/abs/2303.11366
+
+Substance Abuse and Mental Health Services Administration. (2014). *SAMHSA's concept of trauma and guidance for a trauma-informed approach* (HHS Publication No. SMA 14-4884). U.S. Department of Health and Human Services. https://store.samhsa.gov/product/SMA14-4884
 
 TechSoup. (2025). *The state of AI in nonprofits 2025.* https://page.techsoup.org/ai-benchmark-report-2025
 
