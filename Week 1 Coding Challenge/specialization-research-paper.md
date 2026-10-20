@@ -1,4 +1,8 @@
-# A Specialisation Research Paper on Advanced Agentic Workflows — and Building Them Responsibly
+# Advanced Agentic Workflows — and Building Them Responsibly
+
+*Specialization Research Paper · AI Development Residency, Week 1*
+
+Val · October 20, 2026
 
 ## Introduction to Advanced Agentic Workflows
 
@@ -10,7 +14,7 @@ What makes any of this "agentic" is the loop: the AI reasons, acts, checks the r
 
 This paper carries a second subject that is, for me, the heart of the work: **responsible AI**. I am choosing advanced agentic workflows as my specialization, but my real focus is building them *ethically* — because an agentic system acts on its own, using tools, making choices, and affecting real people, so building one responsibly is inseparable from building one at all. Guardrails, human oversight, transparency, fairness, and responsible-AI standards are not a final checklist; they are part of the design from the first line. That conviction runs through every section that follows, and it is the reason the product I propose is itself a governance tool: it uses agentic workflows to help organizations adopt AI responsibly.
 
-## Why This Specialisation Matters to My Career
+## Why This Specialization Matters to My Career
 
 My aspiration is to build a career in UX and product management, where I design and ship real products with AI — and, specifically, to be the kind of product person who makes sure those products are trustworthy. Agentic workflows are at the heart of that work, and responsible-AI judgment is the edge I want to be known for.
 
@@ -77,7 +81,7 @@ Getting good at this means learning both a toolkit and the thinking behind it.
 **Tools**
 
 - **Model APIs.** Working directly with a model API like Anthropic's Claude — prompts, tool calling, streaming — is the foundation. You can build a lot with just an API and no framework at all (Anthropic, 2024a).
-- **Orchestration frameworks.** LangGraph gives fine-grained, stateful control; CrewAI treats agents as a team of roles and is fast to prototype; AutoGen is built around agents talking to each other (Scrimba, 2026). Start simple, and reach for a framework only when you need it (Anthropic, 2024a).
+- **Orchestration frameworks.** LangGraph gives fine-grained, stateful control; CrewAI treats agents as a team of roles and is fast to prototype; AutoGen is built around agents talking to each other. Start simple, and reach for a framework only when you need it (Anthropic, 2024a).
 - **Model Context Protocol (MCP).** An open standard for plugging agents into outside tools and data (Anthropic, 2024b).
 - **Retrieval and vector stores.** Retrieval-augmented generation and vector databases (like pgvector in Postgres) keep an agent grounded in real, current information.
 - **Evaluation tools.** Ways to write test cases, score outputs, and trace what the agent did.
@@ -87,12 +91,55 @@ Getting good at this means learning both a toolkit and the thinking behind it.
 - **Prompt and context engineering** — getting reliable behavior out of a model.
 - **Software engineering** — a working language (Python or TypeScript), APIs, and databases; an agentic product is still a software product.
 - **Evaluation thinking** — defining what "good" means and measuring it, including red-teaming for failures like prompt injection (OWASP, 2025).
-- **Responsible-AI and governance** — the deepest learning curve for this project, and the skill I most want to build. It means reading the major frameworks — the NIST AI Risk Management Framework (NIST, 2023), the EU AI Act's four risk tiers (European Union, 2024), and the ISO/IEC 42001 AI management-system standard (ISO/IEC, 2023) — and then *translating* them into something operational: a concrete risk model (the factors that make an AI use risky — how sensitive the data is, who is affected, how consequential the decision is, how much autonomy the AI has) and a guardrail library (the required controls — consent, data minimization, human review, scope limits) mapped to each level of risk. A key design judgment sits here: the consequential decision — *how risky is this use?* — should run on transparent, inspectable rules, not an opaque model, so that the governance tool is itself governable.
+- **Responsible-AI and governance** — the deepest learning curve for this project, and the skill I most want to build (expanded below).
 - **Product and domain judgment** — knowing what to automate, where a person must stay in control, and what the people affected actually need.
+
+**Responsible-AI and governance — the core skill.** This is the heart of the specialization for me. It means reading the major frameworks — the NIST AI Risk Management Framework (NIST, 2023), the EU AI Act's four risk tiers (European Union, 2024), and the ISO/IEC 42001 AI management-system standard (ISO/IEC, 2023) — and then *translating* them into something operational: a concrete risk model (the factors that make an AI use risky — how sensitive the data is, who is affected, how consequential the decision is, how much autonomy the AI has) and a guardrail library (the required controls — consent, data minimization, human review, scope limits) mapped to each level of risk. A key design judgment sits here: the consequential decision — *how risky is this use?* — should run on transparent, inspectable rules, not an opaque model, so that the governance tool is itself governable.
 
 Crucially, these skills are learned best by *building*, not just reading. Designing a risk model and guardrail library is an iterative loop — study a framework, pull out the factors and controls it implies, draft them, make the judgment calls, encode them, and test against real examples — and it can be done hands-on with an AI assistant acting as tutor, researcher, and implementer while the human keeps ownership of the judgment. For this residency, the act of building the product *is* the act of learning the specialization.
 
 The tools change fast. The habits of mind — thinking about autonomy, grounding, testing, governance, and safety — carry over no matter which framework is in fashion.
+
+## The Application I Will Build: The Governed AI Ladder
+
+### The problem
+
+Organizations are adopting AI far faster than they can govern it. The sharpest version of this gap is in the nonprofit sector, which is where my product starts and where its inspiration comes from: nonprofits have adopted AI quickly but without much structure — many use it, but industry surveys suggest only about 7% see real impact, most use is casual and one-off, and very few have any AI policy at all (NonprofitPRO, 2025; TechSoup, 2025). Funders increasingly expect responsible AI, yet the organizations least able to hire consultants are the ones with no rules or oversight.
+
+But the gap is not unique to nonprofits. Any organization putting AI near sensitive data or real decisions faces the same unanswered question — *should we use AI for this, and how do we do it safely?* — and most have no good way to answer it. Nonprofits are my starting point because the need is most acute and I understand the context; the tool itself is built to serve any organization.
+
+### What it is
+
+The **Governed AI Ladder** (working title: Community AI Workflow Studio) is a governance-first platform for under-resourced organizations. Governance is not a feature bolted on at the end; it is the foundation every capability inherits. The product is a four-rung ladder — **Policy → Skills → Workflows → Agents** — where each rung adds autonomy but stays bound by the rules set at the bottom.
+
+One distinction shapes the whole design. Under the hood, every rung runs the same agentic loop — plan, pull in context, draft, self-critique, revise (Anthropic, 2024a; Shinn et al., 2023); that engine is constant and invisible. The rungs are not about the engine — they are a ladder of *who decides the steps*, from the human to the AI:
+
+1. **Policy** — the organization's rules (data handling, who is affected, what needs human review), set through a short guided intake. This is not AI doing work; it is the guardrail layer everything above inherits.
+2. **Skills** — a single reusable, governed task the user triggers, such as drafting a board report. The flagship Skill is the **AI Governance Co-Pilot**, which answers the question above — *should we use AI for this, and how?* It parses a proposed use into risk factors, scores it against the EU AI Act's risk tiers (European Union, 2024) on transparent, inspectable rules rather than an opaque model, generates the required guardrails from a standards library grounded in the NIST AI Risk Management Framework (NIST, 2023) and ISO/IEC 42001 (ISO/IEC, 2023), and records the decision to an AI-use registry.
+3. **Workflows** — several Skills chained in a fixed, user-defined order that runs the same way every time — a *workflow* in the sense this paper opened with (Anthropic, 2024a).
+4. **Agents** — the AI chooses which Skills to run toward a goal, a dynamic path bounded by the policy — an *agent* in that same sense. This rung comes last, on purpose.
+
+So the product is the workflow-versus-agent distinction turned into a growth path: Skills and Workflows keep the human in control of the steps; Agents hand that control to the AI only once the guardrails and the user's trust are in place.
+
+### How a user climbs it
+
+The ladder is climbed through a task-first loop, so no one has to write policy before getting value. A new organization **seeds** a baseline policy in a few minutes of guided intake, then **does real work** through Skills — each run governed by that baseline and logged to the AI-use registry. The registry of real decisions **becomes** the organization's living AI policy and its audit trail: governance learned by doing, not read upfront. As patterns repeat, Skills are **composed** into Workflows; as trust grows, the organization **delegates** multi-step goals to Agents. The ladder is the roadmap; the loop is how they climb it.
+
+### Why ethics is the heart, not a feature
+
+The platform is designed around limits as much as abilities. It *assists*; it never makes decisions about people, never scores or ranks individuals, and never predicts outcomes like risk or eligibility — a deliberate boundary that keeps it clear of the well-documented harms of predictive scoring in high-stakes settings. Every output is labeled by where it came from (something the user said, something backed by a standard, an AI suggestion, or something that still needs checking), and a person always has the final say. Because governance is set once at the Policy rung and inherited by every Skill, Workflow, and Agent above it, responsible AI is not a review stage at the end — it is the foundation the whole product stands on.
+
+### How it maps to the specialization
+
+The Ladder is a direct expression of the specialization. Each rung runs a real agentic loop — it plans, pulls in the right standards and context, drafts, critiques its own draft against the standards before a person sees it, and produces a governed result — the evaluator–optimizer and reflection patterns at work (Anthropic, 2024a; Shinn et al., 2023), inside clear human-oversight checkpoints. And the rungs themselves trace the field's core distinction from fixed workflows to autonomous agents, following its advice to start simple and add autonomy only when a task truly needs it (Anthropic, 2024a) — which is exactly why Agents are the last rung, not the first.
+
+### How I will build and test it — and what I hope to learn
+
+I will ship the Ladder rung by rung. The MVP is rungs one and two — a seeded policy, a handful of governed Skills (the Governance Co-Pilot among them), and the registry that turns everyday use into the organization's policy; Workflows and Agents follow once that foundation holds. The riskiest assumption I need to test first is simple: will a small organization complete the short policy seed and then trust and reuse a governed Skill built on it? The whole ladder rests on that first rung.
+
+The platform is also a small research instrument. Different kinds of organizations face different risks, so I will test it across several use cases and organization types — beginning with nonprofits, where the need is clearest and my context is strongest — to learn what governance each actually needs. Comparing how the risk factors and required guardrails shift from one organization type to the next is itself part of the contribution: an early look at whether the standards library and risk model generalize, or whether responsible AI adoption is more context-specific than the frameworks assume.
+
+In short, the Governed AI Ladder puts the whole specialization to work — tools, memory, orchestration, self-correction, guardrails, testing, and human oversight — all in service of one goal: making responsible AI adoption practical, step by step, for the organizations that need it most and can least afford to get it wrong.
 
 ## References
 
@@ -108,60 +155,6 @@ Lightcast. (2026). *The Stanford AI Index Report 2026.* https://lightcast.io/res
 
 National Institute of Standards and Technology. (2023). *Artificial intelligence risk management framework (AI RMF 1.0)* (NIST AI 100-1). U.S. Department of Commerce. https://doi.org/10.6028/NIST.AI.100-1
 
-Open Worldwide Application Security Project. (2025). *OWASP top 10 for large language model applications.* https://owasp.org/www-project-top-10-for-large-language-model-applications/
-
-Scrimba. (2026). *Best AI agent frameworks [2026] (Mastra, LangGraph, CrewAI, AutoGen, LangChain).* https://scrimba.com/articles/best-ai-agent-frameworks/
-
-Shinn, N., Cassano, F., Berman, E., Gopinath, A., Narasimhan, K., & Yao, S. (2023). *Reflexion: Language agents with verbal reinforcement learning.* arXiv. https://arxiv.org/abs/2303.11366
-
-Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., Chi, E., Le, Q., & Zhou, D. (2022). *Chain-of-thought prompting elicits reasoning in large language models.* arXiv. https://arxiv.org/abs/2201.11903
-
-Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). *ReAct: Synergizing reasoning and acting in language models.* arXiv. https://arxiv.org/abs/2210.03629
-
----
-
-## The Application I Will Build: AI Governance Co-Pilot
-
-### The problem
-
-Organizations are adopting AI far faster than they can govern it. The sharpest version of this gap is in the nonprofit sector, which is where my product starts and where its inspiration comes from: nonprofits have adopted AI quickly but without much structure — many use it, but only about 7% see real impact, most use is casual and one-off, and very few have any AI policy at all (NonprofitPRO, 2025; TechSoup, 2025). Funders increasingly expect responsible AI, yet the organizations least able to hire consultants are the ones with no rules or oversight.
-
-But the gap is not unique to nonprofits. Any organization putting AI near sensitive data or real decisions faces the same unanswered question — *should we use AI for this, and how do we do it safely?* — and most have no good way to answer it. Nonprofits are my starting point because the need is most acute and I understand the context; the tool itself is built to serve any organization.
-
-### What it does
-
-The **AI Governance Co-Pilot** answers that one question at the moment a person is about to act. A staff member describes a proposed AI use in plain language — the tool they want to use, the task, the data involved, and who is affected. An agentic workflow then:
-
-1. **Parses** the description into structured risk factors (data sensitivity, affected population, how consequential the decision is, how much autonomy the AI would have, and the tool's own data practices).
-2. **Scores** the use into a risk tier, adapting the EU AI Act's model of prohibited / high / limited / minimal risk (European Union, 2024). This step runs on transparent, inspectable rules rather than an opaque model — so the governance tool is itself accountable.
-3. **Generates** the specific guardrails that use requires, drawn from a human-written standards library grounded in the NIST AI Risk Management Framework (NIST, 2023) and ISO/IEC 42001 (ISO/IEC, 2023).
-4. **Recommends** a clear decision — *proceed*, *proceed with conditions*, or *escalate to a human* — with a plain-language rationale the user can actually understand.
-5. **Records** the decision in an AI-use registry. Over time, that accumulated registry becomes the organization's AI policy, its inventory of where AI is used, and its audit trail — three governance artifacts produced as a by-product of one focused tool.
-
-### Why ethics is the heart, not a feature
-
-The Co-Pilot is designed around limits as much as abilities. It *assists* a decision; it never makes decisions about people, never scores or ranks individuals, and never predicts outcomes like risk or eligibility — a deliberate boundary that keeps it clear of the well-documented harms of predictive scoring in high-stakes settings. Every output is labeled by where it came from (something the user said, something backed by a standard, an AI suggestion, or something that still needs checking), and a person always has the final say. In this product, responsible AI is not a review stage at the end — it is the entire point.
-
-### How it maps to the specialization
-
-The Co-Pilot is a real agentic workflow: it plans, pulls in the right standards and context, assesses, critiques its own draft assessment against the standards before a person sees it, and produces a governed result — the evaluator–optimizer and reflection patterns at work (Anthropic, 2024a; Shinn et al., 2023), inside clear human-oversight checkpoints. It is deliberately a *governed workflow*, not an autonomous agent: for decisions this sensitive, predictable and safe matter more than autonomous, which follows the field's own advice to start simple and add autonomy only when a task truly needs it (Anthropic, 2024a).
-
-### How I will test it — and what I hope to learn
-
-Different kinds of organizations face different risks, so the Co-Pilot is also a small research instrument. I will test it across several use cases and organization types to learn what governance each actually needs — beginning with nonprofits, where the need is clearest and my context is strongest, then extending to other settings. Comparing how the risk factors and required guardrails shift from one organization type to the next is itself part of the contribution: not just a tool, but an early look at how AI-governance needs vary across contexts. That evaluation-across-settings is how I will find out whether the standards library and risk model generalize, or whether responsible AI adoption is more context-specific than the frameworks assume.
-
-In short, the Co-Pilot puts the whole specialization to work — tools, memory, orchestration, self-correction, guardrails, testing, and human oversight — all in service of one goal: making responsible AI adoption practical for the organizations that need it most and can least afford to get it wrong.
-
-### References for the Project
-
-Anthropic. (2024a). *Building effective agents.* https://www.anthropic.com/research/building-effective-agents
-
-European Union. (2024). *Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act).* Official Journal of the European Union. https://eur-lex.europa.eu/eli/reg/2024/1689/oj
-
-International Organization for Standardization & International Electrotechnical Commission. (2023). *ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system.* https://www.iso.org/standard/81230.html
-
-National Institute of Standards and Technology. (2023). *Artificial intelligence risk management framework (AI RMF 1.0)* (NIST AI 100-1). U.S. Department of Commerce. https://doi.org/10.6028/NIST.AI.100-1
-
 NonprofitPRO. (2025). *Nonprofit AI adoption hits 92%, but only 7% see major impact.* https://www.nonprofitpro.com/article/nonprofit-ai-adoption-hits-92-but-only-7-see-major-impact/
 
 Open Worldwide Application Security Project. (2025). *OWASP top 10 for large language model applications.* https://owasp.org/www-project-top-10-for-large-language-model-applications/
@@ -169,3 +162,7 @@ Open Worldwide Application Security Project. (2025). *OWASP top 10 for large lan
 Shinn, N., Cassano, F., Berman, E., Gopinath, A., Narasimhan, K., & Yao, S. (2023). *Reflexion: Language agents with verbal reinforcement learning.* arXiv. https://arxiv.org/abs/2303.11366
 
 TechSoup. (2025). *The state of AI in nonprofits 2025.* https://page.techsoup.org/ai-benchmark-report-2025
+
+Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., Chi, E., Le, Q., & Zhou, D. (2022). *Chain-of-thought prompting elicits reasoning in large language models.* arXiv. https://arxiv.org/abs/2201.11903
+
+Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). *ReAct: Synergizing reasoning and acting in language models.* arXiv. https://arxiv.org/abs/2210.03629
