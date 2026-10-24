@@ -62,7 +62,7 @@ When creating or changing any skill:
 
 ## Skill usage receipts
 
-At the end of every task that produced work, report a compact **🧾 Skill receipts** block:
+At the end of every working turn/message that produced work, report a compact **🧾 Skill receipts** block:
 
 - **Which** skill(s) you applied, by name.
 - **Why** — what in the request triggered each one.
