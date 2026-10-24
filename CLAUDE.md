@@ -31,6 +31,9 @@ not optional suggestions.
 - **product-specs** — Apply when writing or reviewing a product spec / PRD, feature
   brief, requirements, or acceptance criteria (the *what* and *why*). (PRD practice +
   user stories)
+- **audience-segmentation** — Apply when defining target audiences/segments or personas,
+  running an audience segmentation workshop, or filling a segmentation, motivations,
+  goals, or use-case template. (Tech Fleet Audience Segmentation Workshop)
 - **technical-planning** — Apply when choosing a stack or architecture, making a
   significant technical decision, or breaking a feature into tasks (the *how*).
   (ADRs + YAGNI)
@@ -43,6 +46,18 @@ not optional suggestions.
 - Verify work with tests and review before calling it done.
 - Document the *why*, and keep docs current with the code.
 - Prefer the minimum viable scope; cut rather than add.
+
+## Working norms (how to collaborate)
+
+These apply to all work in this project, not to any single skill:
+
+- **Full final versions, not diffs.** When revising, output the complete rebuilt
+  version — not just the changed lines — so it's ready to copy or use as-is.
+- **Show the digging.** Share the reasoning as you go (5 Whys, raw thinking,
+  trade-offs); don't hand over pre-baked conclusions.
+- **One step at a time; collaborate.** Work section by section, showing reasoning and
+  getting input/approval before moving on — don't jump ahead or one-shot a deliverable.
+- **Receipts every working turn.** See "Skill usage receipts" below.
 
 ## Building and changing skills
 
