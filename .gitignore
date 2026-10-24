@@ -1,6 +1,9 @@
 # macOS Finder metadata (not part of the project)
 .DS_Store
 
+# Local working docs — drafts kept on this machine only, never pushed to GitHub
+work/
+
 # Logs
 logs
 *.log
