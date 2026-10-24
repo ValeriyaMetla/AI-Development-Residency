@@ -150,14 +150,14 @@ flowchart TD
 
 | Category | Skills | Built |
 |---|---|---|
-| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ | 4 / 4 |
+| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · audience-segmentation ✅ | 5 / 5 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 10 built · 12 planned**
+**Total: 11 built · 12 planned**
 
 ---
 
@@ -166,7 +166,7 @@ flowchart TD
 | Week | Due | Challenge | Skills |
 |---|---|---|---|
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
-| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ |
+| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `audience-segmentation` ✅ |
 | W3 | Nov 2 | Host a Web App | `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
@@ -207,6 +207,12 @@ The *what & why*: problem-first PRDs, testable user-story requirements, success 
 
 
 The *how*: the simplest stack that fits, ADRs that record all consequences, small verifiable tasks. Plans what [[product-specs]] defined.
+
+### audience-segmentation ✅
+*Grounded in: Tech Fleet Audience Segmentation Workshop · [`SKILL.md`](../.claude/skills/audience-segmentation/SKILL.md)*
+
+
+*Who* and *which use cases*: segment across four lenses → focus audiences (label + traits) → motivations → situational/life goals → the use-case table (problem aspect → when today → business goal → future scenario), in tight sticky phrasing. Consults [[problem-framing]] (roots, no-solutions); feeds [[mvp-scoping]] and [[product-specs]].
 
 ---
 
