@@ -34,6 +34,14 @@ not optional suggestions.
 - **audience-segmentation** — Apply when defining target audiences/segments or personas,
   running an audience segmentation workshop, or filling a segmentation, motivations,
   goals, or use-case template. (Tech Fleet Audience Segmentation Workshop)
+- **market-analysis** — Apply when sizing a market, assessing market opportunity/TAM,
+  mapping market segments/categories, or judging whether a market is worth entering.
+  (Tech Fleet Market Research Workshop + TAM/SAM/SOM)
+- **competitive-analysis** — Apply when analyzing competitors, mapping direct vs indirect
+  competitors, or building a competitor / feature-comparison table to find the gap.
+  (Tech Fleet Market Research Workshop)
+- **positioning** — Apply when writing a positioning statement, value proposition, or the
+  unique-value / differentiation section of a spec or pitch. (Geoffrey Moore + Tech Fleet)
 - **technical-planning** — Apply when choosing a stack or architecture, making a
   significant technical decision, or breaking a feature into tasks (the *how*).
   (ADRs + YAGNI)
