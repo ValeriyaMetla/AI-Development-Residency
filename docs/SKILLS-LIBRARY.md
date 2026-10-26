@@ -95,6 +95,8 @@ for a concern; others are *consulted* and contribute their slice.
 
 - **Strategy** — `problem-framing` → `mvp-scoping` → `product-specs` → `technical-planning`
   (the problem → the bet → the *what & why* → the *how*); each hands off to the next.
+- **Discovery & market** — `audience-segmentation` (who), then `market-analysis` →
+  `competitive-analysis` → `positioning` — all feed `product-specs`.
 - **Build quality** — `ux-usability`, `accessibility`, `documentation`: consulted on any UI
   or writing.
 - **Gate** — `secure-coding` (consulted on untrusted data) → `testing-code-review` (the
@@ -117,6 +119,10 @@ flowchart TD
     subgraph S["Tier 1 · Strategy (problem → how)"]
       direction LR
       PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"]
+      AS["audience-segmentation<br/>who · use cases"] --> PS
+      MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> PS
+      AS -. consults .- PF
+      MA -. consults .- AS
     end
 
     subgraph B["Tier 2 · Build quality"]
@@ -135,10 +141,12 @@ flowchart TD
     B --> G
 
     classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
+    classDef disc fill:#D7EEF9,stroke:#1C6A91,color:#06303F;
     classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
     classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
     class PF,MVP,PS,TP strat;
+    class AS,MA,CA,POS disc;
     class UX,A,D build;
     class SEC,TCR gate;
     class SE over;
