@@ -150,14 +150,14 @@ flowchart TD
 
 | Category | Skills | Built |
 |---|---|---|
-| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · audience-segmentation ✅ | 5 / 5 |
+| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ | 8 / 8 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 11 built · 12 planned**
+**Total: 14 built · 12 planned**
 
 ---
 
@@ -166,7 +166,7 @@ flowchart TD
 | Week | Due | Challenge | Skills |
 |---|---|---|---|
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
-| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `audience-segmentation` ✅ |
+| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ |
 | W3 | Nov 2 | Host a Web App | `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
@@ -213,6 +213,24 @@ The *how*: the simplest stack that fits, ADRs that record all consequences, smal
 
 
 *Who* and *which use cases*: segment across four lenses → focus audiences (label + traits) → motivations → situational/life goals → the use-case table (problem aspect → when today → business goal → future scenario), in tight sticky phrasing. Consults [[problem-framing]] (roots, no-solutions); feeds [[mvp-scoping]] and [[product-specs]].
+
+### market-analysis ✅
+*Grounded in: Tech Fleet Market Research Workshop + TAM/SAM/SOM · [`SKILL.md`](../.claude/skills/market-analysis/SKILL.md)*
+
+
+Sizes and shapes the opportunity: market segments (categories, primary vs adjacent) → size (sourced ranges, no invented precision; headline TAM vs the real addressable *intersection*) → opportunity (big enough + not too crowded = whitespace). Consults [[audience-segmentation]] (who); feeds [[competitive-analysis]] and [[product-specs]].
+
+### competitive-analysis ✅
+*Grounded in: Tech Fleet Market Research Workshop + competitive-analysis practice · [`SKILL.md`](../.claude/skills/competitive-analysis/SKILL.md)*
+
+
+Studies who else solves the problem to find the gap: direct/indirect (by *customer overlap*) ranked by product similarity → questions that test differentiation → comparison table → feature grid (provided-vs-DIY lens ✅/⚠️/🚫; table-stakes vs differentiators; only griddable products, non-products become positioning notes) → whitespace. Consults [[market-analysis]]; feeds [[positioning]] and [[product-specs]].
+
+### positioning ✅
+*Grounded in: Geoffrey Moore (Crossing the Chasm) + Tech Fleet Market Research Workshop · [`SKILL.md`](../.claude/skills/positioning/SKILL.md)*
+
+
+One sharp, defensible claim: *For [audience] who [need], [product] is a [category] that [benefit] — unlike [alternative], which [gap].* Reuses audiences + gaps (doesn't re-derive), leads with differentiated *impact* not features, one audience + one benefit, concedes table-stakes. Consults [[audience-segmentation]] and [[competitive-analysis]]; feeds [[product-specs]] and the pitch deck.
 
 ---
 
