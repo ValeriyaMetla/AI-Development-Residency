@@ -26,7 +26,9 @@ what they contain, and what's coming next.
 Every `SKILL.md` opens with **YAML frontmatter** — fenced by `---` above and below — holding
 `name` (kebab-case, matches the folder name) and `description`. **Forbidden** anywhere in
 frontmatter: angle brackets `< >`, and names starting with `claude` or `anthropic` (both
-silently break upload). Optional frontmatter fields: `metadata:` (e.g. `author`, `version`),
+silently break upload). **Required** `metadata:` field: `version:` (semantic, e.g. `1.0`;
+bump the major on a breaking rewrite, the minor on an additive change) — every `SKILL.md`
+carries one. Other optional frontmatter fields: `metadata:` extras (e.g. `author`),
 `allowed-tools:`, and `license:`.
 
 The body then has the same six core parts, in order (plus an optional seventh):
