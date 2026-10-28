@@ -121,6 +121,7 @@ flowchart TD
       PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"] --> BD["backlog-decomposition<br/>decompose · backlog"]
       AS["audience-segmentation<br/>who · use cases"] --> PS
       MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> PS
+      POS --> PD["pitch-deck<br/>synthesis · the deck"]
       AS -. consults .- PF
       MA -. consults .- AS
     end
@@ -146,7 +147,7 @@ flowchart TD
     classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
     classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
     class PF,MVP,PS,TP,BD strat;
-    class AS,MA,CA,POS disc;
+    class AS,MA,CA,POS,PD disc;
     class UX,A,D build;
     class SEC,TCR gate;
     class SE over;
@@ -158,14 +159,14 @@ flowchart TD
 
 | Category | Skills | Built |
 |---|---|---|
-| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ | 9 / 9 |
+| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 10 / 10 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 15 built · 12 planned**
+**Total: 16 built · 12 planned**
 
 ---
 
@@ -174,7 +175,7 @@ flowchart TD
 | Week | Due | Challenge | Skills |
 |---|---|---|---|
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
-| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `backlog-decomposition` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ |
+| W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `backlog-decomposition` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ · `pitch-deck` ✅ |
 | W3 | Nov 2 | Host a Web App | `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
@@ -244,7 +245,13 @@ Studies who else solves the problem to find the gap: direct/indirect (by *custom
 *Grounded in: Geoffrey Moore (Crossing the Chasm) + Tech Fleet Market Research Workshop · [`SKILL.md`](../.claude/skills/positioning/SKILL.md)*
 
 
-One sharp, defensible claim: *For [audience] who [need], [product] is a [category] that [benefit] — unlike [alternative], which [gap].* Reuses audiences + gaps (doesn't re-derive), leads with differentiated *impact* not features, one audience + one benefit, concedes table-stakes. Consults [[audience-segmentation]] and [[competitive-analysis]]; feeds [[product-specs]] and the pitch deck.
+One sharp, defensible claim: *For [audience] who [need], [product] is a [category] that [benefit] — unlike [alternative], which [gap].* Reuses audiences + gaps (doesn't re-derive), leads with differentiated *impact* not features, one audience + one benefit, concedes table-stakes. Consults [[audience-segmentation]] and [[competitive-analysis]]; feeds [[product-specs]] and [[pitch-deck]].
+
+### pitch-deck ✅
+*Grounded in: Guy Kawasaki 10/20/30 + Sequoia pitch arc + Rockefeller "Digital Storytelling for Social Impact" · [`SKILL.md`](../.claude/skills/pitch-deck/SKILL.md)*
+
+
+The communication capstone: synthesizes the finished strategy/discovery deliverables into a persuasive, one-glance deck — assembles, doesn't re-analyze. One message per slide (~10), problem at magnitude led by the pain, core idea as the designed centerpiece, solution mapped to the problem, and **sourcing integrity under compression** (ranges with the firm named, quotes only verbatim, synthesis stated as ours, trust shown as mechanisms not adjectives). A product pitch ends on vision + what to validate next, not a fundraise ask. Reuses [[positioning]], [[market-analysis]], [[competitive-analysis]], [[audience-segmentation]], [[mvp-scoping]], [[product-specs]]; consults [[ux-usability]] and [[accessibility]].
 
 ---
 
