@@ -1,6 +1,8 @@
 ---
 name: ux-usability
 description: Designs clear, efficient, role-aware user experiences grounded in Nielsen's usability heuristics and enterprise UX principles. Use when designing or building any user-facing interface, screen, form, flow, navigation, button, dashboard, or interaction — websites, apps, enterprise tools, or CLI output.
+metadata:
+  version: 1.0
 ---
 
 # UX / Usability
