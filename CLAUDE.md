@@ -8,10 +8,18 @@ apply consistently across all work in this project.
 At the start of every task, run an explicit **routing check before producing anything** —
 do not rely on a skill triggering on its own (Claude tends to under-trigger):
 
-1. **Scan** every skill in `.claude/skills/` (synced to `~/.claude/skills/`) — pass over the
-   whole list, not just the obvious one.
-2. **Match** the request against each skill's description / trigger line, including its
-   "Use when…" phrases *and* its "Do NOT use (use X)" boundaries that hand off between skills.
+1. **Place the task in the taxonomy.** Identify which of the six categories in
+   [`docs/SKILLS-LIBRARY.md`](docs/SKILLS-LIBRARY.md) the task's core work falls in — most
+   tasks touch one or two (a PRD → *Product & Planning*; a query handler → *Security &
+   Testing* + *Code Craft*).
+2. **Scan those categories in full, plus the always-consult standards.** Read every skill in
+   the matched category/categories against the request — including each skill's "Use when…"
+   phrases *and* its "Do NOT use (use X)" boundaries, which also point to skills in *other*
+   categories. Then, **regardless of category, always check the cross-cutting standards**
+   against what you're producing: `secure-coding` (any untrusted data), `testing-code-review`
+   (before "done"), `accessibility` + `ux-usability` (any UI), `documentation` (any README /
+   API / comment). Enable only the skills a task needs — don't scan unrelated specialist
+   categories — but never let category-narrowing drop a cross-cutting standard.
 3. **State the routing in one line, before any code, spec, or design**: name each skill you're
    loading and the phrase or aspect that fired it. If the task brushes an area where you
    considered a skill but ruled it out, say which and why in a few words — so exclusion is
