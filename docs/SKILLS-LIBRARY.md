@@ -95,6 +95,9 @@ for a concern; others are *consulted* and contribute their slice.
 
 - **Strategy** — `problem-framing` → `mvp-scoping` → `product-specs` → `technical-planning`
   (the problem → the bet → the *what & why* → the *how*); each hands off to the next.
+  This is a **dependency** order run **iteratively**, not fixed phases — the authoritative
+  full pipeline (incl. discovery → mvp-scoping and backlog → build plan) lives in
+  [`CLAUDE.md`](../CLAUDE.md) under "The product-spec pipeline."
 - **Discovery & market** — `audience-segmentation` (who), then `market-analysis` →
   `competitive-analysis` → `positioning` — all feed `product-specs`.
 - **Build quality** — `ux-usability`, `accessibility`, `documentation`: consulted on any UI
