@@ -1,6 +1,8 @@
 ---
 name: skill-evaluation
 description: Evaluates whether a Claude Skill actually works — testing it against a no-skill baseline, writing verifiable assertions, checking triggering accuracy, and iterating on real usage before trusting it. Use whenever creating, reviewing, improving, or deciding whether to keep a skill, whenever writing SKILL.md test cases, or whenever someone asks whether a skill helps, triggers, or is worth its context cost — even if they don't say "evaluate." Do NOT use for evaluating code or pull requests (use testing-code-review), or for evaluating model/LLM outputs — this skill is specifically for evaluating Skills.
+metadata:
+  version: 1.0
 ---
 
 # Skill Evaluation
