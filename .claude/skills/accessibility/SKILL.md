@@ -1,6 +1,8 @@
 ---
 name: accessibility
 description: Enforces accessible interfaces that work for people with disabilities, following WCAG 2.2 Level AA and the POUR principles — text alternatives, keyboard operability, color contrast, semantic HTML, and screen-reader support. Use when building or reviewing any UI, HTML, component, form, image, color choice, or interaction that a person will see or operate.
+metadata:
+  version: 1.0
 ---
 
 # Accessibility
