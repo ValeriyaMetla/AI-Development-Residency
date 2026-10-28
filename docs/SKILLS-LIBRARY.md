@@ -121,14 +121,12 @@ flowchart TD
 
     subgraph S["Tier 1 · Strategy (problem → how)"]
       direction LR
-      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs · build plan"] --> BD["backlog-decomposition<br/>decompose · backlog"]
-      TP --> RP["rapid-prototyping<br/>fast throwaway build"]
-      RP -. consults .- MVP
-      AS["audience-segmentation<br/>who · use cases"] --> PS
-      MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> PS
+      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet · vision & scope"]
+      AS["audience-segmentation<br/>who · use cases"] --> MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> MVP
+      MVP --> PS["product-specs<br/>what & why · user reqs"] --> BD["backlog-decomposition<br/>epics · features · tasks"] --> TP["technical-planning<br/>the how · build plan · ADRs"]
+      MVP --> RP["rapid-prototyping<br/>fast throwaway build"] --> TP
       POS --> PD["pitch-deck<br/>synthesis · the deck"]
       AS -. consults .- PF
-      MA -. consults .- AS
     end
 
     subgraph B["Tier 2 · Build quality"]
@@ -143,7 +141,7 @@ flowchart TD
     end
 
     SE -. oversees .-> S
-    BD --> B
+    TP --> B
     B --> G
 
     classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
