@@ -199,10 +199,10 @@ flowchart TD
 Discovery before solutions: dig to the ROOT (5 Whys), break the problem into aspects, write a formal problem statement + problem checklist, and convert it to a user story. The new front of the strategy chain — feeds [[mvp-scoping]] and [[product-specs]].
 
 ### mvp-scoping ✅
-*Grounded in: Lean Startup + user stories + MoSCoW · [`SKILL.md`](../.claude/skills/mvp-scoping/SKILL.md)*
+*Grounded in: Lean Startup + user stories + MoSCoW + Tech Fleet Vision/Scope/Roadmap workshop · [`SKILL.md`](../.claude/skills/mvp-scoping/SKILL.md)*
 
 
-The riskiest-assumption bet → user stories → a MoSCoW cut to the minimum. Its stories feed [[product-specs]] and [[technical-planning]].
+The riskiest-assumption bet → user stories → a MoSCoW cut → stage into **MVP vs MMP** (Risk×Certainty + Effort×Value) → vision board per audience per release → scope-of-outcomes table. Keeps release claims matched to scope; leading vs lagging KPIs. Feeds [[product-specs]], [[technical-planning]], and [[backlog-decomposition]].
 
 ### product-specs ✅
 *Grounded in: PRD practice + user stories/acceptance criteria · [`SKILL.md`](../.claude/skills/product-specs/SKILL.md)*
