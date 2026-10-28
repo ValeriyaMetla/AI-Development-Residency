@@ -45,6 +45,9 @@ not optional suggestions.
 - **technical-planning** — Apply when choosing a stack or architecture, making a
   significant technical decision, or breaking a feature into tasks (the *how*).
   (ADRs + YAGNI)
+- **backlog-decomposition** — Apply when breaking a release scope into epics, features,
+  and tasks, or building, structuring, or grooming a backlog / Kanban board. (SAFe
+  hierarchy + INVEST + Scrum refinement + Kanban)
 - **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
   to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
 
