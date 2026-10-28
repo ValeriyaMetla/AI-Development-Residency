@@ -1,6 +1,8 @@
 ---
 name: technical-planning
 description: Enforces lightweight technical planning and the build plan — the technical *how*, end to end. Choosing the simplest stack that fits and recording significant choices as Architecture Decision Records (ADRs); sequencing the build non-functional-before-functional (tooling → database → architecture → security → DevOps → quality → features) with a dependency spine and a walking skeleton; and writing the delivery specs — non-functional requirements ("the system shall… + binary pass/fail verification") and task-level technical requirements (acceptance conditions + BDD Given/When/Then + API & data-flow + UI annotations). Use when choosing a stack or architecture, making a significant technical decision, writing an ADR, writing a build plan, sequencing a release's build, turning a spec into an implementation plan, or writing non-functional or technical requirements. Do NOT use for the product WHAT/WHY (use product-specs) or the MVP bet/cut (use mvp-scoping).
+metadata:
+  version: 1.0
 ---
 
 # Technical Planning
