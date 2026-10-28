@@ -5,11 +5,12 @@ apply consistently across all work in this project.
 
 ## How to work in this project
 
-At the start of every task, review whether any of the Skills below apply to the
-request, and follow the relevant Skill(s) before and while producing code or designs.
-When a task touches more than one area, apply all the Skills that fit. These Skills
-encode required standards for this project — treat them as the default way of working,
-not optional suggestions.
+At the start of every task: (1) scan the skills in `.claude/skills/` (synced to
+`~/.claude/skills/`); (2) match the request against each skill's description / trigger
+line; (3) load and follow every matching skill *before* producing code, specs, or
+designs; (4) when a task spans areas, apply all the Skills that fit; (5) end the turn
+with the 🧾 receipt. These Skills encode required standards for this project — treat
+them as the default way of working, not optional suggestions.
 
 ## Available Skills (in `.claude/skills/`)
 
@@ -60,6 +61,27 @@ not optional suggestions.
   hierarchy + INVEST + Scrum refinement + Kanban)
 - **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
   to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
+
+## The product-spec pipeline (dependency order — run iteratively, not waterfall)
+
+This is a **dependency** order (what informs what), not fixed phases. On a first pass,
+move through it so you don't build on unknowns; then **iterate** — revisit any stage when
+evidence changes, run stages concurrently, treat every artifact as a living draft.
+
+```
+problem-framing → discovery (audience-segmentation → market + competitive → positioning)
+→ mvp-scoping (vision board uses discovery) → product-specs (+ User Requirements)
+→ backlog-decomposition (Epics→Features→Tasks) → technical-planning (Build Plan → NFR → Tech Reqs)
+```
+
+Working rules:
+
+- First pass fast and low-fidelity: a thin version of every stage before polishing any.
+- Prove it end to end early via the **walking skeleton** (a thin slice through all layers).
+- Feed back: a later stage can overturn an earlier one — update the upstream artifact.
+- Respect dependencies each loop: no MVP without the audience; no build sequence without
+  the features. Order is about dependency, not the calendar.
+- Every spec is an assumption until shipped and tested with real users.
 
 ## Default expectations
 
