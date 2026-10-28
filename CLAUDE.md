@@ -26,8 +26,10 @@ not optional suggestions.
 - **problem-framing** — Apply when framing or validating a problem before any solution:
   finding the root (5 Whys), writing a problem statement / problem checklist, or running
   discovery. (Tech Fleet Masterclass + 5 Whys)
-- **mvp-scoping** — Apply when planning a product, defining an MVP, or prioritizing
-  what to build or cut. (Lean Startup + user stories + MoSCoW)
+- **mvp-scoping** — Apply when planning a product, defining an MVP or MVP-vs-MMP,
+  deciding what to build or cut, writing user stories, or producing a release vision /
+  vision board / scope-of-outcomes. (Lean Startup + user stories + MoSCoW +
+  Vision/Scope/Roadmap)
 - **product-specs** — Apply when writing or reviewing a product spec / PRD, feature
   brief, requirements, or acceptance criteria (the *what* and *why*). (PRD practice +
   user stories)
