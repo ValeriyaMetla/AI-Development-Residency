@@ -1,6 +1,8 @@
 ---
 name: problem-framing
 description: Enforces disciplined problem discovery before any solution — digging to the ROOT of a user problem with the 5 Whys, breaking it into aspects, and writing a formal problem statement (root + aspect + who + when + why) plus a problem checklist (audience, goal, needs, consequences to avoid) that converts into a user story. Use when framing a problem, writing or reviewing a problem statement or problem checklist, running discovery, finding the root cause of a user pain, defining who/when/why a problem matters, or turning a vague complaint into a validated problem — even if the user doesn't say "skill." Do NOT use for the MVP bet or what-to-cut (use mvp-scoping), the full PRD (use product-specs), or how to build it (use technical-planning).
+metadata:
+  version: 1.0
 ---
 
 # Problem Framing & Discovery
