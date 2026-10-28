@@ -5,12 +5,26 @@ apply consistently across all work in this project.
 
 ## How to work in this project
 
-At the start of every task: (1) scan the skills in `.claude/skills/` (synced to
-`~/.claude/skills/`); (2) match the request against each skill's description / trigger
-line; (3) load and follow every matching skill *before* producing code, specs, or
-designs; (4) when a task spans areas, apply all the Skills that fit; (5) end the turn
-with the 🧾 receipt. These Skills encode required standards for this project — treat
-them as the default way of working, not optional suggestions.
+At the start of every task, run an explicit **routing check before producing anything** —
+do not rely on a skill triggering on its own (Claude tends to under-trigger):
+
+1. **Scan** every skill in `.claude/skills/` (synced to `~/.claude/skills/`) — pass over the
+   whole list, not just the obvious one.
+2. **Match** the request against each skill's description / trigger line, including its
+   "Use when…" phrases *and* its "Do NOT use (use X)" boundaries that hand off between skills.
+3. **State the routing in one line, before any code, spec, or design**: name each skill you're
+   loading and the phrase or aspect that fired it. If the task brushes an area where you
+   considered a skill but ruled it out, say which and why in a few words — so exclusion is
+   deliberate, never silent. (On pure Q&A or conversation that produces no deliverable, skip
+   the routing line.)
+4. **Load and follow** every matching skill before producing. When a task spans areas, apply
+   all that fit (skills compose — one task can load several); respect the dependency order in
+   the pipeline below.
+5. **Close** with the 🧾 receipt. Routing and receipt bookend the turn: routing says what you
+   plan to apply and why; the receipt reports what you actually applied and how.
+
+These Skills encode required standards for this project — treat them as the default way of
+working, not optional suggestions.
 
 ## Available Skills (in `.claude/skills/`)
 
