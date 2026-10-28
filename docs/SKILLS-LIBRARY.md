@@ -118,7 +118,9 @@ flowchart TD
 
     subgraph S["Tier 1 · Strategy (problem → how)"]
       direction LR
-      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs"] --> BD["backlog-decomposition<br/>decompose · backlog"]
+      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet"] --> PS["product-specs<br/>what & why"] --> TP["technical-planning<br/>the how · ADRs · build plan"] --> BD["backlog-decomposition<br/>decompose · backlog"]
+      TP --> RP["rapid-prototyping<br/>fast throwaway build"]
+      RP -. consults .- MVP
       AS["audience-segmentation<br/>who · use cases"] --> PS
       MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> PS
       POS --> PD["pitch-deck<br/>synthesis · the deck"]
@@ -146,7 +148,7 @@ flowchart TD
     classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
     classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
-    class PF,MVP,PS,TP,BD strat;
+    class PF,MVP,PS,TP,BD,RP strat;
     class AS,MA,CA,POS,PD disc;
     class UX,A,D build;
     class SEC,TCR gate;
@@ -159,14 +161,14 @@ flowchart TD
 
 | Category | Skills | Built |
 |---|---|---|
-| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 10 / 10 |
+| 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · rapid-prototyping ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 11 / 11 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 16 built · 12 planned**
+**Total: 17 built · 12 planned**
 
 ---
 
@@ -176,7 +178,7 @@ flowchart TD
 |---|---|---|---|
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
 | W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `backlog-decomposition` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ · `pitch-deck` ✅ |
-| W3 | Nov 2 | Host a Web App | `deployment` ⬜ · `git-workflow` ⬜ |
+| W3 | Nov 2 | Host a Web App | `rapid-prototyping` ✅ · `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
 | W6 | Nov 30 | PWA + Microservices | `technical-planning` ✅ · `clean-code` ⬜ · `error-handling-logging` ⬜ |
@@ -212,10 +214,16 @@ The riskiest-assumption bet → user stories → a MoSCoW cut → stage into **M
 The *what & why*: problem-first PRDs, testable user-story requirements, success metrics. Reuses [[mvp-scoping]]; defers the *how* to [[technical-planning]].
 
 ### technical-planning ✅
-*Grounded in: ADRs (Michael Nygard) + YAGNI · [`SKILL.md`](../.claude/skills/technical-planning/SKILL.md)*
+*Grounded in: ADRs (Michael Nygard) + YAGNI + agile build-plan (non-functional before functional) + BDD + INVEST · [`SKILL.md`](../.claude/skills/technical-planning/SKILL.md)*
 
 
-The *how*: the simplest stack that fits, ADRs that record all consequences, small verifiable tasks. Plans what [[product-specs]] defined.
+The *how*, end to end: the simplest stack that fits + ADRs that record all consequences; the **build plan** — sequence the build non-functional-before-functional (tooling → data → architecture → security → DevOps → QA → features) with a dependency spine and a walking skeleton; and the **delivery specs** — non-functional requirements ("shall" + binary pass/fail verification) and task-level technical requirements (acceptance + BDD + API/data-flow + UI). Plans what [[product-specs]] defined; hands the work breakdown to [[backlog-decomposition]].
+
+### rapid-prototyping ✅
+*Grounded in: Throwaway prototyping (Brooks, McConnell) + Wizard-of-Oz for AI + startup prototyping-speed study · [`SKILL.md`](../.claude/skills/rapid-prototyping/SKILL.md)*
+
+
+The build craft: make a rough working version fast to answer *one* question, then throw it away. Fidelity by the question (low early, high only once a flow is settled or trust is under test), happy path only, reuse components/design systems, fake data/integrations and the AI (Wizard-of-Oz), spend effort on the uncertain part, and rebuild — never promote — for production. Executes what [[mvp-scoping]] scoped; hands a graduating prototype to [[technical-planning]] and [[secure-coding]]; testing it is [[ux-usability]].
 
 ### backlog-decomposition ✅
 *Grounded in: SAFe epic/feature/story hierarchy + INVEST (Bill Wake) + Scrum refinement + Kanban (Anderson) · [`SKILL.md`](../.claude/skills/backlog-decomposition/SKILL.md)*
