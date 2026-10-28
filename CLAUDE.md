@@ -44,6 +44,10 @@ not optional suggestions.
   (Tech Fleet Market Research Workshop)
 - **positioning** — Apply when writing a positioning statement, value proposition, or the
   unique-value / differentiation section of a spec or pitch. (Geoffrey Moore + Tech Fleet)
+- **pitch-deck** — Apply when building, outlining, or reviewing a pitch deck or product /
+  startup / investor / stakeholder deck — synthesizing finished deliverables into a
+  persuasive deck, with sourcing integrity under compression. (Kawasaki 10/20/30 + Sequoia
+  arc + storytelling-for-impact)
 - **technical-planning** — Apply when choosing a stack or architecture, making a
   significant technical decision, or breaking a feature into tasks (the *how*).
   (ADRs + YAGNI)
