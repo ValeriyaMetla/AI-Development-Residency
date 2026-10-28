@@ -114,6 +114,11 @@ change; enable only the skills a task needs, not the whole library — too many 
 once degrades context and triggering. (Progressive disclosure already *loads* selectively
 per task; this is about not *enabling* dozens globally — a growing-library concern.)
 
+> **Routing:** [`CLAUDE.md`](../CLAUDE.md) implements this selection as **category-aware
+> routing** — place the task in one of the six categories below, scan those categories, and
+> always check the cross-cutting standards (`secure-coding`, `testing-code-review`,
+> `accessibility`, `ux-usability`, `documentation`) regardless of category.
+
 **The org chart** (solid = hand-off, the next skill becomes accountable; dashed =
 consulted / oversight):
 
