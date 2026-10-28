@@ -49,8 +49,12 @@ not optional suggestions.
   persuasive deck, with sourcing integrity under compression. (Kawasaki 10/20/30 + Sequoia
   arc + storytelling-for-impact)
 - **technical-planning** — Apply when choosing a stack or architecture, making a
-  significant technical decision, or breaking a feature into tasks (the *how*).
-  (ADRs + YAGNI)
+  significant technical decision, writing a build plan, sequencing a release's build,
+  breaking a feature into tasks, or writing non-functional / technical requirements
+  (the *how*). (ADRs + YAGNI + non-functional-first build plan + BDD + INVEST)
+- **rapid-prototyping** — Apply when building a quick, throwaway prototype / proof-of-concept /
+  demo / clickable or Wizard-of-Oz mockup to show or test an idea fast. (Throwaway prototyping
+  + Wizard-of-Oz)
 - **backlog-decomposition** — Apply when breaking a release scope into epics, features,
   and tasks, or building, structuring, or grooming a backlog / Kanban board. (SAFe
   hierarchy + INVEST + Scrum refinement + Kanban)
