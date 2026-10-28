@@ -232,7 +232,7 @@ The build craft: make a rough working version fast to answer *one* question, the
 *Grounded in: SAFe epic/feature/story hierarchy + INVEST (Bill Wake) + Scrum refinement + Kanban (Anderson) · [`SKILL.md`](../.claude/skills/backlog-decomposition/SKILL.md)*
 
 
-Organizes a defined scope into an Epic → Feature → Task hierarchy and a groomed, prioritized backlog / Kanban board. Owns the work-breakdown *structure* (clustering, altitude, granularity, single-home for cross-cutting capabilities, board tags, dependency/risk order); consults [[product-specs]] (feature stories + ACs), [[technical-planning]] (task breakdown), and [[mvp-scoping]] (the MoSCoW cut).
+Organizes a defined scope into an Epic → Feature → Task hierarchy and a groomed, prioritized backlog / Kanban board. Owns the work-breakdown *structure* (clustering, altitude, granularity, single-home for cross-cutting capabilities, board tags, dependency/risk order); consults [[product-specs]] (feature stories + ACs), [[technical-planning]] (task breakdown + the build sequence / delivery specs), and [[mvp-scoping]] (the MoSCoW cut).
 
 ### audience-segmentation ✅
 *Grounded in: Tech Fleet Audience Segmentation Workshop · [`SKILL.md`](../.claude/skills/audience-segmentation/SKILL.md)*
