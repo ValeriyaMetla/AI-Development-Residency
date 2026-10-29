@@ -119,48 +119,53 @@ per task; this is about not *enabling* dozens globally — a growing-library con
 > always check the cross-cutting standards (`secure-coding`, `testing-code-review`,
 > `accessibility`, `ux-usability`, `documentation`) regardless of category.
 
-**The org chart** (solid = hand-off, the next skill becomes accountable; dashed =
-consulted / oversight):
+> **Decisions:** significant, costly-to-reverse choices about the skill system are recorded
+> as ADRs in [`docs/adr/`](adr/) (e.g. why routing is category-aware). Format: the Nygard
+> five-part template defined in the `technical-planning` skill.
+
+**The org chart** — grouped by the six categories, showing the category-aware routing model
+(solid = hand-off, the next skill becomes accountable; dashed = consulted / oversight;
+thick arrow = flows into):
 
 ```mermaid
 flowchart TD
-    SE["skill-evaluation<br/>oversight · audits every skill"]
+    SE["skill-evaluation · ② AI Dev<br/>oversight — audits every skill"]
 
-    subgraph S["Tier 1 · Strategy (problem → how)"]
+    subgraph C1["① Product & Planning — the specialist pipeline"]
       direction LR
-      PF["problem-framing<br/>discovery · root problem"] --> MVP["mvp-scoping<br/>the bet · vision & scope"]
-      AS["audience-segmentation<br/>who · use cases"] --> MA["market-analysis<br/>size · opportunity"] --> CA["competitive-analysis<br/>rivals · gaps"] --> POS["positioning<br/>the claim"] --> MVP
-      MVP --> PS["product-specs<br/>what & why · user reqs"] --> BD["backlog-decomposition<br/>epics · features · tasks"] --> TP["technical-planning<br/>the how · build plan · ADRs"]
-      MVP --> RP["rapid-prototyping<br/>fast throwaway build"] --> TP
-      POS --> PD["pitch-deck<br/>synthesis · the deck"]
+      PF["problem-framing"] --> MVP["mvp-scoping"]
+      AS["audience-segmentation"] --> MA["market-analysis"] --> CA["competitive-analysis"] --> POS["positioning"] --> MVP
+      MVP --> PS["product-specs"] --> BD["backlog-decomposition"] --> TP["technical-planning"]
+      MVP --> RP["rapid-prototyping"] --> TP
+      POS --> PD["pitch-deck"]
       AS -. consults .- PF
     end
 
-    subgraph B["Tier 2 · Build quality"]
+    subgraph XC["Always-consult standards — checked on any build, whatever the category"]
       direction LR
-      UX["ux-usability<br/>usability & flows"] -. consults .- A["accessibility<br/>WCAG 2.2 AA"]
-      D["documentation<br/>READMEs, APIs"]
+      UX["ux-usability · ③"] -. consults .- A11Y["accessibility · ③<br/>WCAG 2.2 AA"]
+      DOC["documentation · ④"]
+      SEC["secure-coding · ⑤<br/>untrusted data"] -. flags .-> TCR["testing-code-review · ⑤<br/>final gate"]
     end
 
-    subgraph G["Tier 3 · Security & verification"]
-      direction LR
-      SEC["secure-coding<br/>consulted · untrusted data"] -. flags .-> TCR["testing-code-review<br/>final gate · tests + review"]
-    end
+    AID["② AI Development — planned (W4)<br/>prompt-engineering · agentic-workflow-design · rag-retrieval · ai-evaluation · responsible-ai"]
+    C6["⑥ Delivery & Integration — planned (W3–8)<br/>deployment · git-workflow · api-integration · seo-aeo"]
 
-    SE -. oversees .-> S
-    TP --> B
-    B --> G
+    SE -. oversees .-> C1
+    TP ==> XC
+    XC ==> C6
+    SE -. seats .-> AID
 
     classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
-    classDef disc fill:#D7EEF9,stroke:#1C6A91,color:#06303F;
     classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     classDef gate fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A;
     classDef over fill:#EEEDFE,stroke:#534AB7,color:#26215C;
-    class PF,MVP,PS,TP,BD,RP strat;
-    class AS,MA,CA,POS,PD disc;
-    class UX,A,D build;
+    classDef plan fill:#F5F5F3,stroke:#9A9A95,color:#55554F;
+    class PF,MVP,PS,TP,BD,RP,AS,MA,CA,POS,PD strat;
+    class UX,A11Y,DOC build;
     class SEC,TCR gate;
     class SE over;
+    class AID,C6 plan;
 ```
 
 ---
