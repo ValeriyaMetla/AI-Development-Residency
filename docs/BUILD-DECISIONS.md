@@ -46,6 +46,25 @@ notes which path it took.
 
 ---
 
+### D8 — How the 34 Build-Plan app ADRs get numbered in `docs/adr/` 🟡
+**The question:** `docs/adr/` currently holds `0001`–`0003` (skill-system routing, CI-defer,
+and internal layering). Separately, the Build Plan contains **34 app ADRs numbered ADR-1 …
+ADR-34** (TypeScript, Supabase, guardrails, etc.). When those get formatted into `docs/adr/`
+files, the numbers **collide** — Build-Plan "ADR-1" (TypeScript) is not file "ADR-0001"
+(routing). How do we reconcile them?
+
+**Why it matters:** `docs/adr/` is meant to be one chronological series. A collision means
+broken cross-references and ambiguity about which "ADR-16" someone means. Settle it *before*
+the formatting work so it's done once, not retrofitted.
+
+**Proposed solution:** Keep `docs/adr/` as a **single series**. Leave `0001`–`0003` as-is;
+format the 34 app ADRs as new sequential files starting at **`0004`**, and in each note its
+origin ("Formerly Build Plan ADR-N") for traceability. Until a file exists, keep referring to
+them as "Build Plan ADR-N" (as ADR-0003 already does); once formatted, update references to the
+new file numbers. Lock the exact scheme when we tackle the ADR-formatting task.
+
+---
+
 ## B. Architecture decisions from Week 4 lecture (Enterprise Application Architecture)
 
 ### D3 — Logical layers inside the Next.js server ✅
