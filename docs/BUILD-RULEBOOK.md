@@ -43,3 +43,25 @@ their decisions are settled. Build Plan Step 7 is the source they'll distill fro
 > **The clean loop, every time:** `main` → `git pull` → new branch → commit → push → one PR →
 > merge → delete branch → back to `main`.
 
+---
+
+## Pre-PR architecture review (the 4 questions)
+
+Before opening a PR, review the diff against these four questions — the human/AI layer of the
+"quality sandwich." *(At Phase 0 these become the automated `arch-gate.mjs` CI scanner and a
+`judge-arch` skill — see decisions D10/D7.)*
+
+- [ ] **Q1 — Is the code in the right place?** Logic sits in its proper layer: Presentation
+  (UI) holds no business/governance rules; the Domain layer owns the rules; the UI never
+  touches the database directly. *(This is the Leak Test — [ADR-0003](adr/0003-internal-server-layering.md).)*
+- [ ] **Q2 — Who owns that data?** Every data fact has one authoritative home. No competing
+  duplicate stores, and no writing to a table another context owns without an explicit API.
+  *(Org-scoped data stays behind RLS — Build Plan ADR-9 / NFR-SEC2.)*
+- [ ] **Q3 — What does the new code depend on?** Dependencies point one way (top-down, no
+  circular imports); external services (Claude, Supabase) sit behind the Data Source layer
+  rather than scattered through the app; new third-party packages are deliberate and pinned.
+- [ ] **Q4 — What happens when it breaks?** Every async call, external fetch, DB query, or
+  serverless call states what happens on failure or a null result — no unhandled paths,
+  graceful degradation, a visible error state. *(The Reliability promise — our lightest so
+  far; see D6.)*
+

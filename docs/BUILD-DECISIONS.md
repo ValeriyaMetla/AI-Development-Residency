@@ -82,20 +82,25 @@ included) is prompted to open doesn't get followed. **Solution adopted:** pointe
 
 ---
 
-### D10 — Pre-PR architecture review ("Judge-arch" 4 questions) 🔵
-**The question:** Before opening any PR, run an architecture self-review against four questions —
-(1) is the code in the right place? (2) who owns that data? (3) what does the new code depend on?
-(4) what happens when it breaks? — via the "Judge-arch" tool/method from the Week-4 lecture. How
-do we implement it: an automated tool/CLI, an AI judge/prompt, or a manual checklist?
+### D10 — Pre-PR architecture review ("Judge-arch" 4 questions) 🟡
+**Partly decided (2026-11-08).** *Judge-arch* = a `judge-arch` **skill** (AI self-audit of a
+diff against 4 architecture questions) + a deterministic **`arch-gate.mjs`** GitHub Actions
+scanner + an `arch-encode` companion — i.e. the "quality sandwich" (ADR-0002).
+
+**Staged plan:**
+- **Now (done):** the 4 questions live as the **Pre-PR Architecture Review** checklist in
+  [BUILD-RULEBOOK.md](BUILD-RULEBOOK.md), applied via the D9 build gate — the human/AI layer.
+- **Phase 0 (= [D7](#)):** build the automated `arch-gate.mjs` + `.github/workflows/arch-gate.yml`
+  gate (alongside the standard NFR-O1 checks) **and** promote the 4-question review to a proper
+  `judge-arch` skill — via the skill-build process, authored on our own standards (ADR-0003 +
+  the Leak Test), reviewing the external framework's code before adopting any, and running
+  `skill-evaluation` against the checklist baseline.
 
 **Why it matters:** catches layering, data-ownership, coupling, and failure-handling problems
-before they land — the four enterprise promises, checked per change. The four questions map to
-ADR-0003 + the Leak Test (right place), Build Plan ADR-9/NFR-SEC2 (data ownership), dependencies
-(coupling), and reliability (failure handling).
-
-**Proposed solution (pending one input):** add the four questions as a "Pre-PR architecture
-review" gate in the rulebook, covered automatically by the D9 build gate. **Needed from Val:**
-what *Judge-arch* actually is, so the rule reads "run <tool>" vs "answer this checklist."
+per change — the four enterprise promises. The automated gate also upgrades the Leak Test from
+instruction-strength to **enforced**, fixing the weakness noted in ADR-0003. The four questions
+map to ADR-0003 + the Leak Test (right place), Build Plan ADR-9/NFR-SEC2 (ownership),
+dependencies (coupling), and reliability (failure handling).
 
 ---
 
@@ -186,7 +191,8 @@ gate" in Epic 0, and NFR-O1 specifies the exact checks.
 **Proposed solution:** **Yes — build it in Phase 0**, wired to the checks in NFR-O1 (ESLint ·
 Prettier · `tsc --noEmit` · unit tests · `next build` · dependency scan · secret scan). When
 done, write an ADR that **supersedes ADR-0002** (don't edit the old one — your README's
-immutability rule).
+immutability rule). The architecture-specific check in this gate is `arch-gate.mjs` (D10's
+judge-arch) — build the two together.
 
 ---
 
