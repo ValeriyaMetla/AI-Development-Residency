@@ -145,6 +145,7 @@ flowchart TD
       direction LR
       UX["ux-usability · ③"] -. consults .- A11Y["accessibility · ③<br/>WCAG 2.2 AA"]
       DOC["documentation · ④"]
+      JA["judge-arch · ④<br/>architecture review"]
       SEC["secure-coding · ⑤<br/>untrusted data"] -. flags .-> TCR["testing-code-review · ⑤<br/>final gate"]
     end
 
@@ -163,7 +164,7 @@ flowchart TD
     classDef plan fill:#F5F5F3,stroke:#9A9A95,color:#55554F;
     class PF,MVP,PS,TP,BD,RP,AS,MA,CA,POS,PD strat;
     class UX,A11Y,DOC build;
-    class SEC,TCR gate;
+    class SEC,TCR,JA gate;
     class SE over;
     class AID,C6 plan;
 ```
@@ -177,11 +178,11 @@ flowchart TD
 | 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · rapid-prototyping ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 11 / 11 |
 | 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
-| 4. Code Craft | documentation ✅ · clean-code ⬜ · error-handling-logging ⬜ | 1 / 3 |
+| 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 17 built · 12 planned**
+**Total: 18 built · 12 planned**
 
 ---
 
@@ -334,6 +335,12 @@ WCAG 2.2 AA / POUR — text alternatives, keyboard operability, contrast, semant
 
 
 READMEs, comments, and API docs via Diataxis — comments explain *why*; link, don't duplicate.
+
+### judge-arch ✅
+*Grounded in: Fowler's layered architecture + the 4 architecture questions · [`SKILL.md`](../.claude/skills/judge-arch/SKILL.md)*
+
+
+Architecture review of a diff before done/merge — four questions: right place (layering / Leak Test), who owns the data, what it depends on (coupling), what happens when it breaks (resilience). The generation-time half of the quality sandwich; its back-end is `arch-gate.mjs` in CI. Consulted on any app-code change. Grounded in [[technical-planning]] (ADR-0003); pairs with [[testing-code-review]] and [[secure-coding]].
 
 ### clean-code ⬜ *(planned — Week 6, due Nov 30)*
 Intended scope: readable, maintainable code — clear naming, small focused functions,
