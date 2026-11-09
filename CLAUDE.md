@@ -112,6 +112,16 @@ Working rules:
 - Document the *why*, and keep docs current with the code.
 - Prefer the minimum viable scope; cut rather than add.
 
+## Build gate — before "done" or a PR (Release 1a)
+
+When working on the app (the `studio/` Release 1a build), **before calling any coding work
+"done" or opening a pull request**, apply the gates in
+[`docs/BUILD-RULEBOOK.md`](docs/BUILD-RULEBOOK.md) — currently its **Definition of Done** and
+**Git workflow** rules. The rulebook holds the detail and is the source of truth; this line is
+the switch that makes the check run every time, and it covers new rulebook gates automatically
+as they are added. (This is in addition to the skill routing above — `testing-code-review` and
+`secure-coding` still apply.)
+
 ## Working norms (how to collaborate)
 
 These apply to all work in this project, not to any single skill:

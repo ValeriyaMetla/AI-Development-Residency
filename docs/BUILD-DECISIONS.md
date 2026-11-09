@@ -69,6 +69,36 @@ new file numbers. Lock the exact scheme when we tackle the ADR-formatting task.
 
 ---
 
+### D9 — How build rules get enforced on Claude ✅
+**Decided (2026-11-08) → root [`CLAUDE.md`](../CLAUDE.md) "Build gate" section.** Rules live in
+the rulebook (source of truth); a short gate in `CLAUDE.md` points to it so Claude applies the
+Definition of Done and Git workflow before calling work done or opening a PR. Chosen over copying
+rules into `CLAUDE.md` (two copies drift). The generic pointer auto-covers new rulebook gates.
+
+**The question:** The rulebook isn't auto-loaded, so Claude won't apply its rules on its own —
+how do we make Claude reliably trigger them? **Why it matters:** a rulebook nobody (Claude
+included) is prompted to open doesn't get followed. **Solution adopted:** pointer in `CLAUDE.md`
+→ rulebook holds the detail.
+
+---
+
+### D10 — Pre-PR architecture review ("Judge-arch" 4 questions) 🔵
+**The question:** Before opening any PR, run an architecture self-review against four questions —
+(1) is the code in the right place? (2) who owns that data? (3) what does the new code depend on?
+(4) what happens when it breaks? — via the "Judge-arch" tool/method from the Week-4 lecture. How
+do we implement it: an automated tool/CLI, an AI judge/prompt, or a manual checklist?
+
+**Why it matters:** catches layering, data-ownership, coupling, and failure-handling problems
+before they land — the four enterprise promises, checked per change. The four questions map to
+ADR-0003 + the Leak Test (right place), Build Plan ADR-9/NFR-SEC2 (data ownership), dependencies
+(coupling), and reliability (failure handling).
+
+**Proposed solution (pending one input):** add the four questions as a "Pre-PR architecture
+review" gate in the rulebook, covered automatically by the D9 build gate. **Needed from Val:**
+what *Judge-arch* actually is, so the rule reads "run <tool>" vs "answer this checklist."
+
+---
+
 ## B. Architecture decisions from Week 4 lecture (Enterprise Application Architecture)
 
 ### D3 — Logical layers inside the Next.js server ✅
