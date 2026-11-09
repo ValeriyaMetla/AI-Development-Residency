@@ -17,7 +17,11 @@ A **running list of decisions we still need to make** to build MVP #1 Release 1a
 
 ## A. Process & where things live
 
-### D1 — Where the app code and these build docs live 🔵
+### D1 — Where the app code and these build docs live ✅
+**Decided (2026-11-08) → [ADR-0004](adr/0004-repository-layout.md).** App code in `studio/`;
+build/process docs in repo `docs/`; product specs stay the source of truth in Notion (log may
+mirror to Notion later).
+
 **The question:** Do we build the app in a `studio/` subfolder of the `AI-Development-Residency`
 repo (the proposed name), and do the build docs (this log, the build rulebook) live in the
 repo's `docs/` or in Notion with the Week 2 specs?
