@@ -35,13 +35,15 @@ their decisions are settled. Build Plan Step 7 is the source they'll distill fro
 - [ ] **One PR per branch, merged once.** Open a single PR for the branch, merge it once, then
   delete the branch. (Turn on GitHub's *Settings → General → "Automatically delete head
   branches"* so merged branches clean up on their own.)
-- [ ] **Never commit straight to `main`.** Every change lands via a PR. *(Build Plan ADR-21,
-  NFR-T3.)*
+- [ ] **Code via PR; pure docs straight to `main`.** Code changes — anything under `studio/` or
+  `scripts/`, or that affects how the app builds or runs — land via a branch + PR so the CI and
+  arch-gate run. **Pure-doc changes** (ADRs, this rulebook, the decisions log, READMEs) may be
+  committed directly to `main`. *(Build Plan ADR-21 / NFR-T3, relaxed for docs — decision D12.)*
 - [ ] **Commit messages:** imperative subject line, then a short body explaining *why*; include
   the AI co-author line on AI-assisted commits.
 
-> **The clean loop, every time:** `main` → `git pull` → new branch → commit → push → one PR →
-> merge → delete branch → back to `main`.
+> **The clean loop (for code changes):** `main` → `git pull` → new branch → commit → push → one
+> PR → merge → delete branch → back to `main`. (Pure-doc changes skip this and commit to `main`.)
 
 ---
 

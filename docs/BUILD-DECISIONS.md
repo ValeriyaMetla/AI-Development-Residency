@@ -113,6 +113,18 @@ skill install is the remaining piece.
 
 ---
 
+### D12 — Git workflow: docs straight to `main`, code via PR ✅
+**Decided (2026-11-08) → [BUILD-RULEBOOK.md](BUILD-RULEBOOK.md) › Git workflow.** Relaxes the
+"never commit to `main`" rule: **pure-doc changes** (ADRs, the rulebook, the decisions log,
+READMEs) may be committed directly to `main`; **code changes** (anything under `studio/` /
+`scripts/` or affecting the build) still go via a branch + PR so the CI and arch-gate run.
+
+**The question:** PR-per-change is heavy for solo doc edits — require a PR for every doc?
+**Why it matters:** doc PRs add friction with no CI value (nothing to gate); code PRs are where
+the quality gates matter. **Resolved:** docs → `main`; code → PR.
+
+---
+
 ## B. Architecture decisions from Week 4 lecture (Enterprise Application Architecture)
 
 ### D3 — Logical layers inside the Next.js server ✅
