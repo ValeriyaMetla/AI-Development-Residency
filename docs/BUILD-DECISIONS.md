@@ -36,7 +36,11 @@ already live). This log can mirror to Notion later if you'd rather read it there
 
 ---
 
-### D2 — How new decisions get recorded 🟡
+### D2 — How new decisions get recorded ✅
+**Decided (2026-11-08) → [BUILD-RULEBOOK.md](BUILD-RULEBOOK.md) › Recording decisions.** Rule
+adopted: costly-to-reverse → new **ADR**; a rule we follow while coding → the **rulebook**; a
+tweak to an existing plan → edit the **Build Plan**. Every decided log item names its home.
+
 **The question:** When we settle something, does it become (a) a Build Plan refinement,
 (b) a new ADR, or (c) a build-rulebook rule?
 
@@ -147,7 +151,12 @@ guardrail on its own." (Pairs with your NFR-S1/S2.)
 
 ---
 
-### D5 — Domain logic pattern for the guardrails 🟡
+### D5 — Domain logic pattern for the guardrails ✅
+**Decided (2026-11-08) → coding convention (confirms Build Plan ADR-27 + ADR-0003).** Guardrail
+and risk-tiering logic uses **Transaction Script** — plain deterministic functions, one per
+check; no rich object model (YAGNI). No new ADR: already implied by ADR-0003 (Domain = pure
+functions) and Build Plan ADR-27.
+
 **The question:** The lecture offers three ways to organize business logic — Transaction
 Script (simple step-by-step functions), Table Module, or Domain Model (rich objects). Which
 fits our guardrail / risk-tiering logic?
@@ -162,7 +171,11 @@ Likely a one-line note in the Build Plan, not its own ADR.
 
 ---
 
-### D6 — Scalability stance for the MVP 🟡
+### D6 — Scalability stance for the MVP ✅
+**Decided (2026-11-08) → Build Plan (confirms ADR-14).** Scalability is **deferred on purpose
+for the MVP**: synchronous requests, no job queue. Revisit trigger: Workflows (rung 3) or real
+multi-org load. No new ADR: confirms the existing Build Plan ADR-14.
+
 **The question:** Of the lecture's four promises (Reliability, Scalability, Maintainability,
 Security), scalability is the one the MVP deliberately does *less* on. Do we confirm that as
 an on-purpose deferral?

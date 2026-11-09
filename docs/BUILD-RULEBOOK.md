@@ -65,3 +65,17 @@ Before opening a PR, review the diff against these four questions — the human/
   graceful degradation, a visible error state. *(The Reliability promise — our lightest so
   far; see D6.)*
 
+---
+
+## Recording decisions
+
+When a build decision is settled (tracked in [BUILD-DECISIONS.md](BUILD-DECISIONS.md)), record
+it in the right home:
+
+- **Costly to reverse** (the stack, the data model, how the server is layered) → a new **ADR**
+  in `docs/adr/`.
+- **A rule we follow while coding** (the Leak Test, the git workflow) → **this rulebook**.
+- **A tweak to an existing plan** → edit the **Build Plan** (Notion).
+
+Every decided item in the log names which home it took. *(Decision D2.)*
+
