@@ -18,7 +18,8 @@ do not rely on a skill triggering on its own (Claude tends to under-trigger):
    categories. Then, **regardless of category, always check the cross-cutting standards**
    against what you're producing: `secure-coding` (any untrusted data), `testing-code-review`
    (before "done"), `accessibility` + `ux-usability` (any UI), `documentation` (any README /
-   API / comment). Enable only the skills a task needs — don't scan unrelated specialist
+   API / comment), and `judge-arch` (any change to app code — layering, data ownership,
+   dependencies, resilience, before done/PR). Enable only the skills a task needs — don't scan unrelated specialist
    categories — but never let category-narrowing drop a cross-cutting standard.
 3. **State the routing in one line, before any code, spec, or design**: name each skill you're
    loading and the phrase or aspect that fired it. If the task brushes an area where you
@@ -44,6 +45,9 @@ working, not optional suggestions.
   image, color, or interaction. (WCAG 2.2 AA / POUR)
 - **testing-code-review** — Apply when writing tests or reviewing a change before it
   ships. (Testing pyramid + Google review practices)
+- **judge-arch** — Apply when reviewing a diff/PR for architectural integrity before done or
+  merge — layering, data ownership, dependencies, resilience. (Fowler layers + the 4 questions;
+  back-end is `arch-gate.mjs` in CI)
 - **documentation** — Apply when writing or updating READMEs, comments, or API docs.
   (Diátaxis + developer-doc practices)
 - **problem-framing** — Apply when framing or validating a problem before any solution:

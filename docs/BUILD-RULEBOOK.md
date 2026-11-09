@@ -48,8 +48,8 @@ their decisions are settled. Build Plan Step 7 is the source they'll distill fro
 ## Pre-PR architecture review (the 4 questions)
 
 Before opening a PR, review the diff against these four questions — the human/AI layer of the
-"quality sandwich." *(At Phase 0 these become the automated `arch-gate.mjs` CI scanner and a
-`judge-arch` skill — see decisions D10/D7.)*
+"quality sandwich." *(These four questions are the [`judge-arch`](../.claude/skills/judge-arch/SKILL.md) skill — the
+source of truth — now also enforced automatically by `arch-gate.mjs` in CI. See D10/D7.)*
 
 - [ ] **Q1 — Is the code in the right place?** Logic sits in its proper layer: Presentation
   (UI) holds no business/governance rules; the Domain layer owns the rules; the UI never
