@@ -93,7 +93,11 @@ reinforces your existing rule that guardrails are code *outside* the model (ADR-
 
 ---
 
-### D4 — The "Leak Test" as a review rule 🟡
+### D4 — The "Leak Test" as a review rule ✅
+**Decided (2026-11-08) → [BUILD-RULEBOOK.md](BUILD-RULEBOOK.md) › Definition of Done.** Adopted
+the Leak Test as the first Definition-of-Done rule in the build rulebook (recorded as a coding
+rule, not an ADR, per D2's proposed test).
+
 **The question:** Do we adopt the lecture's Leak Test as a standing check? *"Could you swap
 the browser for a command-line script and keep all the governance intact? If you'd have to
 copy logic into the UI to do that, the logic is leaking into the wrong layer."*
