@@ -106,6 +106,11 @@ instruction-strength to **enforced**, fixing the weakness noted in ADR-0003. The
 map to ADR-0003 + the Leak Test (right place), Build Plan ADR-9/NFR-SEC2 (ownership),
 dependencies (coupling), and reliability (failure handling).
 
+**Built (2026-11-08, armed):** `scripts/arch-gate.mjs` + `arch-gate.config.json` +
+`arch-gate.waivers.json` + `.github/workflows/arch-gate.yml` are scaffolded and tested; the
+`arch-encode` process is in the rulebook. The gate enforces on Phase-0 code; the `judge-arch`
+skill install is the remaining piece.
+
 ---
 
 ## B. Architecture decisions from Week 4 lecture (Enterprise Application Architecture)
@@ -205,7 +210,9 @@ gate" in Epic 0, and NFR-O1 specifies the exact checks.
 Prettier · `tsc --noEmit` · unit tests · `next build` · dependency scan · secret scan). When
 done, write an ADR that **supersedes ADR-0002** (don't edit the old one — your README's
 immutability rule). The architecture-specific check in this gate is `arch-gate.mjs` (D10's
-judge-arch) — build the two together.
+judge-arch) — build the two together. The `arch-gate.mjs` architecture check is now scaffolded
+(armed); the rest of the NFR-O1 checks (lint · `tsc` · tests · `next build` · dep/secret scan)
+arrive with the Phase-0 app scaffold.
 
 ---
 

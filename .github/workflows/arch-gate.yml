@@ -1,0 +1,29 @@
+name: Architecture Quality Gate
+
+# Runs the deterministic arch-gate scanner (the back-end half of the quality sandwich,
+# ADR-0002) on every PR and push to main. It enforces the judge-arch rules against the
+# ADR-0003 layer structure. Zero dependencies — just Node — so no install step.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  arch-gate:
+    name: Verify architectural integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so changed files can be diffed against the base
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run arch-gate
+        run: node scripts/arch-gate.mjs --changed --base "origin/${{ github.base_ref || 'main' }}"

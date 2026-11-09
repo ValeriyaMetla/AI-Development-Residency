@@ -67,6 +67,22 @@ Before opening a PR, review the diff against these four questions — the human/
 
 ---
 
+## The architecture gate — `arch-gate.mjs` & arch-encode
+
+The automated back-end of the quality sandwich (ADR-0002): it enforces the four questions
+mechanically, so a violation can't reach `main` even if the review above is skipped.
+
+- **`arch-gate.mjs`** (`scripts/arch-gate.mjs`) — a zero-dependency scanner that checks changed
+  files against the banned patterns in `arch-gate.config.json`, honouring `arch-gate.waivers.json`
+  for accepted pre-existing debt. It runs on every PR via `.github/workflows/arch-gate.yml` and
+  turns the check red on a new violation. Run it locally with `node scripts/arch-gate.mjs --changed`.
+  Its rules target the ADR-0003 layers; it is **armed and passes green until Phase-0 app code lands**.
+- **arch-encode (the rule):** when a violation ever slips past review into `main`, don't just fix
+  it — **add a banned pattern to `arch-gate.config.json`** so that exact mistake can never recur.
+  Every escaped bug becomes a permanent automated check. *(Decisions D7 / D10.)*
+
+---
+
 ## Recording decisions
 
 When a build decision is settled (tracked in [BUILD-DECISIONS.md](BUILD-DECISIONS.md)), record

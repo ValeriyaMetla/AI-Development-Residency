@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "rules": {
+    "no-db-in-presentation": {
+      "description": "Q1 (ADR-0003): the Presentation layer (studio/app UI) must not access the database directly. Move queries into studio/lib/data and call them from a server action or route.",
+      "targetFiles": ["studio/app/**/*.{ts,tsx,js,jsx}"],
+      "exclude": ["studio/app/api/**/*", "studio/app/**/route.{ts,js}", "studio/app/**/actions.{ts,js}"],
+      "bannedPatterns": ["supabase.from(", "createClient(", "SELECT ", "INSERT INTO", "UPDATE ", "DELETE FROM"]
+    },
+    "externals-behind-data-layer": {
+      "description": "Q3 (ADR-0003): external SDKs (Supabase, Claude) belong in the Data-Source layer (studio/lib/data), not in UI screens or Domain logic.",
+      "targetFiles": ["studio/app/**/*.{ts,tsx}", "studio/lib/domain/**/*.{ts,tsx}"],
+      "exclude": ["studio/app/api/**/*"],
+      "bannedPatterns": ["@supabase/supabase-js", "@anthropic-ai/sdk"]
+    }
+  }
+}
