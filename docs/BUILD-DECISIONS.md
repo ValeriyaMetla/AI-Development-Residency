@@ -195,6 +195,19 @@ load). A sentence in the Build Plan; no new ADR needed.
 
 ---
 
+### D11 — UI component library: Material UI vs Tailwind/shadcn ✅
+**Decided (2026-11-08) → [ADR-0005](adr/0005-material-ui.md); supersedes Build-Plan ADR-33.**
+Use **Material UI** on Next.js App Router (via the `@mui/material-nextjs` adapter). Chosen over
+Tailwind + shadcn/ui for the fixed residency stack, solo-builder speed (batteries-included),
+built-in accessibility toward WCAG 2.2 AA, and reliable AI code generation.
+
+**The question:** Build-Plan ADR-33 picked Tailwind + shadcn/ui, but the fixed challenge stack
+names Material UI — which UI library do we build on? **Why it matters:** the UI library is
+costly to switch once components exist, and the two specs contradicted. **Resolved:** Material
+UI (ADR-0005); ADR-33 superseded.
+
+---
+
 ## C. Now-due items (decisions whose "wait" has expired)
 
 ### D7 — Stand up the CI quality gate 🔵
