@@ -176,13 +176,13 @@ flowchart TD
 | Category | Skills | Built |
 |---|---|---|
 | 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · rapid-prototyping ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 11 / 11 |
-| 2. AI Development | skill-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ · responsible-ai ⬜ | 1 / 6 |
+| 2. AI Development | skill-evaluation ✅ · responsible-ai ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ | 2 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 18 built · 12 planned**
+**Total: 19 built · 11 planned**
 
 ---
 
@@ -305,10 +305,11 @@ Intended scope: evaluating LLM *outputs* (distinct from code tests) — eval set
 rubrics, LLM-as-judge, and regression checks for prompts/agents.
 *Likely grounded in: LLM evaluation practices.*
 
-### responsible-ai ⬜ *(planned — around Week 4)*
-Intended scope: responsible-AI practices — provenance/sourcing, human review, bias and
-safety checks, transparency about AI-generated content.
-*Likely grounded in: NIST AI RMF.*
+### responsible-ai ✅
+*Grounded in: NIST AI RMF (+ GenAI Profile) · OECD AI Principles · UNESCO Ethics of AI · EU AI Act · ISO/IEC 42001/23894 · Fairness and ML · Microsoft HAX / Google PAIR · [`SKILL.md`](../.claude/skills/responsible-ai/SKILL.md)*
+
+
+The responsible-AI gate for any AI-powered feature, organized by NIST's Govern/Map/Measure/Manage: name an accountable human + record costly choices as ADRs; map stakes + prohibited uses (**no scoring/ranking people**); disclose AI involvement; design against fabrication; check bias on real/edge inputs; govern the data sent to a model; keep a **human in the loop** for consequential decisions; log + monitor with an off switch. The accountable owner of the "provenance / trust / guardrails" concern other skills only *name*. Consults [[secure-coding]] (data protection), [[ai-evaluation]] (output measurement), [[judge-arch]] (guardrail placement), [[accessibility]] (UI access), and [[technical-planning]] (requirements → NFRs/ADRs).
 
 ---
 
