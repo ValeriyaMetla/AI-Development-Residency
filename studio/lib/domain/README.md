@@ -5,6 +5,7 @@ deterministic functions: the governed-run pipeline, guardrail checks, risk-tieri
 logic.
 
 **Rules (see [ADR-0003](../../../docs/adr/0003-internal-server-layering.md)):**
+
 - No HTTP objects and no Supabase SDK calls here — this layer is framework- and database-free.
 - Reads/writes go through the **Data Source layer** (`lib/data/`), never directly.
 - Nothing in Presentation (`app/` UI) may hold logic that belongs here (the Leak Test).

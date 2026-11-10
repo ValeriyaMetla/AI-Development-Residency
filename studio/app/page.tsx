@@ -21,8 +21,8 @@ export default function Home() {
           Community AI Workflow Studio
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Helping small nonprofits use AI safely and fairly. This is the Phase 0
-          scaffold — the walking skeleton comes next.
+          Helping small nonprofits use AI safely and fairly. This is the Phase 0 scaffold — the
+          walking skeleton comes next.
         </Typography>
         <Box>
           <Button variant="contained">Get started</Button>
