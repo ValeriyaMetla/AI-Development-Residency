@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # The studio/ Next.js app dependencies.
+  - package-ecosystem: npm
+    directory: /studio
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+  # GitHub Actions used by the workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies

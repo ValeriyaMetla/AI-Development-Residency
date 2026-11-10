@@ -222,7 +222,12 @@ UI (ADR-0005); ADR-33 superseded.
 
 ## C. Now-due items (decisions whose "wait" has expired)
 
-### D7 — Stand up the CI quality gate 🔵
+### D7 — Stand up the CI quality gate ✅
+**Decided (2026-11-09) → [ADR-0006](adr/0006-ci-quality-gate.md); supersedes ADR-0002.** Built the
+`CI` workflow (ESLint · Prettier · `tsc --noEmit` · Vitest · `next build` · production dependency
+scan · gitleaks) + Dependabot, alongside the arch-gate. Production deps are clean via a `postcss`
+override; dev-tooling advisories are accepted as non-shipping and tracked by Dependabot.
+
 **The question:** ADR-0002 deferred building the CI gate (the automatic checker on every Pull
 Request) until app code arrives. App code is arriving now. Do we build it as part of Epic 0
 foundations?

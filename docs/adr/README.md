@@ -21,7 +21,8 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 
 ## Index
 - [ADR-0001](0001-category-aware-routing.md) — Skill routing is a forced, category-aware check
-- [ADR-0002](0002-defer-ci-quality-gate.md) — Defer the CI quality gate to the app-building weeks
+- [ADR-0002](0002-defer-ci-quality-gate.md) — Defer the CI quality gate to the app-building weeks *(superseded by ADR-0006)*
 - [ADR-0003](0003-internal-server-layering.md) — Internal server code follows Service → Domain → Data-Source layers
 - [ADR-0004](0004-repository-layout.md) — Repository layout: app in studio/, process docs in docs/, specs in Notion
 - [ADR-0005](0005-material-ui.md) — Use Material UI as the UI component library (supersedes Build-Plan ADR-33)
+- [ADR-0006](0006-ci-quality-gate.md) — Stand up the CI quality gate: lint · format · types · tests · build · dependency + secret scan (supersedes ADR-0002)

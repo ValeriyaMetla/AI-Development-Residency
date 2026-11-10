@@ -1,6 +1,6 @@
 # ADR-0002: Defer the CI quality gate to the app-building weeks
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-0006](0006-ci-quality-gate.md)
 - **Date:** 2026-10-28
 
 ## Context

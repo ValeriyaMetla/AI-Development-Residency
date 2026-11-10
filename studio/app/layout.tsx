@@ -18,9 +18,7 @@ export const metadata: Metadata = {
   description: 'Helping small nonprofits use AI safely and fairly.',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={roboto.variable}>
       <body>
