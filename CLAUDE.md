@@ -116,6 +116,19 @@ Working rules:
 - Document the *why*, and keep docs current with the code.
 - Prefer the minimum viable scope; cut rather than add.
 
+## Technical-architecture reference
+
+Before any technical, architecture, or build work on the `studio/` app — choosing a pattern,
+writing or reviewing an ADR, designing the data model, layering code, or scaffolding/deploying —
+read [`docs/reference/week-4-technical-architecture.md`](docs/reference/week-4-technical-architecture.md).
+It captures the Week 4 lecture and assignment: the layer model and Leak Test, the domain/data-source
+patterns, ADR practice, hosting, the launch checklist, and the submission rubric. Treat its
+"Our notes" (§17) as pointers to our existing ADRs and decisions, not as new rules.
+
+**Read every ADR in [`docs/adr`](docs/adr) before making changes, and write a new ADR for every
+big decision** (costly-to-reverse choices — stack, data model, layering). This is the lecture's own
+rule; the ADR format and immutability conventions live in [`docs/adr/README.md`](docs/adr/README.md).
+
 ## Build gate — before "done" or a PR (Release 1a)
 
 When working on the app (the `studio/` Release 1a build), **before calling any coding work
