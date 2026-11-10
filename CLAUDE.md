@@ -18,8 +18,9 @@ do not rely on a skill triggering on its own (Claude tends to under-trigger):
    categories. Then, **regardless of category, always check the cross-cutting standards**
    against what you're producing: `secure-coding` (any untrusted data), `testing-code-review`
    (before "done"), `accessibility` + `ux-usability` (any UI), `documentation` (any README /
-   API / comment), and `judge-arch` (any change to app code — layering, data ownership,
-   dependencies, resilience, before done/PR). Enable only the skills a task needs — don't scan unrelated specialist
+   API / comment), `judge-arch` (any change to app code — layering, data ownership,
+   dependencies, resilience, before done/PR), and `responsible-ai` (any AI-powered feature —
+   model/agent call, generated content, or an automated decision about a person). Enable only the skills a task needs — don't scan unrelated specialist
    categories — but never let category-narrowing drop a cross-cutting standard.
 3. **State the routing in one line, before any code, spec, or design**: name each skill you're
    loading and the phrase or aspect that fired it. If the task brushes an area where you
@@ -87,6 +88,10 @@ working, not optional suggestions.
   hierarchy + INVEST + Scrum refinement + Kanban)
 - **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
   to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
+- **responsible-ai** — Apply when building, reviewing, or shipping any AI-powered feature
+  (a prompt, chatbot, agentic workflow, generated content, a recommendation, or an automated
+  decision about a person): human-in-the-loop, disclosure, grounding/anti-fabrication, bias
+  checks, data governance, logging/monitoring. Cross-cutting — fires on any AI feature. (NIST AI RMF)
 
 ## The product-spec pipeline (dependency order — run iteratively, not waterfall)
 
