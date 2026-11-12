@@ -26,3 +26,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0004](0004-repository-layout.md) — Repository layout: app in studio/, process docs in docs/, specs in Notion
 - [ADR-0005](0005-material-ui.md) — Use Material UI as the UI component library (supersedes Build-Plan ADR-33)
 - [ADR-0006](0006-ci-quality-gate.md) — Stand up the CI quality gate: lint · format · types · tests · build · dependency + secret scan (supersedes ADR-0002)
+- [ADR-0007](0007-signup-provisioning-trigger.md) — Provision org + profile at sign-up via a SECURITY DEFINER trigger
