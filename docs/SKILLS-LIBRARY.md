@@ -176,13 +176,13 @@ flowchart TD
 | Category | Skills | Built |
 |---|---|---|
 | 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · rapid-prototyping ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 11 / 11 |
-| 2. AI Development | skill-evaluation ✅ · responsible-ai ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ · ai-evaluation ⬜ | 2 / 6 |
+| 2. AI Development | skill-evaluation ✅ · responsible-ai ✅ · ai-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ | 3 / 6 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 19 built · 11 planned**
+**Total: 20 built · 10 planned**
 
 ---
 
@@ -300,10 +300,11 @@ Intended scope: retrieval-augmented generation — chunking, embeddings, groundi
 in sources, and avoiding hallucination.
 *Likely grounded in: RAG best practices.*
 
-### ai-evaluation ⬜ *(planned — Week 4)*
-Intended scope: evaluating LLM *outputs* (distinct from code tests) — eval sets,
-rubrics, LLM-as-judge, and regression checks for prompts/agents.
-*Likely grounded in: LLM evaluation practices.*
+### ai-evaluation ✅
+*Grounded in: Anthropic eval guidance · LLM-as-a-Judge (Zheng et al. 2023) · G-Eval · RAGAS · HELM · [`SKILL.md`](../.claude/skills/ai-evaluation/SKILL.md)*
+
+
+Measures whether an LLM's/agent's **outputs** are good (the non-deterministic counterpart to code tests): define measurable success criteria → build a held-fixed eval set (real + edge, no leakage) → grade cheapest-first (code → LLM-as-judge → human) → score **per dimension, not one average** → **validate the judge** vs human labels + pin its model/rubric version + watch position/verbosity/self-preference bias → re-run as a **regression gate**. Includes the three RAG checks (faithfulness, answer relevance, context precision). Owns output-quality measurement that [[responsible-ai]] defers here; distinct from [[skill-evaluation]] (evaluates Skills) and [[testing-code-review]] (deterministic code). Consults [[rag-retrieval]] (building RAG) and [[technical-planning]] (the eval harness as NFR).
 
 ### responsible-ai ✅
 *Grounded in: NIST AI RMF (+ GenAI Profile) · OECD AI Principles · UNESCO Ethics of AI · EU AI Act · ISO/IEC 42001/23894 · Fairness and ML · Microsoft HAX / Google PAIR · [`SKILL.md`](../.claude/skills/responsible-ai/SKILL.md)*
