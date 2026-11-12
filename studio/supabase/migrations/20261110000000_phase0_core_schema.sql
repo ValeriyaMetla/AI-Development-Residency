@@ -15,6 +15,11 @@
 -- ADRs: 0003 (internal layering — all DB access via lib/data), 5 (mutable
 -- task_run vs append-only audit_event), 6 (audit stores NO sensitive content),
 -- 9 (org_id + RLS tenancy), 12 (identity via Supabase Auth); 23 (migrations in repo).
+--
+-- DEFERRED (reviewed at Step 3): per-user deletion / right-to-erasure is not modeled yet.
+-- task_run.run_by is NOT NULL with the default NO ACTION, so deleting an auth *user* who
+-- already has runs is blocked; deleting an *org* cascades cleanly. Erasure semantics are a
+-- deliberate Phase-1 decision (pairs with Build Plan Step 5 "org export + delete").
 
 -- ============================================================================
 -- Enums (fixed choice-lists)

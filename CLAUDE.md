@@ -92,6 +92,9 @@ working, not optional suggestions.
   (a prompt, chatbot, agentic workflow, generated content, a recommendation, or an automated
   decision about a person): human-in-the-loop, disclosure, grounding/anti-fabrication, bias
   checks, data governance, logging/monitoring. Cross-cutting — fires on any AI feature. (NIST AI RMF)
+- **ai-evaluation** — Apply when evaluating, measuring, or tuning the quality of an LLM or
+  agent's OUTPUTS: eval sets, rubrics, LLM-as-judge, groundedness/faithfulness, accuracy,
+  regression checks for prompts/agents, or RAG answer quality. (Anthropic eval guidance + LLM-as-judge + RAGAS)
 
 ## The product-spec pipeline (dependency order — run iteratively, not waterfall)
 
