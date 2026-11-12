@@ -86,8 +86,19 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
    **Definition of done:** the `SKILL.md` file, its entry in this library, and a re-test of
    triggering (it fires on its own phrases plus a paraphrase, and not on an unrelated
    prompt) all land in the **same commit** — never the file alone.
-6. **Commit & push** (Val does this hands-on to keep practicing):
-   `git add . && git commit -m "Add <name> skill" && git push`
+6. **Commit & push on a dedicated branch** (Val does this hands-on to keep practicing).
+   **Install a skill on its own branch cut fresh from `main`, never on an active feature
+   branch** — otherwise the skill's files get swept into unrelated feature commits (as happened
+   to `responsible-ai` and `ai-evaluation`). **Stage only the skill's own files — never
+   `git add .`:**
+   ```
+   git switch main && git pull
+   git switch -c install-<name>-skill
+   git add .claude/skills/<name>/SKILL.md docs/SKILLS-LIBRARY.md CLAUDE.md
+   git commit -m "Add <name> skill" && git push -u origin install-<name>-skill
+   ```
+   Then open a PR to `main`. (A pure-doc skill may instead commit straight to `main` per the git
+   rule D12 — but still stage only the skill's files, never `git add .`.)
 
 ### How the skills relate (governance)
 
