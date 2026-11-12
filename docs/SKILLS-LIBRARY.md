@@ -207,13 +207,13 @@ flowchart TD
 | W1 | Oct 19 | GitHub + Skills | the 6 built skills ✅ |
 | W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `backlog-decomposition` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ · `pitch-deck` ✅ |
 | W3 | Nov 2 | Host a Web App | `rapid-prototyping` ✅ · `deployment` ⬜ · `git-workflow` ⬜ |
-| W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ⬜ |
+| W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ✅ · `responsible-ai` ✅ |
 | W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
 | W6 | Nov 30 | PWA + Microservices | `technical-planning` ✅ · `clean-code` ⬜ · `error-handling-logging` ⬜ |
 | W7 | Dec 14 | Integrate Apps | `api-integration` ⬜ |
 | W8 | Dec 21 | SEO / AEO Strategy | `seo-aeo` ⬜ |
 
-*(`responsible-ai` and `rag-retrieval` slot in wherever the work needs them — likely around W4.)*
+*(`rag-retrieval` slots in wherever the work needs it — likely around W4. `responsible-ai` ✅ is cross-cutting: it applies to any AI feature, not a single week.)*
 
 ---
 
