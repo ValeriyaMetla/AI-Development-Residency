@@ -130,6 +130,7 @@ thick arrow = flows into):
 ```mermaid
 flowchart TD
     SE["skill-evaluation · ② AI Dev<br/>oversight — audits every skill"]
+    AIE["ai-evaluation · ② AI Dev<br/>evaluates AI outputs ✅"]
 
     subgraph C1["① Product & Planning — the specialist pipeline"]
       direction LR
@@ -147,15 +148,17 @@ flowchart TD
       DOC["documentation · ④"]
       JA["judge-arch · ④<br/>architecture review"]
       SEC["secure-coding · ⑤<br/>untrusted data"] -. flags .-> TCR["testing-code-review · ⑤<br/>final gate"]
+      RAI["responsible-ai · ② AI Dev<br/>any AI feature ✅"]
     end
 
-    AID["② AI Development — planned (W4)<br/>prompt-engineering · agentic-workflow-design · rag-retrieval · ai-evaluation · responsible-ai"]
+    AID["② AI Development — planned<br/>prompt-engineering · agentic-workflow-design · rag-retrieval"]
     C6["⑥ Delivery & Integration — planned (W3–8)<br/>deployment · git-workflow · api-integration · seo-aeo"]
 
     SE -. oversees .-> C1
     TP ==> XC
     XC ==> C6
     SE -. seats .-> AID
+    RAI -. defers measurement to .-> AIE
 
     classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
     classDef build fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
@@ -164,7 +167,7 @@ flowchart TD
     classDef plan fill:#F5F5F3,stroke:#9A9A95,color:#55554F;
     class PF,MVP,PS,TP,BD,RP,AS,MA,CA,POS,PD strat;
     class UX,A11Y,DOC build;
-    class SEC,TCR,JA gate;
+    class SEC,TCR,JA,RAI,AIE gate;
     class SE over;
     class AID,C6 plan;
 ```
