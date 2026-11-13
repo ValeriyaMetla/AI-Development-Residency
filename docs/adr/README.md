@@ -28,3 +28,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0006](0006-ci-quality-gate.md) — Stand up the CI quality gate: lint · format · types · tests · build · dependency + secret scan (supersedes ADR-0002)
 - [ADR-0007](0007-signup-provisioning-trigger.md) — Provision org + profile at sign-up via a SECURITY DEFINER trigger
 - [ADR-0008](0008-standards-library-data-model.md) — Standards library data model: `standard` + `standard_rule` as a read-only catalog
+- [ADR-0009](0009-policy-seed-data-model.md) — Policy-seed data model: org-owned `policy` / `policy_rule` / `policy_seed_response`
