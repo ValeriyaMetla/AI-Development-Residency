@@ -1,11 +1,13 @@
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyProfile } from '@/lib/data/profile';
 import { signout } from '@/app/auth/actions';
+import ThankYouRunner from '@/app/dashboard/thank-you-runner';
 
 const ROLE_LABEL: Record<string, string> = {
   accountable_leader: 'Accountable Leader',
@@ -56,6 +58,12 @@ export default async function DashboardPage() {
             We couldn&apos;t load your profile. Try signing out and back in.
           </Typography>
         )}
+
+        <Divider sx={{ my: 1 }} />
+
+        <ThankYouRunner />
+
+        <Divider sx={{ my: 1 }} />
 
         <Box component="form" action={signout}>
           <Button type="submit" variant="outlined">
