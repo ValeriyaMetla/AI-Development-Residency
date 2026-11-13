@@ -4,7 +4,13 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/data/supabase/server';
+import { getMyProfile } from '@/lib/data/profile';
 import { signout } from '@/app/auth/actions';
+
+const ROLE_LABEL: Record<string, string> = {
+  accountable_leader: 'Accountable Leader',
+  frontline_doer: 'Frontline Doer',
+};
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -13,6 +19,8 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login');
   }
+
+  const profile = await getMyProfile();
 
   return (
     <Container maxWidth="sm">
@@ -33,10 +41,21 @@ export default async function DashboardPage() {
         <Typography variant="body1" color="text.secondary">
           {user.email}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Your organization and role were created at sign-up. Showing them here needs the
-          data-access policies from Step 5.
-        </Typography>
+
+        {profile ? (
+          <Box>
+            <Typography variant="body1">
+              Organization: <strong>{profile.org?.name ?? '—'}</strong>
+            </Typography>
+            <Typography variant="body1">
+              Role: <strong>{ROLE_LABEL[profile.role] ?? profile.role}</strong>
+            </Typography>
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            We couldn&apos;t load your profile. Try signing out and back in.
+          </Typography>
+        )}
 
         <Box component="form" action={signout}>
           <Button type="submit" variant="outlined">
