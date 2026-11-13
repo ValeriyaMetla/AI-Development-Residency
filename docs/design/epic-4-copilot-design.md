@@ -78,7 +78,7 @@ in particular, **the safer-way is pulled out as its own decision (#2)**.
 | 3 | Grounding + provenance (policy + standards, which standard backs each point) | Core defined in §3.6 & §4.5; policy side to finalize with Epic 1 |
 | 4 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
 | 5 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
-| 6 | Output shape (verdict, reasons, citations, safer-way, provenance label) | Partly §3.3 & §4.7; to finalize |
+| **6** | **Output shape (recommendation object + presentation)** | **Designed — §5** |
 | 7 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3–§4; to consolidate |
 
 ---
@@ -340,6 +340,101 @@ feature, and it is honest because the **code computes it**. Minor cost: a little
 
 ---
 
+## 5. Decision #6 — output shape
+
+### 5.1 What it is
+
+The **recommendation object** the Co-Pilot returns, and **how it is presented** to the leader. The
+object is the contract the Domain engine hands to the Presentation layer (no logic in the UI — the
+Leak Test); the UI only renders fields. (Source: Notion "Epics and Features", Epic #4; handover
+decision "Output shape".)
+
+### 5.2 The recommendation object (Domain → Presentation contract)
+
+Structured, not a prose blob — so citations stay welded to claims as data, and the LLM only fills
+the plain-language **text** slots. The UI parses nothing.
+
+| Field | What it holds | Source |
+|---|---|---|
+| `verdict` | `use` / `use_with_conditions` / `dont` / `out_of_scope` | code (from tier) |
+| `tier` | `minimal` / `limited` / `high` / `prohibited` / `undetermined` | code (§3.5 engine) |
+| `tierLabel` | plain badge text, e.g. "High-risk · EU AI Act framework" | code |
+| `summary` | one-line plain-language "why" | LLM (phrasing only) |
+| `signals[]` | each detected signal: `{ key, value, source: asked \| inferred }` | code (asked) + LLM (inferred, shown to confirm) |
+| `reasons[]` | one per *fired* signal: `{ signalKey, plainText, citations[] }` | LLM writes `plainText`; code attaches `citations` |
+| `baselineRules[]` | the always-apply (`risk_tier = all`) rules that hold at every tier | code |
+| `saferWay` | when risky: `{ mitigations[]: {plainText, neutralizesSignal, citations[]}, projectedTier, projectedVerdict }` | code selects + re-tiers; LLM phrases |
+| `provenanceLabel` | "AI-assisted — a person decides" (+ the pipeline's label) | code |
+| `humanDecisionRequired` | boolean — true for High / Prohibited and all consequential calls | code |
+| `assessmentId` | the logged assessment's id (Epic 2 audit trail) | code |
+
+Decisions baked in: **reasons are structured** (one per fired signal, each carrying its own
+citation — no "which cite backs which point" ambiguity), and **`out_of_scope` is its own verdict**
+(with `tier = undetermined`) so the engine never emits a fake tier when it can't responsibly answer
+(feature #1, "point to a human rather than guessing").
+
+### 5.3 verdict ↔ tier mapping (finalized)
+
+| tier | verdict | notes |
+|---|---|---|
+| `prohibited` | `dont` | hard stop; no safe path |
+| `high` | `use_with_conditions` — or `dont` if irreducible (§4) | human approval always required |
+| `limited` | `use_with_conditions` (light) | disclosure / provenance / light check |
+| `minimal` | `use` | baseline rules still apply |
+| `undetermined` | `out_of_scope` | can't responsibly answer → point to a human |
+
+### 5.4 Presentation — what the leader sees
+
+Governing rules: **lead with the decision, unfold detail on demand** (Nielsen: obvious next step;
+recognition over recall), and **never signal the verdict by color alone** (WCAG 1.4.1 — every tier
+carries an icon + text label).
+
+Top-to-bottom layout:
+
+1. **Verdict headline** — big, plain words + icon + text label ("Use with conditions" / "Don't use
+   AI for this" / "Go ahead" / "This needs a person — here's who"). Never jargon; never color-only.
+2. **One-line why** (`summary`).
+3. **Tier badge** — small, supporting ("High-risk · EU AI Act framework"); text label, not a bare
+   colored dot.
+4. **The safer-way** (when risky) — shown **prominently, not hidden**: the mitigations → the
+   projected tier. For `use_with_conditions`, usually the main thing on screen.
+5. **Reasons + citations** — the structured `reasons[]`, each expandable to "which standard backs
+   this" (progressive disclosure — grounding one click away, never buried).
+6. **The human-decision line** — explicit: "You decide — the Co-Pilot advises. This needs your
+   sign-off before it's used." (responsible-AI rule 9, made visible.)
+7. **Provenance + logged** — "AI-assisted. Saved to your AI-use registry." (disclosure + audit,
+   Epic 2.)
+
+**Primary action per verdict** (the obvious next step):
+
+| Verdict | Prominent primary action | Secondary |
+|---|---|---|
+| `use` | Proceed to the task | — |
+| `use_with_conditions` | **Apply the safer way** | Proceed with a human review |
+| `dont` | **Ask a person** (no "proceed" button offered) | Close |
+| `out_of_scope` | **Who to ask** (point to a human) | Close |
+
+Deliberate omissions: **no "proceed" button on `dont`** (don't make the unsafe path easy — mirrors
+Epic 6's "make the safe path the easiest path"); for `use_with_conditions`, the safer way is the
+*primary* action, not an afterthought.
+
+**Progressive disclosure, with a firm exception:** the **tier, verdict, safer-way, and
+human-decision line are never collapsed** — only the supporting reason detail and full citations sit
+behind expanders. The consequential parts stay unmissable; the first view stays calm for a
+non-expert.
+
+### 5.5 Cross-cutting notes
+
+- **UX:** plain language over jargon; the whole ask → assess → decide → act/log flow is designed,
+  not one screen; visible loading/success/error states when the assessment runs.
+- **Accessibility:** icon + text label for verdict/tier (no color-alone); semantic headings;
+  expanders keyboard-operable with visible focus; contrast ≥ 4.5:1. Custom disclosure widgets to be
+  manually keyboard/screen-reader tested before done.
+- **Responsible-AI:** disclosure and the human gate are on-screen, not implied; citations are
+  code-attached (no fabrication); out-of-scope defers rather than guesses.
+
+---
+
 ## Proposed ADR (to be numbered when Epic 4 is built)
 
 **Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
@@ -365,6 +460,10 @@ on whether to use AI for a task. A black-box model verdict cannot be explained o
    leader). The LLM only phrases mitigations concretely; it never invents one or clears risk.
 7. Irreducible signals (banned purpose; AI-judging-a-person the leader won't restructure) have **no
    safe path → Don't**. High-stakes domains keep **human approval as a permanent floor**.
+8. **Output** is a structured recommendation object (§5.2) with a finalized verdict↔tier mapping
+   (§5.3); `out_of_scope` is a first-class verdict. Presentation leads with the plain-language
+   verdict, shows the safer-way prominently, never signals by color alone, offers **no "proceed" on
+   `dont`**, and keeps verdict/tier/safer-way/human-decision uncollapsed.
 
 **Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
 first release carries modest up-front friction (three yes/no questions) in exchange for
@@ -376,9 +475,8 @@ keeping signal-source separated from tier-decision.
 ## Open questions / to verify
 
 - [ ] Confirm the exact Build Plan wording for "transparent risk-tiering" (sourcing flag, §1).
-- [ ] Finalize the tier→verdict mapping (decision #6, output shape). (The "High → Don't when no safe path" branch is now designed — §4.)
 - [ ] Confirm Epic 1's `policy_rule` shape to finalize policy-grounding alongside standards (decision #3).
-- [ ] Specify out-of-scope / low-confidence behavior precisely (decision #6).
+- [ ] Specify the *content* of out-of-scope guidance ("who to ask") per org (decision #3 / #6). (The out-of-scope verdict and behavior are designed — §5.)
 - [ ] Decide whether the seeded `risk_tier` loose tags are realigned to the four tiers (Epic-1/4 follow-up; DB change — not here).
 
 ## Sourcing notes
