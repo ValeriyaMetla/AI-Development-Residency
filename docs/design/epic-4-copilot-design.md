@@ -68,14 +68,18 @@ no governance logic in the UI.
 
 ## 2. Design decisions — index
 
-| # | Decision | Status |
+This reorganizes the handover's six-decision list to track the pieces as we actually design them;
+in particular, **the safer-way is pulled out as its own decision (#2)**.
+
+| # | Design piece | Status |
 |---|---|---|
-| **1** | **Transparent risk-tiering (code decides the tier, LLM only explains)** | **Designed — §3** |
-| 2 | Grounding + provenance (policy + standards, which standard backs each point) | Partly covered in §3.6; to finalize |
-| 3 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
-| 4 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
-| 5 | Output shape (verdict, reasons, citations, safer-way, provenance label) | Sketched in §3.3; to finalize |
-| 6 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3; to consolidate |
+| **1** | **Transparent risk-tiering (the engine — code decides the tier, LLM only explains)** | **Designed — §3** |
+| **2** | **The safer-way ("…and how") — mitigations re-tier; irreducible → Don't** | **Designed — §4** |
+| 3 | Grounding + provenance (policy + standards, which standard backs each point) | Core defined in §3.6 & §4.5; policy side to finalize with Epic 1 |
+| 4 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
+| 5 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
+| 6 | Output shape (verdict, reasons, citations, safer-way, provenance label) | Partly §3.3 & §4.7; to finalize |
+| 7 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3–§4; to consolidate |
 
 ---
 
@@ -256,6 +260,86 @@ guess — it says so and defers to a human. Detailed behavior to be specified in
 
 ---
 
+## 4. Decision #2 — the safer-way ("…and how")
+
+### 4.1 What it is
+
+Feature #2 `[Must]`: when a use is risky, offer **a concrete safer path** (strip data first, add
+human review) so the leader reaches *"yes, safely"* instead of just *"no"* — and when there's **no
+safe version**, a clear "don't." (Source: Notion "Epics and Features", Epic #4, feature 2.)
+
+### 4.2 Core model — neutralize signals, re-tier, irreducible → Don't
+
+The safer-way reuses decision #1's split (code decides, LLM only phrases):
+
+- Each risk-driving **signal has a known mitigation**, drawn from a small **standards-grounded
+  catalog** — not invented per use.
+- Applying mitigations **re-runs the §3.5 engine with those signals neutralized** → a **projected
+  tier** that is lower (e.g., High → Limited). The "safer" claim is thus *computed and provable*,
+  not asserted.
+- **Some signals are irreducible** → no safe path → **Don't**.
+- The Co-Pilot **recommends**; it does not auto-apply. The projected tier is a **what-if**
+  ("*if* you do X…"); the leader chooses to adopt it. The assessment + recommended mitigations are
+  logged (Epic 2).
+
+### 4.3 Mitigation catalog & reducibility
+
+| Signal | Mitigation | Reducible? | Grounded in |
+|---|---|---|---|
+| #1 Banned purpose | — | **No → Don't** | `euaiact-match-risk` (Art. 5) |
+| #2 Judges/ranks/decides a person | Restructure so **AI does the work, a human makes the judgment** | **Only this way** — if the goal *is* AI judging the person, irreducible → Don't | `euaiact-human-override`, `nist-human-oversight` |
+| #3 High-stakes domain | Mandatory human review + careful output check + policy grounding | **Partially** — drops toward "use with conditions"; **human approval stays a floor** (can't reach Minimal) | `nist-check-output`, `euaiact-human-override` |
+| #4 Sensitive data | Strip / minimize / anonymize before it reaches the AI | **Yes** — neutralized, tier drops | `iso42001-data-governance` |
+| #5 Output leaves org | Human reviews & approves before sending; provenance label | **Yes** — neutralized | `euaiact-disclose-ai` (Art. 50) |
+
+### 4.4 Ethics anchors (locked)
+
+- **#2 — the third rail.** AI scoring/ranking/deciding *about a person* is **never made "safe" by
+  mitigations.** The only acceptable move is to **take the judgment off the AI** (AI organizes the
+  notes; a human decides who gets help). If the leader's goal is to have AI do the judging, the
+  honest answer is **Don't**. (responsible-AI rule 5.)
+- **#3 — high-stakes domains.** You cannot mitigate away a crisis/health/legal context, so **human
+  approval is a permanent floor** — the safer-way lowers friction but never removes the human gate.
+  (responsible-AI rule 9.)
+
+### 4.5 Phrasing & grounding — the LLM's role
+
+| Deterministic code | LLM (via Data-Source) |
+|---|---|
+| Picks which mitigations apply, from the fixed catalog, by which signals fired | Phrases the code-selected mitigations **concretely for this use** ("strip the client's name and case ID before pasting the notes") |
+| Re-runs the engine with neutralized signals → the projected tier | — |
+| Attaches each mitigation's `standard_rule` citation (code-attached, no fabrication) | Never adds a mitigation outside the catalog; never declares the risk cleared |
+
+### 4.6 Honesty guardrails (against the loophole)
+
+1. **No over-promising.** If a signal is only partially reducible (e.g., #3's approval floor), say so
+   plainly; never show a projected tier lower than the engine actually returns.
+2. **Irreducible → honest Don't.** If *any* irreducible signal remains, the overall answer is
+   **Don't** — even when other signals were mitigable. No fake safer path around a hard stop.
+3. **Recommend, don't auto-apply.** The projected tier is a what-if the leader adopts; the
+   assessment and recommended mitigations are logged (Epic 2).
+
+### 4.7 Showing the projected tier
+
+**Decision: show the concrete projected tier** (e.g., "→ this would become *Limited*"), not just a
+conditions list. It is the whole "provably safer, not merely reassuringly safer" value of the
+feature, and it is honest because the **code computes it**. Minor cost: a little more UI complexity.
+
+### 4.8 Worked examples
+
+- *"Summarize client case notes for our internal records"* → #4 sensitive data → **High**.
+  Safer-way: **strip names, case IDs, and identifying details before pasting** → re-run → #4 cleared,
+  internal only → projected **Minimal** (baseline rules still apply).
+- *"Email crisis-response drafts to clients"* → #3 high-stakes + #5 output leaves org → **High**.
+  Safer-way: **add mandatory human review + approval before sending** (neutralizes #5; #3 keeps the
+  approval floor) → projected **"use with conditions," human approval required** — cannot reach
+  Minimal.
+- *"Rank applicants by who's most likely to succeed"* → #2 judges a person (+ likely #1).
+  Safer-way: **restructure so AI organizes the application info and a human decides priority** → #2
+  cleared. If the leader insists AI does the ranking → irreducible → **Don't**.
+
+---
+
 ## Proposed ADR (to be numbered when Epic 4 is built)
 
 **Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
@@ -276,6 +360,11 @@ on whether to use AI for a task. A black-box model verdict cannot be explained o
 4. Citations are attached by code from matched `standard_rule` rows; the LLM only explains and
    drafts the safer-way. `risk_tier = all` rules apply at every tier.
 5. The Co-Pilot advises; a named human decides. Prohibited is a hard refusal boundary.
+6. **The safer-way** is a standards-grounded mitigation catalog mapped to signals; applying
+   mitigations re-runs the tier engine to produce a **computed projected tier** (shown to the
+   leader). The LLM only phrases mitigations concretely; it never invents one or clears risk.
+7. Irreducible signals (banned purpose; AI-judging-a-person the leader won't restructure) have **no
+   safe path → Don't**. High-stakes domains keep **human approval as a permanent floor**.
 
 **Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
 first release carries modest up-front friction (three yes/no questions) in exchange for
@@ -287,9 +376,9 @@ keeping signal-source separated from tier-decision.
 ## Open questions / to verify
 
 - [ ] Confirm the exact Build Plan wording for "transparent risk-tiering" (sourcing flag, §1).
-- [ ] Finalize the tier→verdict mapping and the "High → Don't when no safe path" branch (decision #2 / #5).
-- [ ] Confirm Epic 1's `policy_rule` shape to finalize policy-grounding alongside standards (decision #2).
-- [ ] Specify out-of-scope / low-confidence behavior precisely (decision #5).
+- [ ] Finalize the tier→verdict mapping (decision #6, output shape). (The "High → Don't when no safe path" branch is now designed — §4.)
+- [ ] Confirm Epic 1's `policy_rule` shape to finalize policy-grounding alongside standards (decision #3).
+- [ ] Specify out-of-scope / low-confidence behavior precisely (decision #6).
 - [ ] Decide whether the seeded `risk_tier` loose tags are realigned to the four tiers (Epic-1/4 follow-up; DB change — not here).
 
 ## Sourcing notes
