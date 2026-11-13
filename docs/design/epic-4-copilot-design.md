@@ -1,0 +1,304 @@
+# Epic 4 — Governance Co-Pilot — Design Spec
+
+**Status:** Design in progress (non-code). Release 1a hero feature.
+**Owner (named, accountable for this feature's outcomes):** Valeriya Metla (product), with the Accountable Leader as the human who decides on every assessment.
+**Last updated:** 2026-11-13
+
+---
+
+## About this document
+
+This is a **design spec only** — no code, no migrations, no database changes. Epic 4 depends on
+Epic 1 (the org policy), which is being built in parallel. We design the Co-Pilot now so it is
+ready to build the moment Epic 1 lands. Per the Epic 4 handover, this document lives in
+`docs/design/` and does **not** add a numbered ADR under `docs/adr/` (to avoid colliding with the
+Epic 1 chat's ADR numbering); the proposed ADR is captured inline in §"Proposed ADR" below and will
+be numbered when Epic 4 is built.
+
+Everything here is a **proposal for review**, decided one step at a time with Val — not a decision
+made alone.
+
+---
+
+## 1. Context
+
+### What the Co-Pilot is
+
+The Accountable Leader (a non-technical ED/Ops director — no policy, no tech team, no time) asks
+**"should we use AI for this, and how?"** and gets a grounded, defensible answer: a clear verdict,
+plain-language reasons, a safer way when one exists, and a citation to the recognized standard
+behind each point.
+
+**Release 1a features** (source: Notion "Epics and Features" page, Epic #4 — read 2026-11-13):
+
+1. **"Should we use AI for this?" advisory flow** `[Must]` — a `use / use-with-conditions / don't`
+   recommendation with plain-language reasons. Risky use conflicting with policy or law → advises
+   against and explains. A question it can't responsibly answer → says so and points to a human.
+2. **"…and how" — safer-way recommendation** `[Must]` — when a use is risky, offer a concrete safer
+   path (e.g., strip data first, add human review); when there's no safe version, a clear "don't."
+3. **Expert defaults / always-on guidance** `[Should]` — sensible defaults with no configuration; an
+   override persists.
+4. **Grounded in the standards library** `[Should]` — each recommendation cites the baseline standard
+   it draws on (NIST / EU AI Act / ISO 42001) and reflects the current version.
+
+> **Sourcing flag:** the framing "transparent **risk-tiering**" that drives this design comes from
+> the **Build Plan** (via the Epic 4 handover: *"Epic 4: Governance Co-Pilot + transparent
+> risk-tiering (needs engine + standards) → logs to Epic 2"*). The Epic #4 section of the "Epics and
+> Features" page does **not** itself use that term. **To verify:** confirm the exact Build Plan
+> wording before the ADR is finalized.
+
+### What it builds on (already live, Epic 0)
+
+- **The governed-run pipeline** — `studio/lib/domain/pipeline.ts`. The one fixed path every AI task
+  takes: context → draft → self-critique → rule-check → provenance → persist + audit. A Co-Pilot
+  assessment runs through this, not around it. The `skill` enum already anticipates a `copilot` type.
+- **The standards library** — `studio/lib/data/standards.ts` + tables `standard` / `standard_rule`
+  (ADR-0008). A global read-only catalog of cited, plain-language baseline rules, queryable by
+  category, each carrying a `risk_tier`. This is the citation source.
+- **Epic 1's policy** (in build now) — the org's active rules. The Co-Pilot checks a use against the
+  active policy *and* the standards library. We design against this; we don't wait on it.
+
+### Internal layering (ADR-0003, enforced)
+
+Presentation → Service → Domain → Data-Source. The risk-tiering engine is **Domain-layer** (pure
+rules, no I/O); the standards/policy reads and the Claude call are **Data-Source**. The "Leak Test":
+no governance logic in the UI.
+
+---
+
+## 2. Design decisions — index
+
+| # | Decision | Status |
+|---|---|---|
+| **1** | **Transparent risk-tiering (code decides the tier, LLM only explains)** | **Designed — §3** |
+| 2 | Grounding + provenance (policy + standards, which standard backs each point) | Partly covered in §3.6; to finalize |
+| 3 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
+| 4 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
+| 5 | Output shape (verdict, reasons, citations, safer-way, provenance label) | Sketched in §3.3; to finalize |
+| 6 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3; to consolidate |
+
+---
+
+## 3. Decision #1 — Transparent risk-tiering
+
+### 3.1 The trust claim (why this decision is load-bearing)
+
+The Co-Pilot's verdict can steer whether a crisis client gets an AI-drafted reply, or whether donor
+data goes to a model. The **risk tier** is the part that carries that weight — the verdict, the
+safer-way, and the citations all hang off it.
+
+The trust claim is: **we can show you *why* you got this tier, and the same inputs always give the
+same tier.** A black-box model verdict ("this is high-risk, trust me") can't be defended to a funder
+or a board and can't be audited. So the tier is decided by **deterministic Domain-layer code**, not
+by the model. This is the product's core credibility promise.
+
+### 3.2 Interaction model — option C (signal-source cleanly split from tier-decision)
+
+The tension: the leader describes a use in **free text**, but code can't read a paragraph
+deterministically. The resolution is to split two jobs that usually get mashed together:
+
+- **Signal extraction (reading the use)** — turn the use into a handful of structured, visible
+  yes/no **signals**.
+- **Tier decision (judging)** — **pure code** maps those signals to a tier via a fixed, readable
+  table, grounded in the standards library.
+
+The code is the judge; the signals are the evidence shown to the leader. The LLM's role is only to
+help read the softer signals, **explain** the code's verdict in plain language, and **draft** the
+safer-way — never to decide the tier or pick a citation.
+
+**Chosen for Release 1a: Option C.** The 2–3 highest-stakes signals are **asked directly** (a short
+structured step the model cannot silently skip); the softer signals the model infers from the free
+text and shows for confirmation.
+
+**Why C over the alternatives (decision log):**
+
+- **vs. a text-first "B + confirm" model** (model infers all signals; a confirm pops only when a
+  high-stakes signal trips the tier up): B leaves a **silent false-negative gap** — the confirm only
+  fires if the model *already* detected the signal, so a missed signal is never surfaced to the
+  busy non-expert. C's always-ask floor closes that gap structurally. Closing B's gap (always
+  surfacing the high-stakes questions) effectively turns B into "C with model pre-fill" anyway.
+- **vs. a form-only model (A):** A is fully deterministic but sacrifices the "just ask it" feel that
+  makes this the hero feature. C keeps the free-text experience for everything except the few
+  signals that most drive risk.
+
+**Upgrade path (why starting with C costs us nothing long-term):** evolving to the full free-text
+experience later is **additive, not a rewrite** — the tier engine, the grounding, the data model,
+and the output shape all stay identical; only a signal-*extraction* step, its evaluation
+(`ai-evaluation`), and a confirm/pre-fill UX get added in front of the unchanged engine. This holds
+**only because** signal-source and tier-decision are kept cleanly separated now. The safest
+end-state is in fact "C's always-ask floor with the model pre-filling suggestions," which preserves
+C's no-silent-miss guarantee while recovering most of the free-text feel.
+
+### 3.3 The tier scheme (4 tiers, EU-AI-Act-aligned)
+
+The tier ladder is anchored on the **EU AI Act's** risk-based structure (Reg. (EU) 2024/1689):
+prohibited → high → limited → minimal. This is recognizable to a funder or board, is already half
+present in our seeded rules (`euaiact-match-risk`: *"match safeguards to the level of risk… never
+use AI for banned purposes"*), and maps cleanly to the product's three-way verdict.
+
+> **Note on the standards library's `risk_tier`:** the schema comment records that
+> `category / risk_tier are free text until Epics 1/4 settle their vocabularies (ADR-0008)`. The nine
+> seeded rows currently tag `risk_tier` as `all`, `high`, or `sensitive` — a loose set, not a clean
+> ladder. **Settling the tier vocabulary is Epic 4's job.** We do not modify those rows here; a
+> later cleanup to align them with the four tiers below is a candidate Epic-1/4 follow-up.
+
+| Internal tier | User-facing verdict | Meaning |
+|---|---|---|
+| **Prohibited** | **Don't** | Banned purpose / illegal — no safe version exists |
+| **High** | **Use with conditions** (strong) — or **Don't** if no safe path | About a person / high-stakes domain / sensitive data → mandatory human approval + data minimization |
+| **Limited** | **Use with conditions** (light) | Mostly fine; needs disclosure / provenance or a light check |
+| **Minimal** | **Use** | Low-stakes — go ahead (baseline rules still apply) |
+
+- **Tier is shown to the leader** as a small labeled badge (e.g., "High-risk under the EU AI Act
+  framework") for transparency; the **verdict** stays the plain-language headline.
+- The tier→verdict mapping above is **provisional** and will be finalized in decision #5 (output
+  shape); the "High → Don't when no safe path exists" branch is where decision #2 (safer-way) plugs
+  in.
+
+### 3.4 The signals (what the engine reads)
+
+Five plain yes/no signals, each grounded in a seeded `standard_rule` or an EU AI Act concept:
+
+| # | Signal | Capture | Pushes toward | Grounded in |
+|---|---|---|---|---|
+| 1 | **Banned purpose?** (manipulation, social scoring, surveillance, illegal) | infer + always show | Prohibited | EU AI Act Art. 5; seeded `euaiact-match-risk` |
+| 2 | **Judges / ranks / decides about a specific person?** | **always-ask** | High | responsible-AI third rail; seeded `euaiact-human-override`, `nist-human-oversight` |
+| 3 | **High-stakes domain?** (health, legal, financial, housing/benefits, safety, crisis) | **always-ask** | High | EU AI Act high-risk; seeded `nist-check-output` |
+| 4 | **Sensitive personal data involved?** (health, financial, case/service details, protected characteristics, info about vulnerable people — **not** a bare name/email) | **always-ask** | High | seeded `iso42001-data-governance` (tag `sensitive`) |
+| 5 | **Output leaves the org?** (sent to the person served, a funder, or the public) | infer + show | Limited | seeded `euaiact-disclose-ai` (Art. 50) |
+
+- **Always-ask floor = #2, #3, #4** — the three High-drivers, where a silent miss would drop a
+  genuinely high-risk use to Minimal (the worst failure). These are asked directly so the model
+  cannot skip them.
+- **#1 and #5** the model infers from the text; #1 is always shown loudly (it's a hard stop), #5 is
+  shown for confirmation.
+- **Fail-safe:** any signal left unknown or ambiguous is treated as **"yes"** — it rounds the tier
+  **up**, never down.
+- **Why #4 is *sensitive* data, not any personal data:** tripping High on the mere presence of a
+  name would flag every thank-you note and newsletter, training leaders to ignore the tool and
+  violating Epic 5's "low false-positives" requirement. The ISO rule we ground on says *protect
+  sensitive information* — so sensitivity, not presence, is the driver.
+- **Deliberately *not* a signal:** "is a human already reviewing the output before it's used?" This
+  belongs to the **safer-way** (decision #2) — it's a condition we can *recommend* to bring a High
+  use down, not a fact about the use as described.
+
+### 3.5 The mapping (deterministic, first-match-wins)
+
+Rules are checked in order; the first match sets the tier. This ordering is what makes the engine
+readable and auditable by a non-expert.
+
+| Checked in order — first match wins | Tier |
+|---|---|
+| #1 Banned purpose | **Prohibited** |
+| #2 Judges / ranks / decides a person | **High** |
+| #3 High-stakes domain | **High** |
+| #4 Sensitive personal data | **High** |
+| #5 Output leaves the org | **Limited** |
+| none of the above | **Minimal** |
+
+**Worked examples:**
+
+- *"Draft a donor thank-you from a name + gift amount, email it to the donor"* → no
+  banned/person/high-stakes/sensitive signal; output leaves org → **Limited** (label it AI-assisted,
+  human reviews). Consistent with the walking-skeleton thank-you Skill.
+- *"Help write responses to clients in housing crisis"* → #3 high-stakes → **High** (needs the
+  safer-way conditions before proceeding).
+- *"Rank applicants by who's most likely to succeed"* → #2 judges a person → **High**, and likely #1
+  (social scoring) → **Prohibited**. Surfaces loudly — the responsible-AI third rail.
+
+### 3.6 Grounding and provenance (the no-fabrication guarantee)
+
+This is what makes the trust claim real:
+
+- Each **signal that fires carries its own `standard_rule` citation, attached by code from the
+  matched row** — the LLM never selects, writes, or edits a citation.
+  - #1 → `euaiact-match-risk` (Art. 5) · #2 → `euaiact-human-override` (Art. 14) +
+    `nist-human-oversight` · #3 → `nist-check-output` · #4 → `iso42001-data-governance` ·
+    #5 → `euaiact-disclose-ai` (Art. 50)
+- The rules tagged **`risk_tier = all`** (human-oversight, disclosure, logging —
+  `nist-human-oversight`, `nist-document-use`, `euaiact-disclose-ai`, `iso42001-managed-logging`,
+  `iso42001-records`) **apply at every tier**. Even a Minimal use carries "a human has the final
+  say, label it as AI, log it." (This is the home for the seed's `all` tag.)
+- So every recommendation grounds in **tier-specific rules (the signals that fired) + the
+  always-apply baseline**. The LLM's only job is to explain these in plain language and draft the
+  safer-way.
+- The Co-Pilot also checks the use against the **org's active policy** (Epic 1); where a policy rule
+  applies, it is cited alongside the standard it derives from. (Policy-grounding detail to be
+  finalized once Epic 1's `policy_rule` shape is confirmed — decision #2.)
+
+### 3.7 Responsible-AI stance (how this decision satisfies the gate)
+
+| Responsible-AI rule | How decision #1 meets it |
+|---|---|
+| Named accountable human (1) | The Accountable Leader decides on every assessment; the Co-Pilot only advises. |
+| Rules written down; costly ones as ADRs (2) | This spec + the Proposed ADR below. |
+| Disclose AI involvement (3) | Tier shown as a labeled badge; output provenance-labeled (via the pipeline). |
+| Stakes & prohibited uses stated (4, 5) | Signal #1 → Prohibited is a hard refusal; signal #2 keeps AI off *judging the person* (third rail). |
+| No ungrounded claim shown as fact (6) | Citations are code-attached from `standard_rule`; the LLM never invents them. |
+| Bias / don't over-flag (7) | Signal #4 scoped to *sensitive* data to avoid crying wolf on benign tasks. |
+| Human in the loop for consequential calls (9) | Always-ask floor + "advises, human decides"; High → mandatory human approval. |
+| Guardrails defined (10) | Prohibited tier = refusal boundary; the mapping table *is* the policy limit. |
+| Log AI use (11) | Every assessment logged (Epic 2), via the governed-run pipeline. |
+
+**Out-of-scope handling** (feature 1, "points to a human rather than guessing"): when the engine
+cannot land a confident tier (e.g., a use it has no signal coverage for), the verdict is **not** a
+guess — it says so and defers to a human. Detailed behavior to be specified in decision #5.
+
+### 3.8 Summary — what the code decides vs. what the LLM drafts
+
+| Deterministic code (Domain layer) | LLM (via Data-Source) |
+|---|---|
+| Reads the structured signals | Helps infer the softer signals (#1, #5) from free text |
+| Decides the tier (first-match table) | Explains the verdict in plain language |
+| Attaches citations from matched `standard_rule` rows | Drafts the safer-way (decision #2) |
+| Applies the always-apply baseline rules | — |
+| Never delegated the verdict to the model | Never decides the tier; never picks a citation |
+
+---
+
+## Proposed ADR (to be numbered when Epic 4 is built)
+
+**Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
+library.
+
+**Status:** Proposed (design). Costly-to-reverse — it is the product's core trust claim.
+
+**Context:** The Governance Co-Pilot must give an Accountable Leader a defensible, auditable verdict
+on whether to use AI for a task. A black-box model verdict cannot be explained or audited.
+
+**Decision:**
+1. The risk **tier** is decided by deterministic Domain-layer code from a fixed, first-match
+   signal→tier table (§3.5), never by the model.
+2. The tier ladder is four tiers aligned to the EU AI Act (Prohibited / High / Limited / Minimal),
+   mapped to the three user-facing verdicts (§3.3).
+3. Signals are captured via Option C: the three High-driver signals (#2/#3/#4) are asked directly;
+   #1/#5 are model-inferred and shown. Unknown signals round the tier up.
+4. Citations are attached by code from matched `standard_rule` rows; the LLM only explains and
+   drafts the safer-way. `risk_tier = all` rules apply at every tier.
+5. The Co-Pilot advises; a named human decides. Prohibited is a hard refusal boundary.
+
+**Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
+first release carries modest up-front friction (three yes/no questions) in exchange for
+defensibility. The design preserves a cheap, additive upgrade to a fuller free-text experience by
+keeping signal-source separated from tier-decision.
+
+---
+
+## Open questions / to verify
+
+- [ ] Confirm the exact Build Plan wording for "transparent risk-tiering" (sourcing flag, §1).
+- [ ] Finalize the tier→verdict mapping and the "High → Don't when no safe path" branch (decision #2 / #5).
+- [ ] Confirm Epic 1's `policy_rule` shape to finalize policy-grounding alongside standards (decision #2).
+- [ ] Specify out-of-scope / low-confidence behavior precisely (decision #5).
+- [ ] Decide whether the seeded `risk_tier` loose tags are realigned to the four tiers (Epic-1/4 follow-up; DB change — not here).
+
+## Sourcing notes
+
+- Epic 4 feature list and scenarios: Notion "Epics and Features" page, Epic #4 (read 2026-11-13).
+- Seeded rules, categories, `risk_tier` tags, and citations: `studio/supabase/migrations/
+  20261113010000_seed_standards.sql` and `..._standards_library_tables.sql` (read directly).
+- EU AI Act tier structure (Reg. (EU) 2024/1689): via the `responsible-ai` skill's cited standards.
+- Layering / pipeline: ADR-0003; `studio/lib/domain/pipeline.ts`.
+- Rule text in the standards library is **our plain-language synthesis**, not quoted from the
+  frameworks (per the seed migration's own header); citations point to the source at the precision
+  we can verify.
