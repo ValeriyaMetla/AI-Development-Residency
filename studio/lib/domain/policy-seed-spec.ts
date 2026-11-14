@@ -219,3 +219,75 @@ export const EXPECTED_STANDARD_CODES = [
   'iso42001-managed-logging',
   'iso42001-records',
 ] as const;
+
+const TRISTATES: readonly string[] = ['yes', 'no', 'not_sure'];
+
+function isTriState(v: unknown): v is TriState {
+  return typeof v === 'string' && TRISTATES.includes(v);
+}
+
+/**
+ * Validate + normalize untrusted intake answers at the Service boundary (secure-coding A04).
+ * Required: Q1 (name + role), Q2 (>=1 purpose), Q3/Q4 (a valid tri-state). Optional fields,
+ * when present, must be well-typed. Returns the normalized answers or a plain-language error.
+ */
+export function validatePolicySeedAnswers(
+  input: unknown,
+): { ok: true; answers: PolicySeedAnswers } | { ok: false; error: string } {
+  if (typeof input !== 'object' || input === null) {
+    return { ok: false, error: 'Your answers could not be read. Please try again.' };
+  }
+  const a = input as Record<string, unknown>;
+
+  const person = a.accountablePerson as { name?: unknown; role?: unknown } | undefined;
+  if (
+    !person ||
+    typeof person.name !== 'string' ||
+    !person.name.trim() ||
+    typeof person.role !== 'string' ||
+    !person.role.trim()
+  ) {
+    return { ok: false, error: 'Please name who is accountable for AI use, and their role (Q1).' };
+  }
+
+  if (!Array.isArray(a.purposes) || !a.purposes.every((p) => typeof p === 'string')) {
+    return { ok: false, error: 'Please pick at least one way you will use AI (Q2).' };
+  }
+  const purposes = (a.purposes as string[]).map((p) => p.trim()).filter(Boolean);
+  if (purposes.length === 0) {
+    return { ok: false, error: 'Please pick at least one way you will use AI (Q2).' };
+  }
+
+  if (!isTriState(a.handlesSensitiveData)) {
+    return { ok: false, error: 'Please answer the sensitive-information question (Q3).' };
+  }
+  if (!isTriState(a.higherStakes)) {
+    return { ok: false, error: 'Please answer the higher-stakes question (Q4).' };
+  }
+  if (a.externalContent !== undefined && !isTriState(a.externalContent)) {
+    return { ok: false, error: 'That answer for sharing AI content (Q5) was not valid.' };
+  }
+  if (a.reviewer !== undefined && typeof a.reviewer !== 'string') {
+    return { ok: false, error: 'That reviewer value (Q6) was not valid.' };
+  }
+  if (
+    a.customProhibitedUses !== undefined &&
+    (!Array.isArray(a.customProhibitedUses) ||
+      !a.customProhibitedUses.every((s) => typeof s === 'string'))
+  ) {
+    return { ok: false, error: 'Those custom limits (Q7) were not valid.' };
+  }
+
+  return {
+    ok: true,
+    answers: {
+      accountablePerson: { name: person.name.trim(), role: person.role.trim() },
+      purposes,
+      handlesSensitiveData: a.handlesSensitiveData,
+      higherStakes: a.higherStakes,
+      externalContent: a.externalContent as TriState | undefined,
+      reviewer: typeof a.reviewer === 'string' ? a.reviewer : undefined,
+      customProhibitedUses: a.customProhibitedUses as string[] | undefined,
+    },
+  };
+}
