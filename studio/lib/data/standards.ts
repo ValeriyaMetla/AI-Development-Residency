@@ -9,6 +9,7 @@ import { createClient } from '@/lib/data/supabase/server';
  */
 
 export type StandardRule = {
+  id: string;
   code: string;
   ruleText: string;
   category: string;
@@ -17,6 +18,7 @@ export type StandardRule = {
 };
 
 type StandardRuleRow = {
+  id: string;
   code: string;
   rule_text: string;
   category: string;
@@ -24,11 +26,13 @@ type StandardRuleRow = {
   citation: string;
 };
 
-const RULE_COLUMNS = 'code, rule_text, category, risk_tier, citation';
+// `id` is included so the policy seed (Epic 1) can set policy_rule.standard_rule_id (ADR-0009).
+const RULE_COLUMNS = 'id, code, rule_text, category, risk_tier, citation';
 
 /** Pure snake_case→camelCase mapper, kept separate so it is unit-testable without a DB. */
 export function mapStandardRuleRow(row: StandardRuleRow): StandardRule {
   return {
+    id: row.id,
     code: row.code,
     ruleText: row.rule_text,
     category: row.category,
