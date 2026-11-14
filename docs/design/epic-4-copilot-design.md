@@ -1,6 +1,6 @@
 # Epic 4 — Governance Co-Pilot — Design Spec
 
-**Status:** Design in progress (non-code). Release 1a hero feature.
+**Status:** Design complete — all six decisions (#1–#6) specified (non-code). Release 1a hero feature.
 **Owner (named, accountable for this feature's outcomes):** Valeriya Metla (product), with the Accountable Leader as the human who decides on every assessment.
 **Last updated:** 2026-11-13
 
@@ -76,10 +76,10 @@ in particular, **the safer-way is pulled out as its own decision (#2)**.
 | **1** | **Transparent risk-tiering (the engine — code decides the tier, LLM only explains)** | **Designed — §3** |
 | **2** | **The safer-way ("…and how") — mitigations re-tier; irreducible → Don't** | **Designed — §4** |
 | **3** | **Grounding + provenance (policy + standards, which source backs each point)** | **Designed — §6** |
-| 4 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
+| **4** | **Pipeline fit (how an assessment flows through the governed-run pipeline)** | **Designed — §8** |
 | **5** | **Data model — `copilot_assessment` (design only, org-owned → org-scoped RLS)** | **Designed — §7** |
 | **6** | **Output shape (recommendation object + presentation)** | **Designed — §5** |
-| 7 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3–§4; to consolidate |
+| 7 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Cross-cutting — applied in §3–§8 (see each section's RAI notes) |
 
 ---
 
@@ -614,6 +614,70 @@ additive, so the nullable FKs are cheap to add when those tickets land.
 
 ---
 
+## 8. Decision #4 — pipeline fit
+
+### 8.1 What it is
+
+How a Co-Pilot assessment flows through the existing **governed-run pipeline**
+(`studio/lib/domain/pipeline.ts`): context → draft → self-critique → rule-check → provenance →
+persist + audit. (Source: Build-Plan ADR-11; the pipeline reserves the `copilot` path.)
+
+### 8.2 The core move — the Co-Pilot **inverts** the pipeline
+
+The existing pipeline is **draft-then-check** (Claude drafts → self-critique → rule-check). The
+Co-Pilot is **assess-then-narrate**: deterministic code decides the verdict **first**, the LLM only
+explains it **after**. This is the pipeline-level expression of #1's trust claim — the model is
+downstream of the verdict and can never move it.
+
+### 8.3 Stage mapping (reusing the scaffolding)
+
+| Pipeline stage | Co-Pilot action | Layer |
+|---|---|---|
+| 1. Context | Load the `copilot` skill + **grounding context**: active policy (#3) + standards library (the pipeline comment reserves this: *"Phase 1 replaces this with policy-grounded context"*) | Domain + Data-Source |
+| 2. Open run | `createTaskRun` (copilot skill, `input_summary` = the use, truncated) — reused | Data-Source |
+| 3. **Assess (new, deterministic)** | The **risk-tiering engine (#1)**: signals → tier → verdict, grounded, citations code-attached. **Code, not the LLM.** | **Domain** |
+| 4. Narrate (the "draft" slot) | LLM **explains** the verdict + **drafts the safer-way (#2)** — phrasing only, bound to the code's result | Data-Source |
+| 5. Self-critique | Challenger checks the narration doesn't **contradict the verdict or invent a citation** | Domain |
+| 6. Rule-check | Guard the output: no PII echoed, verdict coherent | Domain |
+| 7. Provenance + persist | Write `copilot_assessment` (#5) + `provenance_label` | Data-Source |
+| 8. Status + audit | `human_decision_required` → `needs_review`, else `completed`; `audit_event` `copilot_assessed` | Data-Source |
+
+The safety-critical step (3) is **pure Domain code**, upstream of the LLM (4).
+
+### 8.4 A sibling `runCopilotAssessment` (reuse helpers, not fork the flow)
+
+The draft-then-check shape of `runGovernedSkill` doesn't fit assess-then-narrate, so the Co-Pilot
+gets its **own Domain entry point** `runCopilotAssessment` that **reuses the shared Data-Source
+helpers** (`createTaskRun`, `writeAuditEvent`, provenance) but runs its own stage order. DRY the
+*helpers*, not the *flow* — generalizing the pipeline to parameterize "draft" vs "assess" is
+premature for two skills (judge-arch: clarity over premature abstraction).
+
+### 8.5 Resilience & graceful degradation
+
+Because the **verdict is pure code**, it survives outages that would break an LLM-first design. Only
+the **standards floor** is a hard dependency. Ranked by what's safe to lose:
+
+| What fails | Behavior | Rationale |
+|---|---|---|
+| **LLM narration** (stage 4) | **Fail-open:** templated explanation; still show verdict + tier + citations + code-selected safer-way; flag "plain-language explanation unavailable" | verdict + citations already computed by code; the model only phrases |
+| **Org policy read** | **Fail-open + loud disclosure:** standards-only grounding, "your policy couldn't be loaded — baseline standards only" | the safety **floor is intact**; only org-specific tightening is missed |
+| **Standards library read** (the floor) | **Fail-closed → `out_of_scope`:** "can't assess safely right now — try again or ask a human" | an ungrounded verdict would be fabrication (RAI rule 6; secure fail-secure rule 9) |
+| **Signal uncertain/unknown** | **Round up** (treat as yes) → stricter tier | the #1 fail-safe |
+| **Persist / audit write** | **Best-effort:** return the advice, surface "not saved to your registry," retry the audit | don't lose the answer over a log hiccup; be honest it's unlogged (ADR-14) |
+
+So: LLM down → still works (templated); policy down → still works (standards-only, disclosed);
+standards down → honestly refuses rather than guesses.
+
+### 8.6 Cross-cutting notes
+
+- **judge-arch:** safety-critical verdict as pure Domain code upstream of the LLM; reuse Data-Source
+  helpers (single source of truth for tenancy/audit); fail-open/closed per dependency (ADR-14).
+- **responsible-AI:** human gate → `needs_review` (rule 9); self-critique guards groundedness
+  (rule 6); every assessment logged (rule 11).
+- **secure-coding:** fail-secure on a lost grounding floor (rule 9); no PII echoed (rule-check).
+
+---
+
 ## Proposed ADR (to be numbered when Epic 4 is built)
 
 **Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
@@ -656,10 +720,16 @@ on whether to use AI for a task. A black-box model verdict cannot be explained o
     `decision`, `reason`) that **unifies with Epic 5's approval table**. Audit via `audit_event`
     (`copilot_assessed`, `risk_accepted/declined`) with **no reason text / no content** (ADR-6).
 
+11. **Pipeline fit:** the Co-Pilot **inverts** the pipeline to assess-then-narrate — deterministic
+    tiering runs first in Domain, the LLM only explains after — via a sibling `runCopilotAssessment`
+    that reuses the shared Data-Source helpers. Graceful degradation: LLM-down → templated; policy-
+    down → standards-only + disclosure; standards-floor-down → fail-closed `out_of_scope`.
+
 **Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
 first release carries modest up-front friction (three yes/no questions) in exchange for
 defensibility. The design preserves a cheap, additive upgrade to a fuller free-text experience by
-keeping signal-source separated from tier-decision.
+keeping signal-source separated from tier-decision. The code-first verdict stays available through
+LLM and policy outages; only the standards floor is a hard dependency.
 
 ---
 
