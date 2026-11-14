@@ -22,6 +22,7 @@ import {
 } from '@/lib/data/standards';
 
 const row = {
+  id: 'sr-1',
   code: 'nist-human-oversight',
   rule_text: 'A named person is accountable for each AI use.',
   category: 'human-oversight',
@@ -36,6 +37,7 @@ beforeEach(() => {
 describe('mapStandardRuleRow', () => {
   it('maps snake_case columns to camelCase fields', () => {
     expect(mapStandardRuleRow(row)).toEqual({
+      id: 'sr-1',
       code: 'nist-human-oversight',
       ruleText: 'A named person is accountable for each AI use.',
       category: 'human-oversight',
@@ -51,6 +53,7 @@ describe('getStandardRulesByCategory', () => {
     const rules = await getStandardRulesByCategory('human-oversight');
     expect(rules).toEqual([
       {
+        id: 'sr-1',
         code: 'nist-human-oversight',
         ruleText: 'A named person is accountable for each AI use.',
         category: 'human-oversight',
