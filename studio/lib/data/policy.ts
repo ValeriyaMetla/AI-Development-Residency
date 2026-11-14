@@ -189,7 +189,10 @@ export type NewPolicyRule = {
 };
 
 /** Bulk-insert a policy's rules. Returns true on success, false on error. */
-export async function insertPolicyRules(policyId: string, rules: NewPolicyRule[]): Promise<boolean> {
+export async function insertPolicyRules(
+  policyId: string,
+  rules: NewPolicyRule[],
+): Promise<boolean> {
   if (rules.length === 0) return true;
   const supabase = await createClient();
   const { error } = await supabase.from('policy_rule').insert(
@@ -237,7 +240,10 @@ export async function savePolicySeedResponse(params: {
  * policy per org, so the current active policy is archived first, then the target is
  * activated (two sequential updates, ADR-0009). Returns true only if both succeed.
  */
-export async function activatePolicy(params: { orgId: string; policyId: string }): Promise<boolean> {
+export async function activatePolicy(params: {
+  orgId: string;
+  policyId: string;
+}): Promise<boolean> {
   const supabase = await createClient();
   // 1) Archive any currently-active policy for this org (keeps the one-active invariant).
   const { error: archiveError } = await supabase
