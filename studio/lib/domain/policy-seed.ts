@@ -38,7 +38,13 @@ export async function seedPolicyFromAnswers(params: {
   const standardsByCode: StandardsByCode = new Map(
     standards.map((s) => [
       s.code,
-      { id: s.id, citation: s.citation, ruleText: s.ruleText, category: s.category, riskTier: s.riskTier },
+      {
+        id: s.id,
+        citation: s.citation,
+        ruleText: s.ruleText,
+        category: s.category,
+        riskTier: s.riskTier,
+      },
     ]),
   );
 
