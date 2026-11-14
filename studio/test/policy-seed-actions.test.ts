@@ -57,6 +57,7 @@ describe('runPolicySeed', () => {
       policyId: 'p1',
       ruleCount: 10,
       needsReviewCount: 0,
+      rules: [],
     });
     const res = await runPolicySeed(validAnswers);
     expect(res).toMatchObject({ status: 'created', policyId: 'p1' });
