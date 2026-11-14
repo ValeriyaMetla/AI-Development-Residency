@@ -75,7 +75,7 @@ in particular, **the safer-way is pulled out as its own decision (#2)**.
 |---|---|---|
 | **1** | **Transparent risk-tiering (the engine — code decides the tier, LLM only explains)** | **Designed — §3** |
 | **2** | **The safer-way ("…and how") — mitigations re-tier; irreducible → Don't** | **Designed — §4** |
-| 3 | Grounding + provenance (policy + standards, which standard backs each point) | Core defined in §3.6 & §4.5; policy side to finalize with Epic 1 |
+| **3** | **Grounding + provenance (policy + standards, which source backs each point)** | **Designed — §6** |
 | 4 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
 | 5 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
 | **6** | **Output shape (recommendation object + presentation)** | **Designed — §5** |
@@ -435,6 +435,99 @@ non-expert.
 
 ---
 
+## 6. Decision #3 — grounding & provenance
+
+### 6.1 What it is
+
+How the Co-Pilot grounds its advice in **two sources** — the org's **active policy** (Epic 1) and
+the **standards library** (Epic 0) — and how it shows **which source backs each point**. (Sources:
+ADR-0009 policy-seed data model; ADR-0008 standards library; Epic #4 feature 4.)
+
+### 6.2 Two stacked sources (a floor plus additive policy)
+
+- **Standards library = the universal safety floor.** The deterministic tier engine (§3.5) is
+  grounded here, so every org gets baseline-safe advice **even with no policy** (Epic 8's free
+  baseline-safety tier). Read via `studio/lib/data/standards.ts` (global read-only catalog).
+- **Org active policy = additive.** The one `active` policy per org (ADR-0009), and its atomic
+  `policy_rule` rows — *each itself standards-grounded* (it snapshots `standard_rule_id` + a
+  point-in-time `citation`). Read via a new Data-Source accessor, **org-scoped RLS, the `task_run`
+  tenancy pattern** (ADR-0009 / ADR-0003) — mirroring `standards.ts`, no DB in Domain/UI (Leak Test).
+- **Graceful degradation (ADR-14):** no `active` policy yet → ground in standards alone and **say
+  so** ("grounded in baseline standards; you haven't set your org policy yet"); a read error returns
+  `[]`, same as `standards.ts`.
+
+### 6.3 Policy tightens freely; relaxes only above the hard floor
+
+The two sources are not peers — they stack, and policy can move the result in both directions with
+one hard limit:
+
+- **Tighten (always allowed):** policy adds org-specific rules or strengthens the baseline; a use
+  conflicting with a policy rule raises the verdict (toward conditions / don't), with the policy
+  rule cited.
+- **Relax = risk acceptance with accountability:** the named accountable leader may **accept** a
+  `Limited` / `High` flag and proceed — but only **logged with a reason** (Epic 2) and **honestly
+  labeled** ("accepted against the [standard] recommendation"). The org's policy may pre-set standing
+  acceptances so the leader isn't re-asked each time. (Real governance practice: NIST risk
+  acceptance; EU AI Act high-risk = allowed with safeguards.)
+- **The hard floor — never relaxable:** `Prohibited` (illegal / banned purposes — EU AI Act Art. 5),
+  the **third rail** (AI judging/ranking a person), and any **`is_baseline_safety`** policy rule
+  (ADR-0009 built that flag to be non-overridable). A use conflicting with an `is_baseline_safety`
+  rule is a **hard `Don't`** (treated like an irreducible signal, §4).
+
+### 6.4 Citation precedence — policy-first, standards-backed, standards-fallback
+
+When citing a point, the code picks the source in this order:
+
+1. **An active policy rule covers it** → cite the **policy rule**, surfacing its standard underneath:
+   *"Your AI policy: [rule_text] — based on [EU AI Act Art. 14]."*
+2. **No policy rule covers it** → cite the **standards library** directly (current version):
+   *"Baseline standard: [NIST MEASURE]."*
+3. **Custom policy rule** (`standard_rule_id` null, `origin = custom`) → *"Your organization's own
+   rule"* (honest: not every policy rule has a standard).
+4. **An accepted/relaxed risk** → *"Risk accepted by [leader] on [date] — against the [standard]
+   recommendation."*
+
+Policy-first (over standards-first) so the leader sees their policy *actually being used* (Epic 1's
+"living policy"); the standard is always one expander away (§5.4 progressive disclosure).
+
+### 6.5 Provenance labels — origin-tagged, honest, no fabrication
+
+Each `reasons[].citations[]` (§5.2) is tagged by `policy_rule.origin`:
+
+| Source | Label |
+|---|---|
+| policy rule, `origin = standard` | "Your AI policy (based on [standard])" |
+| policy rule, `origin = baseline` | "Your AI policy — baseline safety · non-overridable (based on [standard])" |
+| policy rule, `origin = custom` | "Your organization's own rule" |
+| standards library (no policy rule) | "Baseline standard: [standard]" |
+| accepted risk | "Risk accepted — against [standard] recommendation" |
+
+**No-fabrication guarantee (as in §3.6 / §4.5):** every citation string comes from
+`policy_rule.citation` (snapshot) or `standard_rule.citation` (code-attached). The LLM phrases
+`rule_text` / reasons but **never writes or edits a citation**.
+
+### 6.6 Snapshot vs. current version (feature #4)
+
+ADR-0009 **snapshots** `policy_rule.citation` at generation (point-in-time), while standards reads
+are **live**. They do different jobs and don't conflict:
+
+- The **verdict/tier** is grounded in the **live** standards engine (§3.5) → advice always reflects
+  the current standard (satisfies feature #4 `[Should]`).
+- A **policy citation** shows the org's **snapshot** — honest to what they adopted.
+- *(1b refinement, not 1a:)* when a live standard has moved past a policy rule's snapshot, flag
+  "your policy cites an older version."
+
+### 6.7 Cross-cutting notes
+
+- **responsible-AI:** grounding against fabrication (rule 6), provenance/disclosure (rule 3),
+  accountable+logged risk acceptance (rules 9, 11), the non-relaxable hard floor (rule 10).
+- **judge-arch:** both reads live in Data-Source accessors (org-scoped RLS for policy, read-only
+  catalog for standards), never Domain/UI (ADR-0003).
+- **secure-coding:** org-owned policy data under RLS — the table/grant mechanics are decision #5
+  (data model), per ADR-0009's `task_run` pattern.
+
+---
+
 ## Proposed ADR (to be numbered when Epic 4 is built)
 
 **Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
@@ -464,6 +557,12 @@ on whether to use AI for a task. A black-box model verdict cannot be explained o
    (§5.3); `out_of_scope` is a first-class verdict. Presentation leads with the plain-language
    verdict, shows the safer-way prominently, never signals by color alone, offers **no "proceed" on
    `dont`**, and keeps verdict/tier/safer-way/human-decision uncollapsed.
+9. **Grounding** stacks two sources: the standards library is the universal safety floor; the org's
+   active policy is additive. Policy **tightens freely** and may **relax only above a hard floor**
+   via logged, accountable risk acceptance — `Prohibited`, the third rail, and `is_baseline_safety`
+   rules never relax. Citations are **policy-first, standards-backed, standards-fallback** (§6.4),
+   origin-tagged and code-attached (no fabrication). The verdict uses live standards (feature #4);
+   policy citations show ADR-0009's snapshot.
 
 **Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
 first release carries modest up-front friction (three yes/no questions) in exchange for
@@ -475,8 +574,9 @@ keeping signal-source separated from tier-decision.
 ## Open questions / to verify
 
 - [ ] Confirm the exact Build Plan wording for "transparent risk-tiering" (sourcing flag, §1).
-- [ ] Confirm Epic 1's `policy_rule` shape to finalize policy-grounding alongside standards (decision #3).
-- [ ] Specify the *content* of out-of-scope guidance ("who to ask") per org (decision #3 / #6). (The out-of-scope verdict and behavior are designed — §5.)
+- [ ] Specify the *content* of out-of-scope guidance ("who to ask") per org (decision #6). (The out-of-scope verdict and behavior are designed — §5.)
+- [ ] Design the **risk-acceptance** record + standing-acceptance mechanism (who/when/why, logged) — overlaps decision #5 (data model) and Epic 2.
+- [ ] (1b) Flag when a live standard has moved past a policy rule's snapshotted citation (§6.6).
 - [ ] Decide whether the seeded `risk_tier` loose tags are realigned to the four tiers (Epic-1/4 follow-up; DB change — not here).
 
 ## Sourcing notes
