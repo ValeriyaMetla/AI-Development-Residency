@@ -56,6 +56,9 @@ describe('seedPolicyFromAnswers — happy path', () => {
       expect(res.policyId).toBe('policy-1');
       expect(res.ruleCount).toBeGreaterThan(0);
       expect(res.needsReviewCount).toBe(0);
+      // The generated rules are returned for the review screen, each grounded with a citation.
+      expect(res.rules).toHaveLength(res.ruleCount);
+      expect(res.rules.every((r) => r.standardRuleId || r.origin === 'custom')).toBe(true);
     }
     expect(createPolicy).toHaveBeenCalledOnce();
     expect(insertPolicyRules).toHaveBeenCalledOnce();

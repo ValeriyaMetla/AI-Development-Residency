@@ -1,5 +1,10 @@
 import { getAllStandardRules } from '@/lib/data/standards';
-import { createPolicy, insertPolicyRules, savePolicySeedResponse } from '@/lib/data/policy';
+import {
+  createPolicy,
+  insertPolicyRules,
+  savePolicySeedResponse,
+  type NewPolicyRule,
+} from '@/lib/data/policy';
 import { writeAuditEvent } from '@/lib/data/runs';
 import { generatePolicyRules, type StandardsByCode } from '@/lib/domain/policy-generator';
 import type { PolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
@@ -19,7 +24,13 @@ import type { PolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 const DEFAULT_POLICY_NAME = 'Starter AI policy';
 
 export type SeedPolicyResult =
-  | { status: 'created'; policyId: string; ruleCount: number; needsReviewCount: number }
+  | {
+      status: 'created';
+      policyId: string;
+      ruleCount: number;
+      needsReviewCount: number;
+      rules: NewPolicyRule[];
+    }
   | { status: 'failed'; message: string };
 
 export async function seedPolicyFromAnswers(params: {
@@ -79,5 +90,5 @@ export async function seedPolicyFromAnswers(params: {
     payload: { policyId, ruleCount: rules.length, needsReviewCount },
   });
 
-  return { status: 'created', policyId, ruleCount: rules.length, needsReviewCount };
+  return { status: 'created', policyId, ruleCount: rules.length, needsReviewCount, rules };
 }
