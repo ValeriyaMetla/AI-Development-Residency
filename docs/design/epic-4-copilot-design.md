@@ -77,7 +77,7 @@ in particular, **the safer-way is pulled out as its own decision (#2)**.
 | **2** | **The safer-way ("…and how") — mitigations re-tier; irreducible → Don't** | **Designed — §4** |
 | **3** | **Grounding + provenance (policy + standards, which source backs each point)** | **Designed — §6** |
 | 4 | Pipeline fit (how an assessment flows through the governed-run pipeline) | Not yet designed |
-| 5 | Data model — `copilot_assessment` table (design only, org-owned → org-scoped RLS) | Not yet designed |
+| **5** | **Data model — `copilot_assessment` (design only, org-owned → org-scoped RLS)** | **Designed — §7** |
 | **6** | **Output shape (recommendation object + presentation)** | **Designed — §5** |
 | 7 | Responsible-AI stance (advises/human decides, out-of-scope → human, no fabricated cites) | Woven through §3–§4; to consolidate |
 
@@ -528,6 +528,92 @@ are **live**. They do different jobs and don't conflict:
 
 ---
 
+## 7. Decision #5 — data model (`copilot_assessment`)
+
+### 7.1 What it is
+
+The tables a Co-Pilot assessment needs — **design only** (the migration is written later by whoever
+builds Epic 4). Org-owned, under org-scoped RLS. Grounded in the real core schema
+(`20261110000000_phase0_core_schema.sql`) and ADR-0009's tenancy pattern.
+
+### 7.2 Key insight — an assessment **is a `task_run`**
+
+The core schema already reserves our table (*"the approval / **copilot_assessment** /
+policy_suggestion tables arrive in Phase 1"*) and `skill_type` already includes **`copilot`**. So a
+Co-Pilot assessment **runs through the existing pipeline** → it creates a **`task_run`** (the
+`copilot` skill), reusing `org_id`, `run_by`, `status`, `input_summary`, the org-scoped RLS, and the
+`audit_event` log. **`copilot_assessment` is to the Co-Pilot what `task_output` is to a Skill** — a
+1:1 child of `task_run`. No new tenancy/audit/RLS machinery (judge-arch single source of truth; YAGNI).
+
+### 7.3 `copilot_assessment` columns (persists the §5.2 object)
+
+| Column | Holds |
+|---|---|
+| `id` | PK (the `assessmentId` the output object carries) |
+| `task_run_id` | FK → `task_run` (parent; org/actor/status live there) |
+| `verdict` | enum `use` / `use_with_conditions` / `dont` / `out_of_scope` |
+| `tier` | enum `minimal` / `limited` / `high` / `prohibited` / `undetermined` |
+| `recommendation` | **jsonb** — the structured object: `signals[]`, `reasons[]` (code-attached citations), `baselineRules[]`, `saferWay`, `tierLabel`, `summary` |
+| `policy_id` | FK → `policy` (nullable) — which active policy was in effect (provenance snapshot) |
+| `provenance_label`, `human_decision_required` | as in §5.2 |
+| `created_at` | timestamp |
+
+**jsonb (not normalized child tables):** the recommendation is a read-mostly, point-in-time snapshot
+rendered as a unit (like ADR-0009's snapshotted citation); normalizing buys SQL-queryability
+(e.g. "all assessments citing NIST-X") we don't need in 1a (YAGNI). Revisit if Epic 7 funder
+reporting needs that query early.
+
+### 7.4 RLS + least privilege (ADR-0009's child-via-parent)
+
+- **Org-scoped via its parent `task_run`** (the `task_output`→`task_run` pattern) — no separate
+  `org_id`; one source of truth for tenancy.
+- **`SELECT` + `INSERT` only; no `UPDATE`, no `DELETE`** — an assessment is an **immutable record**;
+  re-asking creates a new `task_run` + `copilot_assessment` (non-destructive, versioned-by-new-row,
+  as ADR-0009's policy).
+- Writes as the signed-in user via `current_org_id()`; **no service-role key** (ADR-0007/0009).
+
+### 7.5 Risk-acceptance record (from §6.3)
+
+- **Reuse the `task_status` flow:** a risky verdict → `needs_review`; leader **accepts & proceeds** →
+  `approved`; **declines** → `rejected`. No new state machine.
+- **Acceptance details** (insert-only, since the assessment is immutable): `task_run_id` (or
+  `copilot_assessment_id`), `decided_by` FK → `profile`, `decision` (`accepted` / `declined`),
+  `reason` text, `created_at`.
+- **Unify with Epic 5, don't build twice:** Epic 5's "human approval / review step" needs this same
+  record for Skills. The design fixes the fields; whoever builds Epic 4/5 makes it one shared
+  "human decision on a run" table (judge-arch single source of truth).
+
+### 7.6 Audit events (reuse append-only `audit_event`; no sensitive content — ADR-6)
+
+- **`copilot_assessed`** — payload `{ verdict, tier, status }` (like the pipeline's `task_completed`).
+- **`risk_accepted` / `risk_declined`** — payload `{ assessment_id, decision }`.
+- The acceptance **`reason` never enters the audit payload** (it could be sensitive) — it lives only
+  in the RLS-protected decision record (secure-coding rule 8 + ADR-6).
+
+### 7.7 Sensitive-data handling
+
+The leader's **use description can carry PII**. By design: **signals** are yes/no (no PII);
+**reasons** are *categorical* ("this involves sensitive data"), not the raw data; the **audit log**
+carries no content. Retention/erasure of the raw `input_summary` is **deferred to Phase 1** (the core
+schema already defers right-to-erasure) — flagged, not solved here.
+
+### 7.8 Reserved hooks
+
+`task_run.policy_id` (which active policy applied) lands with Epic 1's "policy-inheritance
+mechanism" ticket; `copilot_assessment.policy_id` snapshots it for provenance. Migrations are
+additive, so the nullable FKs are cheap to add when those tickets land.
+
+### 7.9 Cross-cutting notes
+
+- **secure-coding:** org-scoped RLS (rule 1), least-privilege SELECT+INSERT/immutable (rule 9), no
+  service-role key, no PII in logs (rule 8).
+- **judge-arch:** reuse `task_run` as the tenancy/audit single source of truth; one unified
+  human-decision record; all access via Data-Source (ADR-0003).
+- **responsible-AI:** accountable human + logged decision (rules 9, 11); audit without content.
+- **technical-planning:** the schema is costly-to-reverse → captured in the Proposed ADR.
+
+---
+
 ## Proposed ADR (to be numbered when Epic 4 is built)
 
 **Title:** Transparent risk-tiering as deterministic Domain-layer code, grounded in the standards
@@ -563,6 +649,12 @@ on whether to use AI for a task. A black-box model verdict cannot be explained o
    rules never relax. Citations are **policy-first, standards-backed, standards-fallback** (§6.4),
    origin-tagged and code-attached (no fabrication). The verdict uses live standards (feature #4);
    policy citations show ADR-0009's snapshot.
+10. **Data model:** an assessment is a `task_run` (the `copilot` skill) plus an immutable
+    `copilot_assessment` child (recommendation as `jsonb`), org-scoped via the parent (ADR-0009
+    child-via-parent RLS), SELECT+INSERT only. Risk acceptance reuses `task_status`
+    (`needs_review` → `approved`/`rejected`) with an insert-only decision record (`decided_by`,
+    `decision`, `reason`) that **unifies with Epic 5's approval table**. Audit via `audit_event`
+    (`copilot_assessed`, `risk_accepted/declined`) with **no reason text / no content** (ADR-6).
 
 **Consequences:** Every verdict is explainable and reproducible; citations cannot be fabricated. The
 first release carries modest up-front friction (three yes/no questions) in exchange for
@@ -575,7 +667,8 @@ keeping signal-source separated from tier-decision.
 
 - [ ] Confirm the exact Build Plan wording for "transparent risk-tiering" (sourcing flag, §1).
 - [ ] Specify the *content* of out-of-scope guidance ("who to ask") per org (decision #6). (The out-of-scope verdict and behavior are designed — §5.)
-- [ ] Design the **risk-acceptance** record + standing-acceptance mechanism (who/when/why, logged) — overlaps decision #5 (data model) and Epic 2.
+- [ ] Confirm the risk-acceptance record **unifies with Epic 5's human-approval table** when Epic 5 is designed (fields fixed in §7.5); design the standing-acceptance (pre-set policy acceptance) mechanism.
+- [ ] Retention / right-to-erasure for `task_run.input_summary` (deferred to Phase 1, §7.7).
 - [ ] (1b) Flag when a live standard has moved past a policy rule's snapshotted citation (§6.6).
 - [ ] Decide whether the seeded `risk_tier` loose tags are realigned to the four tiers (Epic-1/4 follow-up; DB change — not here).
 
