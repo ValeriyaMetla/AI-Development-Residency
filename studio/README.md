@@ -3,6 +3,7 @@
 The application for **Community AI Workflow Studio** — a tool that helps small nonprofits use AI
 safely and fairly: start from your organization's own AI-use rules, run governed tasks, and keep a
 trustworthy record. This is the **Release 1a** build.
+**Live app:** [https://ai-development-residency-nine.vercel.app/](https://ai-development-residency-nine.vercel.app/)
 
 App code lives here in `studio/` as part of the [`AI-Development-Residency`](../) repo
 (per [ADR-0004](../docs/adr/0004-repository-layout.md)). Before technical work, read
@@ -36,8 +37,8 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-Other scripts: `npm run build` (production build) · `npx tsc --noEmit` (type-check) ·
-`npm run lint`.
+Other scripts: `npm run build` (production build) · `npm run typecheck` · `npm run lint` ·
+`npm run test:run` · `npm run format:check`.
 
 ## Environment & secrets
 
@@ -48,10 +49,15 @@ environment settings for production.
 
 ## Status
 
-**Release 1a — complete and live on Vercel.** The Accountable-Leader journey ships: sign-up / login,
-the ~5-minute policy seed, policy inheritance into every governed run, the "Draft a thank-you"
-governed Skill, the Governance Co-Pilot (`/copilot`), the deterministic policy rule-check, provenance
-labels, append-only audit, and org-scoped RLS. CI and the architecture gate are green on `main`.
+**Release 1a — complete and live on Vercel.** This is the Week 4 submission release and first
+shippable Accountable-Leader slice. It includes sign-up / login, the ~5-minute policy seed, policy
+inheritance into every governed run, the Release 1a "Draft a thank-you" governed Skill slice, the
+Governance Co-Pilot (`/copilot`), the deterministic policy rule-check, provenance labels,
+append-only audit, and org-scoped RLS. CI and the architecture gate are green on `main`.
+
+The broader product MVP continues in Release 1b with the productionized governed Skill experience,
+full self-critique, PII handling, human approval, dashboards, and the Frontline-Doer journey.
+
 See [`docs/RELEASE-1A.md`](../docs/RELEASE-1A.md) for what shipped and what was decided.
 
 Maintainer: Val (@ValeriyaMetla).
