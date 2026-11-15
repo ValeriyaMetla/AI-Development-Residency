@@ -40,6 +40,7 @@ export async function createTaskRun(params: {
   skillId: string;
   runBy: string;
   inputSummary: string;
+  policyId?: string | null;
 }): Promise<string | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -50,6 +51,7 @@ export async function createTaskRun(params: {
       run_by: params.runBy,
       status: 'running',
       input_summary: params.inputSummary,
+      policy_id: params.policyId ?? null,
     })
     .select('id')
     .single();

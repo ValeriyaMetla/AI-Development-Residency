@@ -7,7 +7,9 @@ import {
   saveGuardrailCheck,
   writeAuditEvent,
 } from '@/lib/data/runs';
+import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import { ruleCheck, type GuardrailResult } from '@/lib/domain/guardrails';
+import { withPolicyContext } from '@/lib/domain/policy-context';
 
 /**
  * The governed-run pipeline (Domain layer, ADR-0003 / Build Plan ADR-11) — the one
@@ -46,25 +48,31 @@ export async function runGovernedSkill(params: {
 }): Promise<RunResult> {
   const { skillKey, userInput, userId, orgId } = params;
 
-  // 1. Context — load the Skill.
+  // 1. Context — load the Skill and the org's ACTIVE policy (inheritance, Epic 1). The
+  // policy is read fresh on every run, so editing/re-activating a policy propagates to the
+  // next run with no redeploy.
   const skill = await getSkillByKey(skillKey);
-  const systemPrompt = SKILL_PROMPTS[skillKey];
-  if (!skill || !systemPrompt) {
+  const basePrompt = SKILL_PROMPTS[skillKey];
+  if (!skill || !basePrompt) {
     return { status: 'blocked', message: 'Unknown Skill.' };
   }
+  const activePolicy = await getActivePolicy(orgId);
+  const policyRules = activePolicy ? await getPolicyRules(activePolicy.id) : [];
+  const systemPrompt = withPolicyContext(basePrompt, policyRules);
 
-  // 2. Open a task run (mutable working state).
+  // 2. Open a task run, stamped with the policy in force (provenance + inheritance).
   const taskRunId = await createTaskRun({
     orgId,
     skillId: skill.id,
     runBy: userId,
     inputSummary: userInput.slice(0, 200),
+    policyId: activePolicy?.id ?? null,
   });
   if (!taskRunId) {
     return { status: 'blocked', message: 'Could not start the task.' };
   }
 
-  // 3. Draft (Claude, via the Data-Source layer).
+  // 3. Draft (Claude, via the Data-Source layer) — grounded in the active policy.
   const draft = await draftWithClaude(systemPrompt, userInput);
   if (!draft.ok) {
     await saveGuardrailCheck({
