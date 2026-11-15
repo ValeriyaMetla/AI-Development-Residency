@@ -8,8 +8,16 @@ import {
   writeAuditEvent,
 } from '@/lib/data/runs';
 import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
-import { ruleCheck, type GuardrailResult } from '@/lib/domain/guardrails';
+import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardrails';
 import { withPolicyContext } from '@/lib/domain/policy-context';
+import {
+  buildCritiquePrompt,
+  parseCritique,
+  critiqueToFinding,
+  critiqueUnavailableFinding,
+  critiqueSummary,
+  type CritiqueResult,
+} from '@/lib/domain/self-critique';
 
 /**
  * The governed-run pipeline (Domain layer, ADR-0003 / Build Plan ADR-11) — the one
@@ -17,9 +25,10 @@ import { withPolicyContext } from '@/lib/domain/policy-context';
  * -> provenance -> persist + audit. Every run is logged (ADR-5/6); nothing is thrown
  * past this layer (ADR-14 resilience).
  *
- * Phase 0 shell: one trivial Skill, one deterministic rule-check, a STUBBED
- * self-critique. The real Challenger self-critique pass, policy-grounded context, PII
- * stripping, and the human-approval gate before anything is sent arrive in Phase 1/2.
+ * Self-critique is a real model-based Challenger pass (ADR-0015): it reviews the draft, can make
+ * ONE bounded revision, and fails closed to human review on error — but it never replaces the
+ * deterministic rule-check, which runs afterward as code outside the model (ADR-0014). PII
+ * stripping and the human-approval gate before anything is sent arrive with Chunk 2.
  */
 
 const PROVENANCE_LABEL = 'AI-generated with Claude (Sonnet)';
@@ -92,26 +101,56 @@ export async function runGovernedSkill(params: {
     return { status: 'blocked', message: draft.message };
   }
 
-  // 4. Self-critique — STUB for the shell (real Challenger pass is Phase 2).
-  const selfCritiqueResult = 'self-critique stubbed (Phase 2)';
-  const finalText = draft.text;
+  // 4. Self-critique — the model-based Challenger pass (ADR-0015). It reviews its own draft against
+  // the Skill intent + active policy and returns a structured verdict (pass / revise / block). On
+  // `revise` we take ONE bounded re-draft (the corrected text); on a model error or an unparseable
+  // response we FAIL CLOSED to human review (ADR-0014). The model NEVER gets the last word — the
+  // deterministic rule-check below is the backstop.
+  const critiqueRaw = await draftWithClaude(
+    buildCritiquePrompt(basePrompt, policyRules),
+    draft.text,
+  );
+  let finalText = draft.text;
+  let critique: CritiqueResult | null = null;
+  let critiqueFinding: GuardrailResult;
+  if (!critiqueRaw.ok) {
+    critiqueFinding = critiqueUnavailableFinding();
+  } else {
+    critique = parseCritique(critiqueRaw.text);
+    if (!critique) {
+      critiqueFinding = critiqueUnavailableFinding();
+    } else {
+      critiqueFinding = critiqueToFinding(critique);
+      if (critique.verdict === 'revise' && critique.revisedText) {
+        finalText = critique.revisedText; // the one bounded re-draft
+      }
+    }
+  }
+  await saveGuardrailCheck({
+    taskRunId,
+    checkType: 'self_critique',
+    result: critiqueFinding.result,
+    reasonPlain: critiqueFinding.reason,
+  });
 
-  // 5. Deterministic, policy-grounded rule-check (Domain, ADR-0014) — checks the output against
-  // the org's active policy rules; code outside the model, so injection can't disable it.
-  const guardrail = ruleCheck(finalText, policyRules);
+  // 5. Deterministic, policy-grounded rule-check (Domain, ADR-0014) — checks the (possibly revised)
+  // output against the org's active policy rules; code outside the model, so injection can't disable
+  // it. Self-critique + rule-check are combined most-severe-wins (block > flag > pass, ADR-0015).
+  const ruleResult = ruleCheck(finalText, policyRules);
   await saveGuardrailCheck({
     taskRunId,
     checkType: 'rule_check',
-    result: guardrail.result,
-    reasonPlain: guardrail.reason,
+    result: ruleResult.result,
+    reasonPlain: ruleResult.reason,
   });
+  const guardrail = mostSevere([critiqueFinding, ruleResult]);
 
-  // 6. Provenance + persist output.
+  // 6. Provenance + persist output (self-critique summary carries no sensitive payload, ADR-6).
   await saveTaskOutput({
     taskRunId,
     content: finalText,
     provenanceLabel: PROVENANCE_LABEL,
-    selfCritiqueResult,
+    selfCritiqueResult: critiqueSummary(critique),
   });
 
   // 7. Final status + audit (audit payload carries no sensitive content, ADR-6).
@@ -127,7 +166,11 @@ export async function runGovernedSkill(params: {
     taskRunId,
     actor: userId,
     eventType: 'task_completed',
-    payload: { guardrail: guardrail.result, status },
+    payload: {
+      guardrail: guardrail.result,
+      selfCritique: critique?.verdict ?? 'unavailable',
+      status,
+    },
   });
 
   if (status === 'blocked') {

@@ -37,3 +37,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0012](0012-host-on-vercel.md) — Host and deploy on Vercel
 - [ADR-0013](0013-use-supabase.md) — Use Supabase for database, auth, and row-level security
 - [ADR-0014](0014-policy-rule-check.md) — Policy rule-check is deterministic, category-driven code (not an LLM judge)
+- [ADR-0015](0015-self-critique-pass.md) — Self-critique is a model-based Challenger pass with a bounded re-draft, behind the deterministic rule-check
