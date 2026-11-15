@@ -105,7 +105,7 @@ tables, by group:
 - **Tenancy & identity:** `org`, `profile` (extends Supabase `auth.users`).
 - **Standards library** (global, read-only): `standard`, `standard_rule` (ADR-0008).
 - **Policy** (org-owned, versioned): `policy`, `policy_rule`, `policy_seed_response` (ADR-0009).
-- - **Skills & runs:** `skill`, `task_run` (carries `policy_id`, the version applied), `task_output`, and `copilot_assessment`. The Co-Pilot assessment stores the verdict, risk tier, grounded recommendation, policy provenance, and human-decision requirement.
+- **Skills & runs:** `skill`, `task_run` (carries `policy_id`, the version applied), `task_output`, and `copilot_assessment`. The Co-Pilot assessment stores the verdict, risk tier, grounded recommendation, policy provenance, and human-decision requirement.
 - **Guardrails:** `guardrail_check`.
 - **Audit** (append-only, no sensitive content): `audit_event`.
 
