@@ -104,6 +104,24 @@ export default async function DashboardPage() {
 
         <Divider sx={{ my: 1 }} />
 
+        <Paper variant="outlined" sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="h6" component="h2">
+            Governance Co-Pilot
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Not sure whether to use AI for something? Describe the use and get a clear
+            recommendation — grounded in recognized standards and your policy. The Co-Pilot advises;
+            you decide.
+          </Typography>
+          <Box>
+            <Button variant="contained" component={NextLink} href="/copilot">
+              Should we use AI for this?
+            </Button>
+          </Box>
+        </Paper>
+
+        <Divider sx={{ my: 1 }} />
+
         <ThankYouRunner />
 
         <Divider sx={{ my: 1 }} />
