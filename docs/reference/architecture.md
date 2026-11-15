@@ -38,6 +38,7 @@ server actions and render results; they hold no secrets and enforce no policy.
 | `/` | Landing | Entry point into the app | — |
 | `/signup` | Create account | Sign up; provisions an org + Accountable-Leader profile | `app/auth/actions.ts` |
 | `/login` | Sign in | Authenticate (Supabase Auth) | `app/auth/actions.ts` |
+| `/policy-seed` | Policy-seed wizard | The ~5-min guided intake → generates the starter policy; review screen | `app/policy-seed/actions.ts` |
 | `/copilot` | Governance Co-Pilot | Evaluates a proposed AI use and returns a verdict, reasons, citations, and safer approach | `app/copilot/actions.ts` |
 | `/dashboard` | Home (after login) | Entry to seed a policy and to run a governed Skill ("Draft a thank-you") | `app/skills/actions.ts` |
 
@@ -50,7 +51,7 @@ All privileged logic runs here, behind the trust boundary, in four layers (ADR-0
 
 - **Presentation** — `studio/app/**` (the screens above).
 - **Service** — the server actions / route handlers that the screens call:
-  - `app/auth/actions.ts`, `app/policy-seed/actions.ts`, `app/skills/actions.ts`, and
+  `app/auth/actions.ts`, `app/policy-seed/actions.ts`, `app/skills/actions.ts`, and
   `app/copilot/actions.ts`. Thin: they authenticate, call the Domain layer, and return results.
 - **Domain** — `studio/lib/domain/**`, pure rules with no I/O:
   - `pipeline.ts` — the **governed-run pipeline** used by governed Skills:
@@ -63,7 +64,7 @@ All privileged logic runs here, behind the trust boundary, in four layers (ADR-0
   - `copilot-grounding.ts` — attaches code-controlled reasons and standards citations.
   - `copilot-pipeline.ts` — runs the Co-Pilot's assess-then-narrate workflow.
 - **Data-Source** — `studio/lib/data/**`, the only place that touches Supabase or the Claude SDK:
-  - `claude.ts` (Claude API, Sonnet — the single call site), `policy.ts` (`getActivePolicy`,
+  `claude.ts` (Claude API, Sonnet — the single call site), `policy.ts` (`getActivePolicy`,
   `getPolicyRules`), `profile.ts`, `runs.ts` (`task_run` / `task_output` / assessments / audit),
   and `standards.ts`.
 
