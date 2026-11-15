@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/data/supabase/server';
-import type { CopilotTier, CopilotVerdict, Recommendation } from '@/lib/domain/copilot';
+import type { CopilotTier, CopilotVerdict } from '@/lib/domain/copilot';
+import type { FinalRecommendation } from '@/lib/domain/copilot-grounding';
 
 /**
  * Governance Co-Pilot data-source accessor (Data-Source layer, ADR-0003 / ADR-0010).
@@ -16,7 +17,7 @@ export type SaveCopilotAssessmentParams = {
   verdict: CopilotVerdict;
   tier: CopilotTier;
   /** The structured recommendation (design §5.2); stored as jsonb. Holds no raw sensitive content. */
-  recommendation: Recommendation;
+  recommendation: FinalRecommendation;
   policyId: string | null;
   provenanceLabel: string;
   humanDecisionRequired: boolean;
