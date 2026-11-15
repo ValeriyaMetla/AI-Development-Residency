@@ -1,4 +1,4 @@
-import type { Reason } from '@/lib/domain/copilot';
+import type { Reason, CopilotVerdict, CopilotTier, Signals, SaferWay } from '@/lib/domain/copilot';
 
 /**
  * Co-Pilot grounding (Domain layer, ADR-0010 §6). PURE functions that attach REAL citations to the
@@ -51,3 +51,22 @@ export function baselineCitations(citations: CitationMap): Citation[] {
     citations[code] ? { code, text: citations[code], source: 'standard' } : null,
   ).filter((c): c is Citation => c !== null);
 }
+
+/**
+ * The full recommendation object persisted to copilot_assessment.recommendation (jsonb) and
+ * rendered by the UI (design §5.2). The deterministic parts come from the engine + grounding;
+ * `summary` is the LLM's (or a templated) one-line explanation; `policyApplied` records whether an
+ * active org policy was in force at assessment time.
+ */
+export type FinalRecommendation = {
+  verdict: CopilotVerdict;
+  tier: CopilotTier;
+  tierLabel: string;
+  summary: string;
+  signals: Signals;
+  reasons: GroundedReason[];
+  baselineRules: Citation[];
+  saferWay: SaferWay | null;
+  humanDecisionRequired: boolean;
+  policyApplied: boolean;
+};
