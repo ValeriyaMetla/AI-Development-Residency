@@ -175,7 +175,12 @@ function Result({ result }: { result: CopilotAssessmentResult }) {
             <Box key={reason.signalKey}>
               <Typography variant="body2">{reason.plainText}</Typography>
               {reason.citations.map((c) => (
-                <Typography key={c.code} variant="caption" color="text.secondary" display="block">
+                <Typography
+                  key={c.code}
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block' }}
+                >
                   Source: {c.text}
                 </Typography>
               ))}
