@@ -16,11 +16,7 @@ export type CopilotTier = 'minimal' | 'limited' | 'high' | 'prohibited' | 'undet
 
 /** The five risk signals the engine reads (design §3.4). */
 export type SignalKey =
-  | 'bannedPurpose'
-  | 'judgesPerson'
-  | 'highStakesDomain'
-  | 'sensitiveData'
-  | 'outputLeavesOrg';
+  'bannedPurpose' | 'judgesPerson' | 'highStakesDomain' | 'sensitiveData' | 'outputLeavesOrg';
 
 /** A signal value: true/false, or 'unknown' (ambiguous / unanswered) — which rounds the tier UP. */
 export type SignalValue = boolean | 'unknown';
@@ -44,7 +40,8 @@ type SignalDef = {
  */
 export const SIGNAL_DEFS: Record<SignalKey, SignalDef> = {
   bannedPurpose: {
-    reason: 'This looks like a banned purpose (e.g. manipulation, social scoring, surveillance, or anything illegal).',
+    reason:
+      'This looks like a banned purpose (e.g. manipulation, social scoring, surveillance, or anything illegal).',
     citationCodes: ['euaiact-match-risk'],
     mitigation: null, // irreducible
     neutralizes: false,
@@ -57,21 +54,25 @@ export const SIGNAL_DEFS: Record<SignalKey, SignalDef> = {
     neutralizes: true, // clears only if the judgment is taken off the AI
   },
   highStakesDomain: {
-    reason: 'This is a high-stakes domain (health, legal, financial, housing/benefits, safety, or crisis).',
+    reason:
+      'This is a high-stakes domain (health, legal, financial, housing/benefits, safety, or crisis).',
     citationCodes: ['nist-check-output', 'euaiact-human-override'],
     mitigation: 'Add a mandatory human review and check the output carefully before acting on it.',
     neutralizes: false, // the domain remains; human approval stays a permanent floor
   },
   sensitiveData: {
-    reason: 'This involves sensitive personal data (health, financial, case/service details, or info about vulnerable people).',
+    reason:
+      'This involves sensitive personal data (health, financial, case/service details, or info about vulnerable people).',
     citationCodes: ['iso42001-data-governance'],
     mitigation: 'Strip, minimize, or anonymize the sensitive details before they reach the AI.',
     neutralizes: true,
   },
   outputLeavesOrg: {
-    reason: 'The output leaves the organization (sent to the person served, a funder, or the public).',
+    reason:
+      'The output leaves the organization (sent to the person served, a funder, or the public).',
     citationCodes: ['euaiact-disclose-ai'],
-    mitigation: 'Have a person review and approve before sending, and keep the AI-assisted provenance label.',
+    mitigation:
+      'Have a person review and approve before sending, and keep the AI-assisted provenance label.',
     neutralizes: true,
   },
 };
