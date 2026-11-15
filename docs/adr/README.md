@@ -29,3 +29,6 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0007](0007-signup-provisioning-trigger.md) — Provision org + profile at sign-up via a SECURITY DEFINER trigger
 - [ADR-0008](0008-standards-library-data-model.md) — Standards library data model: `standard` + `standard_rule` as a read-only catalog
 - [ADR-0009](0009-policy-seed-data-model.md) — Policy-seed data model: org-owned `policy` / `policy_rule` / `policy_seed_response`
+- [ADR-0011](0011-use-nextjs-with-typescript.md) — Use Next.js (App Router) with TypeScript
+- [ADR-0012](0012-host-on-vercel.md) — Host and deploy on Vercel
+- [ADR-0013](0013-use-supabase.md) — Use Supabase for database, auth, and row-level security
