@@ -97,7 +97,7 @@ describe('saferWay — mitigations re-tier to a projected tier (design §4)', ()
     expect(s!.projectedTier).toBe('high'); // still high; mitigation is a condition, not a cure
     expect(s!.mitigations[0].neutralizes).toBe(false);
   });
-  it('banned purpose → no safe path (irreducible → don\'t)', () => {
+  it("banned purpose → no safe path (irreducible → don't)", () => {
     const s = saferWay(sig({ bannedPurpose: true }));
     expect(s!.noSafePath).toBe(true);
     expect(s!.projectedVerdict).toBe('dont');
@@ -118,7 +118,7 @@ describe('assess — worked examples (design §3.5)', () => {
     expect(r.verdict).toBe('use_with_conditions');
     expect(r.humanDecisionRequired).toBe(true);
   });
-  it('rank applicants (banned social scoring + judges a person) → prohibited / don\'t', () => {
+  it("rank applicants (banned social scoring + judges a person) → prohibited / don't", () => {
     const r = assess({ ...NONE, judgesPerson: true, bannedPurpose: true } as SignalInput);
     expect(r.tier).toBe('prohibited');
     expect(r.verdict).toBe('dont');
