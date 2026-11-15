@@ -58,6 +58,18 @@ function contactDetailCheck(output: string, rules: PolicyRuleLike[]): GuardrailR
 /** The registry — new deterministic checks plug in here without touching the pipeline. */
 const CHECKS: PolicyCheck[] = [emptyOutputCheck, contactDetailCheck];
 
+/** Severity ranking for combining findings: block > flag > pass (ADR-0014). */
+const SEVERITY: Record<GuardrailResult['result'], number> = { block: 2, flag: 1, pass: 0 };
+
+/**
+ * Combine independent guardrail findings and return the MOST SEVERE (block > flag > pass). Used both
+ * inside the deterministic rule-check and by the pipeline to merge the self-critique finding with the
+ * rule-check finding (ADR-0015). `findings` must be non-empty.
+ */
+export function mostSevere(findings: GuardrailResult[]): GuardrailResult {
+  return [...findings].sort((a, b) => SEVERITY[b.result] - SEVERITY[a.result])[0];
+}
+
 /**
  * Run the deterministic policy rule-check over an output and the org's active policy rules.
  * Returns the most severe finding: block > flag > pass (ADR-0014).
@@ -66,9 +78,8 @@ export function ruleCheck(output: string, rules: PolicyRuleLike[] = []): Guardra
   const findings = CHECKS.map((check) => check(output, rules)).filter(
     (r): r is GuardrailResult => r !== null,
   );
-  const blocked = findings.find((f) => f.result === 'block');
-  if (blocked) return blocked;
-  const flagged = findings.find((f) => f.result === 'flag');
-  if (flagged) return flagged;
-  return { result: 'pass', reason: 'Output passed the policy rule-check.' };
+  if (findings.length === 0) {
+    return { result: 'pass', reason: 'Output passed the policy rule-check.' };
+  }
+  return mostSevere(findings);
 }
