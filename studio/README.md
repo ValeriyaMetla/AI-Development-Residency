@@ -3,6 +3,7 @@
 The application for **Community AI Workflow Studio** — a tool that helps small nonprofits use AI
 safely and fairly: start from your organization's own AI-use rules, run governed tasks, and keep a
 trustworthy record. This is the **Release 1a** build.
+
 **Live app:** [https://ai-development-residency-nine.vercel.app/](https://ai-development-residency-nine.vercel.app/)
 
 App code lives here in `studio/` as part of the [`AI-Development-Residency`](../) repo
