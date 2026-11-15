@@ -13,8 +13,8 @@ and the [ADRs](../docs/adr/).
 
 - **Next.js** (App Router) + **TypeScript** (strict)
 - **Material UI** via the `@mui/material-nextjs` adapter ([ADR-0005](../docs/adr/0005-material-ui.md))
-- **Vercel** (hosting) · **Supabase** (database / auth) — wired in later Phase 0 steps
-- **Claude API** (server-side only) — later
+- **Vercel** (hosting, [ADR-0012](../docs/adr/0012-host-on-vercel.md)) · **Supabase** (database / auth / RLS, [ADR-0013](../docs/adr/0013-use-supabase.md))
+- **Claude API** (Sonnet, server-side only) — the single call site is `lib/data/claude.ts`
 
 ## Internal layers ([ADR-0003](../docs/adr/0003-internal-server-layering.md))
 
@@ -43,11 +43,15 @@ Other scripts: `npm run build` (production build) · `npx tsc --noEmit` (type-ch
 
 Secrets live in `studio/.env.local` (gitignored) and in Vercel's environment settings — **never**
 committed, and server-only secrets (the Claude API key, the Supabase service-role key) are **never**
-exposed with a `NEXT_PUBLIC_` prefix. These are added in the auth and pipeline steps.
+exposed with a `NEXT_PUBLIC_` prefix. They are set in `.env.local` locally and in Vercel's
+environment settings for production.
 
 ## Status
 
-**Phase 0 — Foundation + walking skeleton.** Step 1 (scaffold) done; CI gate, data model + RLS,
-auth, append-only audit, and the governed-run pipeline shell follow. See the Build Plan (Notion).
+**Release 1a — complete and live on Vercel.** The Accountable-Leader journey ships: sign-up / login,
+the ~5-minute policy seed, policy inheritance into every governed run, the "Draft a thank-you"
+governed Skill, the Governance Co-Pilot (`/copilot`), the deterministic policy rule-check, provenance
+labels, append-only audit, and org-scoped RLS. CI and the architecture gate are green on `main`.
+See [`docs/RELEASE-1A.md`](../docs/RELEASE-1A.md) for what shipped and what was decided.
 
 Maintainer: Val (@ValeriyaMetla).
