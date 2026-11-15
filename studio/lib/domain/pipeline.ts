@@ -96,8 +96,9 @@ export async function runGovernedSkill(params: {
   const selfCritiqueResult = 'self-critique stubbed (Phase 2)';
   const finalText = draft.text;
 
-  // 5. One deterministic rule-check (Domain).
-  const guardrail = ruleCheck(finalText);
+  // 5. Deterministic, policy-grounded rule-check (Domain, ADR-0014) — checks the output against
+  // the org's active policy rules; code outside the model, so injection can't disable it.
+  const guardrail = ruleCheck(finalText, policyRules);
   await saveGuardrailCheck({
     taskRunId,
     checkType: 'rule_check',
