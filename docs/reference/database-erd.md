@@ -26,6 +26,8 @@ erDiagram
   task_run ||--o{ guardrail_check : "checked by"
   task_run |o--o{ audit_event : "logged as (nullable)"
   profile |o--o{ audit_event : "actor (nullable)"
+  task_run ||--o| copilot_assessment : "assessed by"
+  policy |o--o{ copilot_assessment : "policy in force (nullable)"
 
   org {
     uuid id PK
@@ -130,6 +132,17 @@ erDiagram
     jsonb payload "non-sensitive (ADR-6)"
     timestamptz created_at
   }
+  copilot_assessment {
+    uuid id PK
+    uuid task_run_id FK
+    enum verdict "use | use_with_conditions | dont | out_of_scope"
+    enum tier "minimal | limited | high | prohibited | undetermined"
+    jsonb recommendation "signals, reasons, citations, safer-way, summary"
+    uuid policy_id FK "nullable (policy in force)"
+    text provenance_label
+    bool human_decision_required
+    timestamptz created_at
+  }
 ```
 
 ## How to read it
@@ -141,11 +154,14 @@ erDiagram
   provenance label), is `guardrail_check`-ed, and is recorded in the append-only `audit_event` log.
 - **Grounding:** each `policy_rule` optionally cites the `standard_rule` it derives from (snapshotted
   `citation`), so policy advice traces back to NIST / EU AI Act / ISO 42001.
+- **Co-Pilot:** a `copilot_assessment` is the immutable result a Governance Co-Pilot run produces —
+  its verdict, risk tier, grounded recommendation, and whether a human must decide.
 - `auth_users` is Supabase Auth's managed table; `profile` extends it 1:1.
 
 ## Notes
 
 - `task_output` is modeled one-to-many to `task_run` but is 1:1 in practice.
 - `guardrail_check` has a reserved (not-yet-added) `policy_rule_id` hook for Epic 5's rule-check.
-- The Co-Pilot's `copilot_assessment` table is not shown — it is designed but not yet built (it
-  would be a child of `task_run`). See `docs/design/epic-4-copilot-design.md`.
+- `copilot_assessment` is the Co-Pilot's immutable result record — a child of `task_run`, one per
+  Co-Pilot run (built; ADR-0010, migration `20261114010000`). Design rationale:
+  `docs/design/epic-4-copilot-design.md`.
