@@ -20,7 +20,7 @@ vi.mock('@/lib/data/runs', () => ({
 vi.mock('@/lib/data/policy', () => ({ getActivePolicy: vi.fn(), getPolicyRules: vi.fn() }));
 
 import { draftWithClaude } from '@/lib/data/claude';
-import { getSkillByKey, createTaskRun } from '@/lib/data/runs';
+import { getSkillByKey, createTaskRun, saveGuardrailCheck, writeAuditEvent } from '@/lib/data/runs';
 import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import { runGovernedSkill } from '@/lib/domain/pipeline';
 
@@ -141,5 +141,88 @@ describe('Verify consistent reuse under current policy (Epic 3)', () => {
     // The new policy was stamped on the later run — proof it took effect without a redeploy.
     const lastCall = vi.mocked(createTaskRun).mock.calls.at(-1);
     expect(lastCall?.[0].policyId).toBe('policyB');
+  });
+});
+
+describe('PII detection + strip on input (Epic 5)', () => {
+  function draftInputFor(): string | undefined {
+    // The draft call is the non-Challenger draftWithClaude call; arg[1] is the input sent to Claude.
+    const call = vi.mocked(draftWithClaude).mock.calls.find((c) => !c[0].includes('Challenger'));
+    return call?.[1];
+  }
+
+  it('strips PII, sends the REDACTED text to the model, and surfaces what was removed', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thank you so much!', 'pass');
+
+    const res = await runGovernedSkill({ ...RUN, userInput: 'Email me at maria@example.org' });
+
+    expect(draftInputFor()).not.toContain('maria@example.org'); // raw never reached the model
+    expect(draftInputFor()).toContain('[email removed]');
+    if (res.status !== 'blocked') expect(res.pii.map((p) => p.category)).toContain('email');
+  });
+
+  it('stores the redacted input summary, not the raw PII', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thanks!', 'pass');
+
+    await runGovernedSkill({ ...RUN, userInput: 'ping me at a@b.com' });
+
+    const createCall = vi.mocked(createTaskRun).mock.calls.at(-1);
+    expect(createCall?.[0].inputSummary).not.toContain('a@b.com');
+    expect(createCall?.[0].inputSummary).toContain('[email removed]');
+  });
+
+  it('records a pii guardrail_check + pii_stripped audit with NO raw content (ADR-6)', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thanks!', 'pass');
+
+    await runGovernedSkill({ ...RUN, userInput: 'My SSN is 123-45-6789' });
+
+    const piiCheck = vi.mocked(saveGuardrailCheck).mock.calls.find((c) => c[0].checkType === 'pii');
+    expect(piiCheck).toBeTruthy();
+    expect(piiCheck?.[0].reasonPlain).not.toContain('123-45-6789');
+
+    const audit = vi
+      .mocked(writeAuditEvent)
+      .mock.calls.find((c) => c[0].eventType === 'pii_stripped');
+    expect(audit).toBeTruthy();
+    expect(JSON.stringify(audit?.[0].payload)).not.toContain('123-45-6789');
+  });
+
+  it('clean input is sent unchanged, records no pii check, reports no findings', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thanks!', 'pass');
+
+    const res = await runGovernedSkill(RUN); // 'Maria, monthly gift' — no PII
+    expect(res.status).toBe('completed');
+    if (res.status !== 'blocked') expect(res.pii).toEqual([]);
+    expect(draftInputFor()).toBe('Maria, monthly gift');
+    expect(
+      vi.mocked(saveGuardrailCheck).mock.calls.find((c) => c[0].checkType === 'pii'),
+    ).toBeUndefined();
+  });
+
+  it('honors a deliberate keep: the kept category reaches the model and is logged (no raw)', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thanks!', 'pass');
+
+    const res = await runGovernedSkill({
+      ...RUN,
+      userInput: 'thank maria@example.org warmly',
+      keepCategories: ['email'],
+    });
+
+    // The kept email now reaches the model (deliberate choice), not a placeholder.
+    expect(draftInputFor()).toContain('maria@example.org');
+    if (res.status !== 'blocked') expect(res.piiKept).toContain('email');
+
+    // The keep is recorded as an accountable choice — category + actor, no raw content.
+    const keptEvent = vi
+      .mocked(writeAuditEvent)
+      .mock.calls.find((c) => c[0].eventType === 'pii_kept');
+    expect(keptEvent?.[0].payload).toEqual({ categories: ['email'] });
+    expect(keptEvent?.[0].actor).toBe('u1');
+    expect(JSON.stringify(keptEvent?.[0])).not.toContain('maria@example.org');
   });
 });

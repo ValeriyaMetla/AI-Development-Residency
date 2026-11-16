@@ -4,13 +4,18 @@ import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getSkillDef } from '@/lib/domain/skills';
 import { runGovernedSkill, type RunResult } from '@/lib/domain/pipeline';
+import type { PiiCategory } from '@/lib/domain/pii';
 
 /**
  * Service layer (ADR-0003): the "front door" for the Skill runner. Verifies the session, resolves
  * the caller's org and validates the Skill key, then hands off to the one governed-run pipeline.
  * No model calls or business logic here (ADR-0003 Leak Test) — the pipeline owns governance.
  */
-export async function runSkill(skillKey: string, input: string): Promise<RunResult> {
+export async function runSkill(
+  skillKey: string,
+  input: string,
+  keepCategories: PiiCategory[] = [],
+): Promise<RunResult> {
   const user = await getCurrentUser();
   if (!user) {
     return { status: 'blocked', message: 'You must be signed in.' };
@@ -32,5 +37,5 @@ export async function runSkill(skillKey: string, input: string): Promise<RunResu
     return { status: 'blocked', message: 'No organization found for your account.' };
   }
 
-  return runGovernedSkill({ skillKey, userInput: trimmed, userId: user.id, orgId });
+  return runGovernedSkill({ skillKey, userInput: trimmed, userId: user.id, orgId, keepCategories });
 }

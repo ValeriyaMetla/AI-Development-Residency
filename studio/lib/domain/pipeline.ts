@@ -11,6 +11,7 @@ import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardrails';
 import { withPolicyContext } from '@/lib/domain/policy-context';
 import { getSkillDef } from '@/lib/domain/skills';
+import { redactPii, piiSummary, type PiiFinding, type PiiCategory } from '@/lib/domain/pii';
 import {
   buildCritiquePrompt,
   parseCritique,
@@ -40,6 +41,10 @@ export type RunResult =
       output: string;
       provenanceLabel: string;
       guardrail: GuardrailResult;
+      /** PII categories detected in the input (no raw values), for the runner to surface. */
+      pii: PiiFinding[];
+      /** Categories the Doer deliberately KEPT this run (the rest were stripped). */
+      piiKept: PiiCategory[];
     }
   | { status: 'blocked'; message: string };
 
@@ -48,8 +53,10 @@ export async function runGovernedSkill(params: {
   userInput: string;
   userId: string;
   orgId: string;
+  /** Categories the Doer chose to keep (deliberate-keep override); the rest are stripped. */
+  keepCategories?: PiiCategory[];
 }): Promise<RunResult> {
-  const { skillKey, userInput, userId, orgId } = params;
+  const { skillKey, userInput, userId, orgId, keepCategories = [] } = params;
 
   // 1. Context — load the Skill and the org's ACTIVE policy (inheritance, Epic 1). The
   // policy is read fresh on every run, so editing/re-activating a policy propagates to the
@@ -64,20 +71,60 @@ export async function runGovernedSkill(params: {
   const policyRules = activePolicy ? await getPolicyRules(activePolicy.id) : [];
   const systemPrompt = withPolicyContext(basePrompt, policyRules);
 
-  // 2. Open a task run, stamped with the policy in force (provenance + inheritance).
+  // 2. PII detection + strip BEFORE anything is stored or sent (Epic 5, deterministic — code outside
+  // the model, so injection can't disable it). Secure-by-default: the model, the input summary, and
+  // all storage use the REDACTED text, so the raw value never leaves the server. We record WHICH
+  // categories were removed, never the raw value (ADR-6). (Deliberate per-item "keep" is the next card.)
+  const { redacted: safeInput, findings: piiFindings } = redactPii(userInput, keepCategories);
+  const detectedCategories = piiFindings.map((f) => f.category);
+  const piiKept = detectedCategories.filter((c) => keepCategories.includes(c));
+  const piiStripped = detectedCategories.filter((c) => !keepCategories.includes(c));
+
+  // 3. Open a task run, stamped with the policy in force (provenance + inheritance). The input
+  // summary uses the redacted text — no raw PII in the working record.
   const taskRunId = await createTaskRun({
     orgId,
     skillId: skill.id,
     runBy: userId,
-    inputSummary: userInput.slice(0, 200),
+    inputSummary: safeInput.slice(0, 200),
     policyId: activePolicy?.id ?? null,
   });
   if (!taskRunId) {
     return { status: 'blocked', message: 'Could not start the task.' };
   }
 
-  // 3. Draft (Claude, via the Data-Source layer) — grounded in the active policy.
-  const draft = await draftWithClaude(systemPrompt, userInput);
+  if (piiFindings.length > 0) {
+    await saveGuardrailCheck({
+      taskRunId,
+      checkType: 'pii',
+      result: 'flag',
+      reasonPlain: `${piiSummary(piiFindings)}${
+        piiStripped.length ? ' Stripped by default.' : ''
+      }${piiKept.length ? ' Some kept by the user’s choice.' : ''}`,
+    });
+    // Separate events so the record distinguishes default-strip from the accountable keep choice.
+    if (piiStripped.length > 0) {
+      await writeAuditEvent({
+        orgId,
+        taskRunId,
+        actor: userId,
+        eventType: 'pii_stripped',
+        payload: { categories: piiStripped }, // categories only, no raw content (ADR-6)
+      });
+    }
+    if (piiKept.length > 0) {
+      await writeAuditEvent({
+        orgId,
+        taskRunId,
+        actor: userId,
+        eventType: 'pii_kept',
+        payload: { categories: piiKept }, // deliberate keep: actor + categories + time, no raw content
+      });
+    }
+  }
+
+  // 4. Draft (Claude, via the Data-Source layer) — grounded in the active policy, on the REDACTED input.
+  const draft = await draftWithClaude(systemPrompt, safeInput);
   if (!draft.ok) {
     await saveGuardrailCheck({
       taskRunId,
@@ -138,6 +185,9 @@ export async function runGovernedSkill(params: {
     result: ruleResult.result,
     reasonPlain: ruleResult.reason,
   });
+  // PII is handled by default-strip above (not a review-forcing flag), so run status is driven by the
+  // output-side self-critique + rule-check (most-severe-wins). The stripped categories are surfaced
+  // separately on the result so the Doer always sees what was removed.
   const guardrail = mostSevere([critiqueFinding, ruleResult]);
 
   // 6. Provenance + persist output (self-critique summary carries no sensitive payload, ADR-6).
@@ -171,5 +221,12 @@ export async function runGovernedSkill(params: {
   if (status === 'blocked') {
     return { status: 'blocked', message: guardrail.reason };
   }
-  return { status, output: finalText, provenanceLabel: PROVENANCE_LABEL, guardrail };
+  return {
+    status,
+    output: finalText,
+    provenanceLabel: PROVENANCE_LABEL,
+    guardrail,
+    pii: piiFindings,
+    piiKept,
+  };
 }
