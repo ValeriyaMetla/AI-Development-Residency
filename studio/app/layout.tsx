@@ -1,17 +1,15 @@
 import type { Metadata } from 'next';
-import { Roboto } from 'next/font/google';
+// Roboto is self-hosted via @fontsource — no build-time Google Fonts fetch, which was
+// flaky on CI and intermittently failed `next build`. See ADR-0017.
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 import './globals.css';
-
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto',
-});
 
 export const metadata: Metadata = {
   title: 'Community AI Workflow Studio',
@@ -20,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={roboto.variable}>
+    <html lang="en">
       <body>
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>

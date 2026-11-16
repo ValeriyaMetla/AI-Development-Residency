@@ -19,7 +19,7 @@ const theme = createTheme({
     secondary: { main: '#00897b' },
   },
   typography: {
-    fontFamily: 'var(--font-roboto), system-ui, Arial, sans-serif',
+    fontFamily: 'Roboto, system-ui, Arial, sans-serif',
   },
 });
 
