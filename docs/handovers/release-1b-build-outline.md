@@ -1,7 +1,7 @@
 # Release 1b — Build Outline
 
-**Source:** Kanban board "Tasks Go Here" (Notion), filter `Release = 1b` — 47 tickets.
-**Built from the board on:** 2026-11-16. **Owner view:** Val (tracking).
+**Source:** Kanban board "Tasks Go Here" (Notion), filter `Release = 1b` — 48 tickets.
+**Refreshed on:** 2026-11-16. **Owner view:** Val (tracking).
 
 Every item below is the **exact card title**, grouped by its `Chunk`, ordered the way the build
 depends (foundations/spine first, "verify" cards last), with `[Must/Should/Could]`, its `Epic`, and
@@ -10,26 +10,31 @@ Must → Should → Could, verify cards last.
 
 **Legend:** ✅ built & merged to `main` · ⬜ specced only (card body written, no app code yet).
 
+**Status:** **Chunk 1 (Doer core) is complete and merged** — the board shows those 9 cards as `Done`.
+Chunks 2–5 are `Requirements` on the board (specs written, not built).
+
 > The chunk grouping and priorities are fields on the cards. The ordering *within* each chunk is a
 > synthesis from the dependency notes, not a board field.
 
 ---
 
-## Chunk 1 — Doer core (Epic #3) — the spine; highest value
+## Chunk 1 — Doer core (Epic #3) — the spine; highest value ✅ COMPLETE
 
-The second half of the core bet: will staff reuse a governed Skill? Build the shell + spine, then
-the hero Skill, then the screen, then verify.
+The whole Frontline-Doer governed-task experience: a Doer signs in, lands on a role-aware home, opens
+`/skills`, runs a governed Skill (draft → self-critique+tone → rule-check → provenance), sees the
+applicable rules in-context, and gets baseline safety even with no policy — all verified by tests.
 
-1. ⬜ `Build shared app shell + visual design pass` — [Should] — foundation; the Doer screens hang off this
-2. ✅ `Build the self-critique pass` — [Must] — **merged to main (ADR-0015)**
-3. ⬜ `Add tone check to the thank-you Skill` — [Must] — extends the self-critique pass
-4. ⬜ `Build the "Draft a thank-you" starter Skill` — [Must] — productionize the 1a skeleton
-5. ⬜ `Build the governed Skill runner` — [Must] — the `/skills` screen; needs shell + self-critique + the Skill. Carries the no-active-policy → baseline-safety decision (needs its own ADR)
-6. ⬜ `Surface the applicable rule in-context` — [Should] — shows the firing rule inside the task
-7. ⬜ `Verify consistent reuse under current policy` — [Must] — verification
-8. ⬜ `Verify clean output passes without friction` — [Must] — verification
+1. ✅ `Build shared app shell + visual design pass` — [Should] — AA theme + AppShell + `app/(app)` route group
+2. ✅ `Build the self-critique pass` — [Must] — the Challenger pass (ADR-0015)
+3. ✅ `Add tone check to the thank-you Skill` — [Must] — per-Skill quality bar in the critique
+4. ✅ `Build the "Draft a thank-you" starter Skill` — [Must] — real seeded Skill; prompt moved out of the pipeline
+5. ✅ `Build the governed Skill runner` — [Must] — the `/skills` screen; no-active-policy → baseline safety (ADR-0018)
+6. ✅ `Surface the applicable rule in-context` — [Should] — "Rules that apply here" panel with citations
+7. ✅ `Make the home and nav role-aware (Leader vs Doer)` — [Should] — nav + home cards by `profile.role`
+8. ✅ `Verify consistent reuse under current policy` — [Must] — pipeline integration tests
+9. ✅ `Verify clean output passes without friction` — [Must] — pipeline integration tests (0 false positives on a sample)
 
-## Chunk 2 — Safety net (Epic #5) — finishes Phase 1's guardrails
+## Chunk 2 — Safety net (Epic #5) — finishes Phase 1's guardrails ⬅ NEXT
 
 The full guardrail suite around the pipeline. PII handling first (it runs *before* the model), then
 the approval gate, then risky-use.
@@ -103,16 +108,15 @@ tier gating sits in the Service layer and never disables a safety step.
 
 ## Totals
 
-47 tickets — **1 built** (`Build the self-critique pass`), 46 specced.
+48 tickets — **9 built** (all of Chunk 1), 39 specced.
 
 | Chunk | Tickets | Built | Specced |
 | --- | --- | --- | --- |
-| 1 — Doer core | 8 | 1 | 7 |
+| 1 — Doer core | 9 | 9 | 0 |
 | 2 — Safety net | 10 | 0 | 10 |
 | 3 — Registry view | 4 | 0 | 4 |
 | 4 — Living policy | 10 | 0 | 10 |
 | 5 — Coach / Report / Onboard | 15 | 0 | 15 |
 
-**Note:** the board shows every ticket (including `Build the self-critique pass`) in `Requirements`
-status; the ✅ above reflects what is actually merged to `main`, which the board has not yet been
-groomed to show.
+**ADRs added during Chunk 1:** ADR-0015 (self-critique), ADR-0018 (no-active-policy → baseline
+safety). (ADR-0016/0017 came from the Week-5 CI + self-hosted-font work on `main`.)
