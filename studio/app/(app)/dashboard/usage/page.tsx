@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import NextLink from 'next/link';
 import { countOrgRuns, getRunSummariesSince } from '@/lib/data/usage';
 import {
   usageViewState,
@@ -66,6 +68,12 @@ export default async function UsagePage() {
         </Typography>
       </Box>
       {body}
+
+      <Box>
+        <Button variant="text" component={NextLink} href="/dashboard/usage/mine">
+          View your own entries
+        </Button>
+      </Box>
     </Box>
   );
 }

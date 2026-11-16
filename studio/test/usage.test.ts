@@ -5,6 +5,7 @@ import {
   bucketByWeek,
   safetyNetSummary,
   windowStart,
+  outcomeLabel,
 } from '@/lib/domain/usage';
 import type { RunSummary } from '@/lib/data/usage';
 
@@ -103,6 +104,17 @@ describe('bucketByWeek', () => {
     expect(buckets[0].count).toBe(1);
     expect(buckets[1].count).toBe(1);
     expect(buckets.reduce((sum, b) => sum + b.count, 0)).toBe(2);
+  });
+});
+
+describe('outcomeLabel', () => {
+  it('gives a plain-language label for each status', () => {
+    expect(outcomeLabel('completed')).toBe('Completed');
+    expect(outcomeLabel('approved')).toBe('Completed');
+    expect(outcomeLabel('needs_review')).toBe('Needed review');
+    expect(outcomeLabel('blocked')).toBe('Blocked by a rule');
+    expect(outcomeLabel('rejected')).toBe('Rejected on review');
+    expect(outcomeLabel('running')).toBe('In progress');
   });
 });
 
