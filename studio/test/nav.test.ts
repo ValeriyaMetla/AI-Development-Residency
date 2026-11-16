@@ -4,12 +4,12 @@ import { navItemsFor } from '@/app/components/nav';
 describe('navItemsFor (role-aware nav)', () => {
   it('shows the Leader every item, including Your rules', () => {
     const labels = navItemsFor('accountable_leader').map((i) => i.label);
-    expect(labels).toEqual(['Home', 'Skills', 'Co-Pilot', 'Your rules']);
+    expect(labels).toEqual(['Home', 'Skills', 'Co-Pilot', 'Usage', 'Your rules']);
   });
 
   it('hides Your rules from a Doer (admin action not surfaced)', () => {
     const labels = navItemsFor('frontline_doer').map((i) => i.label);
-    expect(labels).toEqual(['Home', 'Skills', 'Co-Pilot']);
+    expect(labels).toEqual(['Home', 'Skills', 'Co-Pilot', 'Usage']);
     expect(labels).not.toContain('Your rules');
   });
 

@@ -11,6 +11,9 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard' },
   { label: 'Skills', href: '/skills' },
   { label: 'Co-Pilot', href: '/copilot' },
+  // Usage (Registry view, Chunk 3) — oversight the whole org can see; a Doer uses it for their
+  // own entries, a Leader for org-wide totals. Not leader-only (transparency, not surveillance).
+  { label: 'Usage', href: '/dashboard/usage' },
   // Administering the policy is a Leader action; a Doer sees the rules that apply in-context in the
   // runner, not as a top nav item (Epic 3 role-aware card). Route-guard authorization is separate.
   { label: 'Your rules', href: '/policy-seed', leaderOnly: true },
