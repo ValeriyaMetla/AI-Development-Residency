@@ -10,6 +10,7 @@ import {
 import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardrails';
 import { withPolicyContext } from '@/lib/domain/policy-context';
+import { getSkillDef } from '@/lib/domain/skills';
 import {
   buildCritiquePrompt,
   parseCritique,
@@ -33,23 +34,6 @@ import {
 
 const PROVENANCE_LABEL = 'AI-generated with Claude (Sonnet)';
 
-// Per-Skill system prompts. Phase 1 replaces this with policy-grounded context.
-const SKILL_PROMPTS: Record<string, string> = {
-  draft_thank_you:
-    'You help a small nonprofit write a short, warm, sincere thank-you note. ' +
-    'Keep it to 2–3 sentences. Return only the note text.',
-};
-
-// Per-Skill quality bar folded into the self-critique Challenger (ADR-0015). Optional: a Skill with
-// no entry gets the generic critique. For the hero thank-you Skill this is the TONE check — an
-// off-tone draft (cold, transactional, form-letter) is revised/flagged; a warm one passes.
-const SKILL_CRITIQUE_CRITERIA: Record<string, string> = {
-  draft_thank_you:
-    'The note must sound warm, sincere, and personal — like a real person thanking a supporter. ' +
-    'Flag or revise a draft that is cold, stiff, transactional, generic/form-letter, or over-the-top ' +
-    'and insincere. A genuinely warm, specific, human note passes.',
-};
-
 export type RunResult =
   | {
       status: 'completed' | 'needs_review';
@@ -71,10 +55,11 @@ export async function runGovernedSkill(params: {
   // policy is read fresh on every run, so editing/re-activating a policy propagates to the
   // next run with no redeploy.
   const skill = await getSkillByKey(skillKey);
-  const basePrompt = SKILL_PROMPTS[skillKey];
-  if (!skill || !basePrompt) {
+  const skillDef = getSkillDef(skillKey);
+  if (!skill || !skillDef) {
     return { status: 'blocked', message: 'Unknown Skill.' };
   }
+  const basePrompt = skillDef.basePrompt;
   const activePolicy = await getActivePolicy(orgId);
   const policyRules = activePolicy ? await getPolicyRules(activePolicy.id) : [];
   const systemPrompt = withPolicyContext(basePrompt, policyRules);
@@ -117,7 +102,7 @@ export async function runGovernedSkill(params: {
   // response we FAIL CLOSED to human review (ADR-0014). The model NEVER gets the last word — the
   // deterministic rule-check below is the backstop.
   const critiqueRaw = await draftWithClaude(
-    buildCritiquePrompt(basePrompt, policyRules, SKILL_CRITIQUE_CRITERIA[skillKey]),
+    buildCritiquePrompt(basePrompt, policyRules, skillDef.critiqueCriteria),
     draft.text,
   );
   let finalText = draft.text;

@@ -7,7 +7,6 @@ import NextLink from 'next/link';
 import { getMyProfile } from '@/lib/data/profile';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getActivePolicy } from '@/lib/data/policy';
-import ThankYouRunner from './thank-you-runner';
 
 /**
  * Home (Presentation layer, ADR-0003). Renders inside the shared app shell
@@ -79,7 +78,20 @@ export default async function DashboardPage() {
         </Box>
       </Paper>
 
-      <ThankYouRunner />
+      <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Typography variant="h6" component="h2">
+          Run a Skill
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Draft an everyday task — like a donor thank-you — as a governed Skill. Every run is
+          checked against your policy and recorded, and you review the draft before using it.
+        </Typography>
+        <Box>
+          <Button variant="contained" component={NextLink} href="/skills">
+            Open Skills
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 }
