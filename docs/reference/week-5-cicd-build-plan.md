@@ -11,10 +11,11 @@
 - **Assignment:** [Week 5 Coding Challenge — Build a CI/CD Pipeline](https://app.notion.com/p/419975c3b95080f0a292c64c8ad84a72)
 - **Working branch:** `claude/serene-darwin-f1a4d0` (a git **worktree** — this *is* the implementation
   branch; no separate `week5/qa-cicd` branch is needed).
-- **Current phase:** Planning complete. **Done:** every-push triggers (merged to `main` via PR #62);
-  branch synced with `main` (includes Lane A's work); **build-reliability fix** — self-hosted Roboto
-  (ADR-0017), full CI gate green locally. **Next:** Skill gate, BDD-acceptance job, red/green proof,
-  manual QA.
+- **Current phase:** **CI/CD engineering complete and green on `main`.** Done: every-push triggers;
+  build-reliability fix (ADR-0017); Skill gate (Structure + Library-sync) + self-tests; BDD-acceptance
+  check; red→green proof (run #13 → #15); ADR-0016 landed; repo `SUBMISSION.md`, `CI-EVIDENCE.md`, and
+  `manual-test-cases.md` created. **Remaining (Valeriya):** run the 2 manual tests on the live app,
+  final smoke check, write the two reflections (no AI), accept ADR-0016, email the submission.
 - **Notion delivery state:** Epic #11 — QA & CI/CD, 12 Must tickets.
 
 This is an **extension of the existing quality system, not a greenfield CI setup.** The repository
@@ -199,7 +200,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 **Exit:** a reliable, deterministic build; green baseline recorded after push. No gate weakened.
 
-### Phase 1 — Land the ADR and confirm the widened triggers
+### Phase 1 — Land the ADR and confirm the widened triggers *(done)*
 
 1. **Triggers already widened** this session in `ci.yml` + `arch-gate.yml` (`push:` unrestricted +
    `pull_request` → `main`, with a `concurrency` guard). Confirm they fire on a branch push.
@@ -208,7 +209,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 **Exit:** non-`main` branch-push run URLs for CI and the Architecture Quality Gate; ADR-0016 in repo.
 
-### Phase 2 — Implement and test the two Skill gates
+### Phase 2 — Implement and test the two Skill gates *(done)*
 
 1. Add `scripts/skills-gate.mjs` (lean contract above).
 2. Add fixtures under `scripts/fixtures/skills-gate/` + Node built-in tests.
@@ -219,7 +220,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 **Exit:** fixtures prove expected failures locally; both real-library jobs green and visible by name.
 
-### Phase 3 — Add the BDD-acceptance check
+### Phase 3 — Add the BDD-acceptance check *(done)*
 
 1. Reverify the evidence table against the branch.
 2. Add one **BDD acceptance (Release 1a)** job with three named steps (Policy seed · Active-policy
@@ -230,7 +231,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 **Exit:** three new named Week 5 checks + all pre-existing gates green on a branch push.
 
-### Phase 4 — Prove controlled red and green recovery *(disposable branch)*
+### Phase 4 — Prove controlled red and green recovery *(done — run #13 red → #15 green)*
 
 1. From the known-green implementation commit, create a **separate disposable** branch, e.g.
    `proof/week5-skill-gate-red-green`.
@@ -243,7 +244,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 **Exit:** real red + green Actions evidence, with no invalid commit in implementation history.
 
-### Phase 5 — Open the PR, verify, merge
+### Phase 5 — Open the PR, verify, merge *(done — PRs #63/#64/#65)*
 
 1. Add `Week 5 Coding Challenge/SUBMISSION.md` and `CI-EVIDENCE.md` to the branch.
 2. Open the PR with the BDD table, ADR-0016, and red/green evidence.
