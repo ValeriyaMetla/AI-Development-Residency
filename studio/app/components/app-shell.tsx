@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
+import { navItemsFor, type UserRole } from './nav';
 
 /**
  * Shared application shell (Presentation layer, ADR-0003). The one chrome every
@@ -24,15 +25,6 @@ import { usePathname } from 'next/navigation';
  * screen gets it for free.
  */
 
-type NavItem = { label: string; href: string };
-
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/dashboard' },
-  { label: 'Skills', href: '/skills' },
-  { label: 'Co-Pilot', href: '/copilot' },
-  { label: 'Your rules', href: '/policy-seed' },
-];
-
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -40,17 +32,20 @@ function isActive(pathname: string, href: string): boolean {
 export default function AppShell({
   email,
   roleLabel,
+  role,
   signOutAction,
   children,
 }: {
   email: string;
   roleLabel: string;
+  role: UserRole;
   signOutAction: () => void | Promise<void>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
+  const navItems = navItemsFor(role);
 
   return (
     <>
@@ -97,7 +92,7 @@ export default function AppShell({
             aria-label="Primary"
             sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flexGrow: 1 }}
           >
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = isActive(pathname, item.href);
               return (
                 <Button
@@ -154,7 +149,7 @@ export default function AppShell({
 
             {/* Navigation collapses into the menu on small screens. */}
             <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-              {NAV_ITEMS.map((item) => (
+              {navItems.map((item) => (
                 <MenuItem
                   key={item.href}
                   component={NextLink}
