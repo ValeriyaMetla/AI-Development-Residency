@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getSkillDef, SKILL_DEFS } from '@/lib/domain/skills';
+import { getSkillDef, SKILL_DEFS, applicableRules } from '@/lib/domain/skills';
 
 describe('skills registry', () => {
   it('returns the definition for a known Skill key', () => {
@@ -22,5 +22,42 @@ describe('skills registry', () => {
     for (const [key, def] of Object.entries(SKILL_DEFS)) {
       expect(def.key).toBe(key);
     }
+  });
+});
+
+describe('applicableRules (in-context guidance filter)', () => {
+  const rules = [
+    { ruleText: 'Minimize personal information.', category: 'data-protection', citation: 'NIST' },
+    { ruleText: 'A person has the final say.', category: 'human-oversight', citation: null },
+    { ruleText: 'Label AI-assisted output.', category: 'transparency-provenance', citation: 'EU' },
+    { ruleText: 'Log every AI use.', category: 'accountability-logging', citation: null },
+    { ruleText: 'Tier risky uses.', category: 'risk-tiering', citation: null },
+  ];
+
+  it("returns only rules in the thank-you Skill's relevant categories", () => {
+    const got = applicableRules('draft_thank_you', rules);
+    expect(got.map((r) => r.category)).toEqual([
+      'data-protection',
+      'human-oversight',
+      'transparency-provenance',
+    ]);
+  });
+
+  it('does not overwhelm — excludes unrelated categories (logging, risk-tiering)', () => {
+    const cats = applicableRules('draft_thank_you', rules).map((r) => r.category);
+    expect(cats).not.toContain('accountability-logging');
+    expect(cats).not.toContain('risk-tiering');
+  });
+
+  it('preserves citations on the surfaced rules', () => {
+    const dp = applicableRules('draft_thank_you', rules).find(
+      (r) => r.category === 'data-protection',
+    );
+    expect(dp?.citation).toBe('NIST');
+  });
+
+  it('returns [] for an unknown Skill and for no rules', () => {
+    expect(applicableRules('nope', rules)).toEqual([]);
+    expect(applicableRules('draft_thank_you', [])).toEqual([]);
   });
 });
