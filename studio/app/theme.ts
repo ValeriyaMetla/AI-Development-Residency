@@ -11,8 +11,10 @@ import { createTheme } from '@mui/material/styles';
  *
  * Palette is tuned for WCAG 2.2 AA contrast: primary/secondary carry white text
  * at >= 4.5:1, and text.secondary clears 4.5:1 on both paper and the default
- * background. Marked "use client" because the App Router layout imports it
- * inside the Material UI client boundary (ThemeProvider).
+ * background. Font is self-hosted Roboto (ADR-0017, via @fontsource in the root
+ * layout), so the family is a plain "Roboto" — no next/font CSS variable.
+ * Marked "use client" because the App Router layout imports it inside the
+ * Material UI client boundary (ThemeProvider).
  */
 const theme = createTheme({
   palette: {
@@ -26,7 +28,7 @@ const theme = createTheme({
   },
   shape: { borderRadius: 10 },
   typography: {
-    fontFamily: 'var(--font-roboto), system-ui, Arial, sans-serif',
+    fontFamily: 'Roboto, system-ui, Arial, sans-serif',
     h1: { fontWeight: 700 },
     h2: { fontWeight: 700 },
     h3: { fontWeight: 700 },

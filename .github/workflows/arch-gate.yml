@@ -1,14 +1,18 @@
 name: Architecture Quality Gate
 
 # Runs the deterministic arch-gate scanner (the back-end half of the quality sandwich,
-# ADR-0002) on every PR and push to main. It enforces the judge-arch rules against the
-# ADR-0003 layer structure. Zero dependencies — just Node — so no install step.
+# ADR-0002) on every push (any branch) and every PR into main. It enforces the judge-arch
+# rules against the ADR-0003 layer structure. Zero dependencies — just Node — so no install step.
 
 on:
+  # Week 5: run on EVERY push, not just main — so `push:` has no branch filter.
+  push:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
+
+concurrency:
+  group: arch-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   arch-gate:

@@ -2,8 +2,10 @@
 
 **Community AI Workflow Studio** — a tool that helps small nonprofits use AI safely and fairly:
 set your own AI-use rules once, run everyday tasks with a safety net, and keep a trustworthy record.
-Release 1a is the **Accountable-Leader journey** — the MVP #1 slice. It is built, merged to `main`,
-and live on Vercel.
+Release 1a is the **Accountable-Leader journey** and Week 4 submission release. It is built, merged
+to `main`, and live on Vercel. The broader product MVP continues in Release 1b.
+
+**Live app:** [https://ai-development-residency-nine.vercel.app/](https://ai-development-residency-nine.vercel.app/)
 
 ## What you can do in the live app
 
@@ -14,8 +16,9 @@ and live on Vercel.
 3. **Your policy governs every run.** The active policy is read fresh on each governed task and
    folded into the model's context, so staff follow the rules without wiring anything up.
 4. **Run a governed Skill — "Draft a thank-you."** The task flows through one fixed pipeline:
-   context → draft → self-critique → rule-check → provenance → persist + audit. Output is labeled
-   AI-assisted and logged.
+   context → draft → self-critique stage → rule-check → provenance → persist + audit. Output is
+   labeled AI-assisted and logged. The self-critique stage is currently a placeholder; the full
+   Challenger pass and productionized Skill experience are planned for Release 1b.
 5. **Ask the Governance Co-Pilot "should we use AI for this?"** It returns a clear verdict
    (use / use-with-conditions / don't / out-of-scope) with plain reasons, a safer-way suggestion,
    and a standard citation — the risk tier decided by transparent deterministic code, not a
@@ -23,7 +26,10 @@ and live on Vercel.
 6. **Everything is isolated and recorded.** Row-Level Security keeps each org's data private, and an
    append-only audit log records activity with no sensitive content.
 
-## What shipped (by epic)
+## What changed and shipped (by epic)
+
+Release 1a moved the project from an initial application scaffold to a deployed, governance-first
+product slice.
 
 - **Epic 0 — Foundation:** Next.js + TypeScript + Material UI scaffold; Supabase + Auth + default-deny
   RLS; the governed-run pipeline; the standards library (3 frameworks, 9 cited rules); append-only
@@ -65,11 +71,16 @@ citations), and a **human always decides** — the tool advises.
 Honest scope line:
 
 - **Release 1b (next):** usage dashboard, living-policy suggestions, editable rules, policy export;
-  fuller guardrails (PII detect/strip, the human-approval UI, risky-use flagging); in-the-moment
-  coaching; funder-ready reporting; self-serve onboarding + the free tier.
+  a productionized governed Skill runner and full Challenger self-critique; fuller guardrails
+  (PII detect/strip, the human-approval UI, risky-use flagging); in-the-moment coaching;
+  funder-ready reporting; self-serve onboarding + the free tier.
 - **MMP (later):** Workflows (chaining Skills) and the Justice Layer.
 
 ## Status
 
-Live on Vercel; CI and the architecture gate green on `main`. All 25 Release-1a (MVP #1) board
-tickets are in Done.
+Live on Vercel; CI and the architecture gate are green on `main`. All 25 Release 1a Week 4
+submission-scope tickets are in Done. Live RLS and two-account organization isolation were
+verified.
+
+The remaining Week 4 submission work is the phone/mobile-width check and Valeriya's personally
+completed Submission Template.

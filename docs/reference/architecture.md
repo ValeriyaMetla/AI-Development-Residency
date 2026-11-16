@@ -39,6 +39,7 @@ server actions and render results; they hold no secrets and enforce no policy.
 | `/signup` | Create account | Sign up; provisions an org + Accountable-Leader profile | `app/auth/actions.ts` |
 | `/login` | Sign in | Authenticate (Supabase Auth) | `app/auth/actions.ts` |
 | `/policy-seed` | Policy-seed wizard | The ~5-min guided intake → generates the starter policy; review screen | `app/policy-seed/actions.ts` |
+| `/copilot` | Governance Co-Pilot | Evaluates a proposed AI use and returns a verdict, reasons, citations, and safer approach | `app/copilot/actions.ts` |
 | `/dashboard` | Home (after login) | Entry to seed a policy and to run a governed Skill ("Draft a thank-you") | `app/skills/actions.ts` |
 
 Accessibility (WCAG 2.2 AA) and usability are requirements on every screen, carried largely by MUI
@@ -50,21 +51,25 @@ All privileged logic runs here, behind the trust boundary, in four layers (ADR-0
 
 - **Presentation** — `studio/app/**` (the screens above).
 - **Service** — the server actions / route handlers that the screens call:
-  `app/auth/actions.ts`, `app/policy-seed/actions.ts`, `app/skills/actions.ts`. Thin: they
-  authenticate, call the Domain layer, and return results.
+  `app/auth/actions.ts`, `app/policy-seed/actions.ts`, `app/skills/actions.ts`, and
+  `app/copilot/actions.ts`. Thin: they authenticate, call the Domain layer, and return results.
 - **Domain** — `studio/lib/domain/**`, pure rules with no I/O:
-  - `pipeline.ts` — the **governed-run pipeline** every Skill (and, later, the Co-Pilot) passes
-    through: context → draft → self-critique → rule-check → provenance → persist + audit.
-  - `guardrails.ts` — the deterministic rule-check.
+  - `pipeline.ts` — the **governed-run pipeline** used by governed Skills:
+    context → draft → self-critique stage → rule-check → provenance → persist + audit.
+  - `guardrails.ts` — the deterministic policy rule-check.
   - `policy-context.ts` — folds the org's active policy rules into the run (`withPolicyContext`).
   - `policy-generator.ts`, `policy-seed.ts`, `policy-seed-spec.ts` — turn intake answers into a
     starter policy.
+  - `copilot.ts` — evaluates explicit signals and determines the Co-Pilot risk tier and verdict.
+  - `copilot-grounding.ts` — attaches code-controlled reasons and standards citations.
+  - `copilot-pipeline.ts` — runs the Co-Pilot's assess-then-narrate workflow.
 - **Data-Source** — `studio/lib/data/**`, the only place that touches Supabase or the Claude SDK:
   `claude.ts` (Claude API, Sonnet — the single call site), `policy.ts` (`getActivePolicy`,
-  `getPolicyRules`), `profile.ts`, `runs.ts` (`task_run` / `task_output` / audit), `standards.ts`.
+  `getPolicyRules`), `profile.ts`, `runs.ts` (`task_run` / `task_output` / assessments / audit),
+  and `standards.ts`.
 
-Secrets (the Claude key, Supabase keys) live only in Vercel's server environment, never in the
-browser (ADR-0011/0012). Data access uses the signed-in user's JWT so RLS enforces tenancy (ADR-12).
+Secrets (the Claude key and Supabase keys) live only in the local or Vercel server environment,
+never in the browser (ADR-0011/0012). Data access uses the signed-in user's identity so RLS enforces tenancy (ADR-0013).
 
 ### How a governed run flows
 
@@ -74,6 +79,21 @@ browser (ADR-0011/0012). Data access uses the signed-in user's JWT so RLS enforc
 4. **Rule-check** — deterministic guardrail (`guardrails.ts`).
 5. **Provenance** — label the output as AI-assisted.
 6. **Persist + audit** — save `task_run` + `task_output`; append a non-sensitive `audit_event`.
+
+### How a Governance Co-Pilot assessment flows
+
+The Co-Pilot uses a sibling assess-then-narrate pipeline rather than the governed Skill pipeline:
+
+1. **Context** — authenticate the user and load the active policy and standards.
+2. **Assess** — deterministic Domain code evaluates the explicit risk signals.
+3. **Tier and verdict** — code assigns the risk tier and verdict before any model explanation.
+4. **Grounding** — attach code-controlled reasons, standards citations, and a safer approach.
+5. **Narration** — Claude may explain the structured result in plain language.
+6. **Persist + audit** — save the `task_run` and `copilot_assessment`; append a non-sensitive
+   `audit_event`.
+
+The model does not choose the risk tier or verdict. If the explanatory model call fails, the
+deterministic assessment can still return a structured result.
 
 ## Tier 3 — Data (Supabase)
 
@@ -86,9 +106,7 @@ tables, by group:
 - **Tenancy & identity:** `org`, `profile` (extends Supabase `auth.users`).
 - **Standards library** (global, read-only): `standard`, `standard_rule` (ADR-0008).
 - **Policy** (org-owned, versioned): `policy`, `policy_rule`, `policy_seed_response` (ADR-0009).
-- **Skills & runs:** `skill`, `task_run` (carries `policy_id`, the version applied), `task_output`.
-  *(The Co-Pilot's `copilot_assessment` is designed but not yet built — see
-  [`../design/epic-4-copilot-design.md`](../design/epic-4-copilot-design.md).)*
+- **Skills & runs:** `skill`, `task_run` (carries `policy_id`, the version applied), `task_output`, and `copilot_assessment`. The Co-Pilot assessment stores the verdict, risk tier, grounded recommendation, policy provenance, and human-decision requirement.
 - **Guardrails:** `guardrail_check`.
 - **Audit** (append-only, no sensitive content): `audit_event`.
 
@@ -102,7 +120,12 @@ the DB-privilege level.
   [ADR-0005](../adr/0005-material-ui.md) (MUI), [ADR-0012](../adr/0012-host-on-vercel.md) (Vercel),
   [ADR-0013](../adr/0013-use-supabase.md) (Supabase)
 - Data model: [`database-erd.md`](database-erd.md),
+  [`../database-design.md`](../database-design.md),
   [ADR-0008](../adr/0008-standards-library-data-model.md),
   [ADR-0009](../adr/0009-policy-seed-data-model.md)
+- Governance Co-Pilot: [ADR-0010](../adr/0010-copilot-risk-tiering.md),
+  [`../design/epic-4-copilot-design.md`](../design/epic-4-copilot-design.md)
+- Policy rule-check: [ADR-0014](../adr/0014-policy-rule-check.md)
 - Decision log + lecture mapping: [`../BUILD-DECISIONS.md`](../BUILD-DECISIONS.md),
   [`week-4-technical-architecture.md`](week-4-technical-architecture.md)
+

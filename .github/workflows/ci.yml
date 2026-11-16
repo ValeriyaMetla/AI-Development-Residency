@@ -1,15 +1,20 @@
 name: CI
 
 # The app-level quality gate for the studio/ Next.js project (Build Plan NFR-O1 / Step 6):
-# lint, format, types, unit tests, build, and dependency + secret scanning. Runs on every PR
-# and on push to main, alongside the Architecture Quality Gate (arch-gate.yml). See ADR-0006
-# (supersedes ADR-0002).
+# lint, format, types, unit tests, build, and dependency + secret scanning. Runs on every push
+# (any branch) and on every PR into main, alongside the Architecture Quality Gate
+# (arch-gate.yml). See ADR-0006 (supersedes ADR-0002).
 
 on:
+  # Week 5: CI must run on EVERY push, not just main — so `push:` has no branch filter.
+  push:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
+
+# Only keep the latest run per branch/PR; cancel superseded runs so pushes don't pile up.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   app-checks:
@@ -54,6 +59,39 @@ jobs:
       - name: Dependency report — dev tooling (non-blocking)
         # Dev-only advisories (test runner, bundler) never reach runtime; Dependabot tracks them.
         run: npm audit || true
+
+  bdd-acceptance:
+    # The third Week-5 named check (ADR-0016): the Week-2 BDD scenarios traced to tests, run as
+    # named per-dimension steps for traceability. The full suite still runs in app-checks above;
+    # these steps are a requirement-to-check view, not a replacement. Mapping + coverage labels
+    # (covered / partial / gap) live in docs/reference/week-5-bdd-traceability.md.
+    name: BDD acceptance (Release 1a)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studio
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+
+      - name: Install (clean, from lockfile)
+        run: npm ci
+
+      - name: BDD — Policy seed (F1.1)
+        run: npm run test:run -- policy-seed policy-generator
+
+      - name: BDD — Active-policy inheritance (F1.3)
+        run: npm run test:run -- pipeline-policy-context
+
+      - name: BDD — Co-Pilot safety (F4.1 / F4.2 / F4.4, F5.1 slice)
+        run: npm run test:run -- copilot guardrails standards
 
   secret-scan:
     name: Secret scan (gitleaks)
