@@ -11,8 +11,10 @@
 - **Assignment:** [Week 5 Coding Challenge — Build a CI/CD Pipeline](https://app.notion.com/p/419975c3b95080f0a292c64c8ad84a72)
 - **Working branch:** `claude/serene-darwin-f1a4d0` (a git **worktree** — this *is* the implementation
   branch; no separate `week5/qa-cicd` branch is needed).
-- **Current phase:** Planning complete. **Step 1 done this session** — CI + arch-gate triggers
-  already widened to every push (uncommitted). Validator, BDD jobs, proof run, manual QA still to do.
+- **Current phase:** Planning complete. **Done:** every-push triggers (merged to `main` via PR #62);
+  branch synced with `main` (includes Lane A's work); **build-reliability fix** — self-hosted Roboto
+  (ADR-0017), full CI gate green locally. **Next:** Skill gate, BDD-acceptance job, red/green proof,
+  manual QA.
 - **Notion delivery state:** Epic #11 — QA & CI/CD, 12 Must tickets.
 
 This is an **extension of the existing quality system, not a greenfield CI setup.** The repository
@@ -24,9 +26,11 @@ traceable** to the Week 2 requirements, and adds a **Skills gate**.
 > This version corrects four things the earlier draft got wrong because it was written without
 > knowing the live repo state (it ran against an offline/sandboxed audit and didn't know we work in
 > a worktree):
-> 1. **The "red `main` baseline" is almost certainly a phantom** — an offline `next/font/google`
->    fetch failure, not a real GitHub Actions failure (Vercel deploys the SHA fine). Phase 0 is
->    shrunk accordingly; **we do not "fix the build."** See *Verified repository baseline*.
+> 1. **The red `main` baseline was real — and is now fixed.** It was a *flaky* `next/font/google`
+>    build-time fetch (CI run #111 failed; the previous nine runs passed the identical code).
+>    Resolved by self-hosting Roboto via `@fontsource` (**ADR-0017**); the full gate is green locally.
+>    *(This corrects an earlier assumption that the red was a harmless offline artifact.)* See
+>    *Verified repository baseline*.
 > 2. **The Skills validator was over-specified** and would have red-failed good skills (it required
 >    per-skill READMEs that don't exist, and exact section titles that vary). Started **lean**,
 >    anchored to CLAUDE.md's actual Definition of Done. See *Skill validator contract*.
@@ -82,22 +86,22 @@ The homework is complete only when all of the following are true:
 - **20** built project Skills under `.claude/skills/`, mirrored by `docs/SKILLS-LIBRARY.md`. No
   per-skill READMEs exist; **SKILL.md is the source of truth** (per CLAUDE.md).
 
-### The "red baseline" claim — treat as a phantom until proven on GitHub Actions
+### The red baseline — real flaky build, now fixed (ADR-0017)
 
-The earlier draft reported a red `main` run where all tests passed but `next build` failed in the
-`next/font` Google loader (`TypeError: Cannot read properties of null (reading '1')`). Evidence that
-this is an **offline/sandbox artifact, not a real CI failure**:
+`main`'s latest CI (run **#111**, commit `1e7dde7`) genuinely **failed** at `next build` in the
+`next/font` Google loader (`TypeError: Cannot read properties of null (reading '1')`). We verified
+this against real GitHub Actions — it is **not** an offline/sandbox artifact.
 
-- `studio/app/layout.tsx` imports `Roboto` from **`next/font/google`**, which *fetches* the font at
-  build time. With no network (a sandboxed audit), that fetch fails with exactly this error.
-- **Vercel deployed that SHA successfully** — Vercel has network. GitHub's hosted runners also have
-  network, so the real Actions `next build` almost certainly passes.
+The failure is **flaky, not deterministic**: the previous nine `main` runs (#100–#110) built the
+*identical* font code successfully; only #111 failed. That is the signature of a **transient Google
+Fonts fetch failure** (shared CI runner IP rate-limited at build time). Vercel deployed the same SHA
+because its build hit a good fetch.
 
-**Gate before implementation (revised):** *confirm* the actual GitHub Actions status of `main` and
-record the green SHA + run URL. **Do not** change the font setup or any `studio/` code to "fix" a
-failure that doesn't occur on real CI — that would collide with the active lanes and is out of Week 5
-scope. Only if `main` is genuinely red **on GitHub Actions** do we investigate (and even then,
-explain the cause before any fix, and coordinate with lane owners before touching `studio/`).
+**Root cause + fix:** `next/font/google` fetches Roboto from Google at build. We removed that network
+dependency by **self-hosting Roboto via `@fontsource/roboto`** (ADR-0017): `app/layout.tsx` imports
+the weight stylesheets, `theme.ts` uses `fontFamily: 'Roboto, …'`. Verified locally — the full CI
+gate (lint, format, types, 122 tests, **build**) is green, and the production audit reports 0
+vulnerabilities (`@fontsource` has no dependencies). Lane A is idle, so no `studio/` collision.
 
 ## Settled implementation design
 
@@ -185,15 +189,15 @@ active lane owners** (Lanes A–D are editing `studio/`).
 > commit rule. Val commits/pushes/opens PRs in GitHub Desktop; Claude leaves changes uncommitted.
 > Everything stays in this worktree and avoids `studio/` feature code the lanes are editing.
 
-### Phase 0 — Confirm a trusted green baseline *(shrunk)*
+### Phase 0 — Restore a trusted green baseline *(done)*
 
-1. Confirm the current `main` SHA.
-2. **Confirm its GitHub Actions status is green** (expected — Vercel deploys it). If green, record
-   SHA + run URL in `CI-EVIDENCE.md` and proceed.
-3. Only if genuinely red on Actions: reproduce, explain the cause before any fix, and coordinate
-   before touching `studio/`. Do not disable or weaken any gate.
+1. ✅ Confirmed `main` CI was genuinely **red** (run #111) at `next build` — flaky `next/font/google`
+   fetch, not an offline artifact.
+2. ✅ Root-caused and fixed: self-hosted Roboto via `@fontsource/roboto` (**ADR-0017**).
+3. ✅ Verified locally — full gate green (lint, format, types, 122 tests, build); prod audit clean.
+4. ⬜ Record the first **green CI run URL + SHA** in `CI-EVIDENCE.md` once this is pushed.
 
-**Exit:** a recorded green starting SHA (no "baseline fix" unless the red is real on Actions).
+**Exit:** a reliable, deterministic build; green baseline recorded after push. No gate weakened.
 
 ### Phase 1 — Land the ADR and confirm the widened triggers
 
@@ -319,7 +323,7 @@ active lane owners** (Lanes A–D are editing `studio/`).
 
 | Risk | Control |
 | --- | --- |
-| **Phantom red baseline treated as real** | Verify `main` on **GitHub Actions** before any fix; the `next/font` error is an offline artifact (Vercel deploys the SHA) |
+| Flaky build red-fails CI unpredictably | **Resolved** — self-hosted Roboto (ADR-0017) removes the build-time Google Fonts fetch; verified green locally + 0 prod-audit vulns |
 | **Validator too strict → false-fails good skills** | Start lean (CLAUDE.md DoD); match sections by role not title; no README requirement; confirm all 20 pass before adding rules |
 | Existing checks presented as new Week 5 work | Name the **3** new jobs separately; retain the full pre-existing gate |
 | A green result overstates coverage | Keep Covered/Partial/Gap/Out-of-scope labels; state each boundary |
