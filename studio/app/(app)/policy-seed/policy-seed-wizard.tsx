@@ -15,9 +15,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
-import { runPolicySeed, confirmPolicy, type RunPolicySeedResult } from '@/app/policy-seed/actions';
+import { runPolicySeed, confirmPolicy, type RunPolicySeedResult } from './actions';
 import type { PolicySeedAnswers, TriState } from '@/lib/domain/policy-seed-spec';
-import PolicyRuleList from '@/app/policy-seed/policy-rule-list';
+import PolicyRuleList from './policy-rule-list';
 
 /**
  * Policy-seed intake wizard (Presentation layer, ADR-0003). A guided, one-question-per-step
