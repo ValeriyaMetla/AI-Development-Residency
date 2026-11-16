@@ -4,7 +4,7 @@ import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import NextLink from 'next/link';
 import { listRunnableSkills, getMyOrgId } from '@/lib/data/runs';
-import { getActivePolicy } from '@/lib/data/policy';
+import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import SkillRunner from './skill-runner';
 
 /**
@@ -18,6 +18,13 @@ export default async function SkillsPage() {
   const skills = await listRunnableSkills();
   const orgId = await getMyOrgId();
   const activePolicy = orgId ? await getActivePolicy(orgId) : null;
+  const policyRules = activePolicy ? await getPolicyRules(activePolicy.id) : [];
+  // Display-only guidance: plain rule text + its snapshotted source citation (ADR-0009).
+  const ruleGuidance = policyRules.map((r) => ({
+    ruleText: r.ruleText,
+    category: r.category,
+    citation: r.citation,
+  }));
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -42,7 +49,7 @@ export default async function SkillsPage() {
         </Alert>
       ) : null}
 
-      <SkillRunner skills={skills} />
+      <SkillRunner skills={skills} policyRules={ruleGuidance} />
     </Box>
   );
 }

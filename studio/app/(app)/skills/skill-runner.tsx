@@ -10,8 +10,12 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import { runSkill } from './actions';
+import { applicableRules } from '@/lib/domain/skills';
 import type { RunnableSkill } from '@/lib/data/runs';
 import type { RunResult } from '@/lib/domain/pipeline';
+
+/** Display-only policy-rule guidance passed from the server page. */
+export type RuleGuidance = { ruleText: string; category: string; citation: string | null };
 
 /**
  * Skill runner (Presentation layer). Picks a Skill, takes the Doer's who/what input, calls the
@@ -44,7 +48,13 @@ const STATUS_CHIP: Record<
   needs_review: { label: 'Needs your review', color: 'warning' },
 };
 
-export default function SkillRunner({ skills }: { skills: RunnableSkill[] }) {
+export default function SkillRunner({
+  skills,
+  policyRules = [],
+}: {
+  skills: RunnableSkill[];
+  policyRules?: RuleGuidance[];
+}) {
   const [skillKey, setSkillKey] = useState(skills[0]?.key ?? '');
   const [input, setInput] = useState('');
   const [result, setResult] = useState<RunResult | null>(null);
@@ -56,6 +66,7 @@ export default function SkillRunner({ skills }: { skills: RunnableSkill[] }) {
 
   const hint = INPUT_HINTS[skillKey] ?? DEFAULT_HINT;
   const multiple = skills.length > 1;
+  const rules = applicableRules(skillKey, policyRules);
 
   function handleRun() {
     setResult(null);
@@ -66,6 +77,8 @@ export default function SkillRunner({ skills }: { skills: RunnableSkill[] }) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {rules.length > 0 ? <ApplicableRulesPanel rules={rules} /> : null}
+
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {multiple ? (
           <TextField
@@ -121,6 +134,40 @@ export default function SkillRunner({ skills }: { skills: RunnableSkill[] }) {
 
       {result ? <RunResultView result={result} /> : null}
     </Box>
+  );
+}
+
+/**
+ * In-context guidance (Epic 3 "Surface the applicable rule in-context"): the active-policy rules
+ * that apply to this Skill, in plain language with their source citation. Display-only — the run
+ * always applies the full policy via inheritance; this just shows the Doer the relevant guardrails
+ * without opening a separate policy doc.
+ */
+function ApplicableRulesPanel({ rules }: { rules: RuleGuidance[] }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5, bgcolor: 'action.hover' }}
+    >
+      <Typography variant="subtitle1" component="h2">
+        Rules that apply here
+      </Typography>
+      <Box
+        component="ul"
+        sx={{ m: 0, pl: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 1.5 }}
+      >
+        {rules.map((rule, i) => (
+          <Box component="li" key={i}>
+            <Typography variant="body2">{rule.ruleText}</Typography>
+            {rule.citation ? (
+              <Typography variant="caption" color="text.secondary">
+                Source: {rule.citation}
+              </Typography>
+            ) : null}
+          </Box>
+        ))}
+      </Box>
+    </Paper>
   );
 }
 

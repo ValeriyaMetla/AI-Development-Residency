@@ -12,6 +12,13 @@ export type SkillDef = {
   basePrompt: string;
   /** Optional per-Skill quality bar for the self-critique Challenger (e.g. tone). */
   critiqueCriteria?: string;
+  /**
+   * Policy-rule categories relevant to this Skill — used to surface the applicable rules in-context
+   * in the runner (Epic 3 "Surface the applicable rule in-context"), filtered so a Doer sees only
+   * the rules that bear on this task, not the whole policy. Does NOT affect enforcement: the
+   * pipeline always applies the full active policy (inheritance, ADR-0009); this is display-only.
+   */
+  relevantCategories: string[];
 };
 
 export const SKILL_DEFS: Record<string, SkillDef> = {
@@ -24,10 +31,24 @@ export const SKILL_DEFS: Record<string, SkillDef> = {
       'The note must sound warm, sincere, and personal — like a real person thanking a supporter. ' +
       'Flag or revise a draft that is cold, stiff, transactional, generic/form-letter, or ' +
       'over-the-top and insincere. A genuinely warm, specific, human note passes.',
+    // Drafting an outbound donor note touches: contact details/PII (data-protection), a person
+    // reviewing before sending (human-oversight), and AI-assisted disclosure (transparency-provenance).
+    relevantCategories: ['data-protection', 'human-oversight', 'transparency-provenance'],
   },
 };
 
 /** The behavior definition for a Skill key, or null if the key is not a known runnable Skill. */
 export function getSkillDef(key: string): SkillDef | null {
   return SKILL_DEFS[key] ?? null;
+}
+
+/**
+ * Filter a set of active-policy rules to those whose category is relevant to this Skill, for the
+ * in-context guidance panel. Pure and display-only — never gates a run. Unknown Skill → [].
+ */
+export function applicableRules<T extends { category: string }>(skillKey: string, rules: T[]): T[] {
+  const def = getSkillDef(skillKey);
+  if (!def) return [];
+  const categories = new Set(def.relevantCategories);
+  return rules.filter((rule) => categories.has(rule.category));
 }
