@@ -1,0 +1,55 @@
+name: Claude Skills Gate
+
+# Gate-checks the Week 1 Claude Skills on every push (Week 5 assignment). Two separately named,
+# deterministic checks — Structure and Library sync — plus the validator's own self-tests. Zero
+# dependencies (just Node), so no install step. Decision recorded in ADR-0016.
+
+on:
+  # Week 5: run on EVERY push, not just main.
+  push:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: skills-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skills-structure:
+    name: Claude Skills — Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate SKILL.md structure
+        run: node scripts/skills-gate.mjs structure
+
+  skills-sync:
+    name: Claude Skills — Library sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate skills ↔ SKILLS-LIBRARY.md sync
+        run: node scripts/skills-gate.mjs sync
+
+  skills-gate-selftest:
+    name: Claude Skills — gate self-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Prove the gate catches malformed fixtures
+        run: node --test scripts/skills-gate.test.mjs
