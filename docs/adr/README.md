@@ -40,3 +40,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0015](0015-self-critique-pass.md) — Self-critique is a model-based Challenger pass with a bounded re-draft, behind the deterministic rule-check
 - [ADR-0016](0016-week-5-ci-safety-gates.md) — Run CI on every branch, gate-check the Claude Skills (structure + library-sync), and trace checks to Week-2 BDD (extends ADR-0006)
 - [ADR-0017](0017-self-host-roboto-font.md) — Self-host the Roboto font via @fontsource instead of next/font/google (removes the flaky build-time Google Fonts fetch)
+- [ADR-0018](0018-no-active-policy-baseline-safety.md) — With no active policy, a governed run proceeds on baseline safety (discloses, does not block)

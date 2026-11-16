@@ -21,6 +21,27 @@ export async function getMyOrgId(): Promise<string | null> {
   return data?.org_id ?? null;
 }
 
+export type RunnableSkill = { id: string; key: string; name: string; isHero: boolean };
+
+/**
+ * List the org's runnable Skills (type 'skill', not the Co-Pilot) for the Skill runner. Skills are a
+ * global catalog; RLS allows authenticated reads. Hero Skills first. Returns [] on error (graceful).
+ */
+export async function listRunnableSkills(): Promise<RunnableSkill[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('skill')
+    .select('id, key, name, is_hero')
+    .eq('type', 'skill')
+    .order('is_hero', { ascending: false })
+    .order('name', { ascending: true });
+  if (error) {
+    console.error('listRunnableSkills failed:', error.message);
+    return [];
+  }
+  return (data ?? []).map((s) => ({ id: s.id, key: s.key, name: s.name, isHero: s.is_hero }));
+}
+
 export async function getSkillByKey(key: string): Promise<{ id: string; name: string } | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
