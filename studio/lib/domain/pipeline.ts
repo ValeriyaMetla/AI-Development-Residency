@@ -40,6 +40,16 @@ const SKILL_PROMPTS: Record<string, string> = {
     'Keep it to 2–3 sentences. Return only the note text.',
 };
 
+// Per-Skill quality bar folded into the self-critique Challenger (ADR-0015). Optional: a Skill with
+// no entry gets the generic critique. For the hero thank-you Skill this is the TONE check — an
+// off-tone draft (cold, transactional, form-letter) is revised/flagged; a warm one passes.
+const SKILL_CRITIQUE_CRITERIA: Record<string, string> = {
+  draft_thank_you:
+    'The note must sound warm, sincere, and personal — like a real person thanking a supporter. ' +
+    'Flag or revise a draft that is cold, stiff, transactional, generic/form-letter, or over-the-top ' +
+    'and insincere. A genuinely warm, specific, human note passes.',
+};
+
 export type RunResult =
   | {
       status: 'completed' | 'needs_review';
@@ -107,7 +117,7 @@ export async function runGovernedSkill(params: {
   // response we FAIL CLOSED to human review (ADR-0014). The model NEVER gets the last word — the
   // deterministic rule-check below is the backstop.
   const critiqueRaw = await draftWithClaude(
-    buildCritiquePrompt(basePrompt, policyRules),
+    buildCritiquePrompt(basePrompt, policyRules, SKILL_CRITIQUE_CRITERIA[skillKey]),
     draft.text,
   );
   let finalText = draft.text;
