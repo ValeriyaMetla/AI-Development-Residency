@@ -1,7 +1,7 @@
 # ADR-0016: Run CI on every branch, gate-check the Claude Skills, and trace checks to Week-2 BDD
 
-- **Status:** Proposed
-- **Date:** 2026-11-15
+- **Status:** Accepted
+- **Date:** 2026-11-15 (accepted 2026-11-16)
 
 ## Context
 
@@ -55,8 +55,7 @@ This ADR **extends ADR-0006; it does not supersede or weaken it.**
    inheritance — F1.3; Co-Pilot safety — F4.1/F4.2/F4.4 + the shipped F5.1 slice). The full
    application test job stays intact; the BDD steps are traceability views, not a replacement. A
    traceability record labels each scenario covered / partial / gap, and does not claim Release-1b
-   PII/approval or MMP behavior as Week-5 evidence. *(This job is the remaining piece at the time of
-   writing.)*
+   PII/approval or MMP behavior as Week-5 evidence. *(Shipped and green on `main` — CI #130, PR #65.)*
 
 4. **Prove red → green on a disposable branch.** From a green implementation commit, a throwaway
    branch blanks one Skill's `metadata.version` → **Claude Skills — Structure** fails with
