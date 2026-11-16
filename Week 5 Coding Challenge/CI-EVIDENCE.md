@@ -70,4 +70,8 @@ steps, expected, **actual**, pass/fail) are recorded there by Valeriya after run
 ## 6. Live app
 
 - Vercel deploys `main` on every merge; current `main` is `ce76803`.
-- Final live-app smoke check: ⬜ *(confirm the app loads and a core flow works after the merges)*.
+- Final live-app smoke check: ✅ **PASS** (2026-11-16, https://ai-development-residency-nine.vercel.app):
+  - Landing page renders — hero, **GET STARTED** / **LOG IN** — **zero console errors**.
+  - Protected routes `/copilot` and `/policy-seed` correctly redirect unauthenticated users to a working `/login` form (auth-gating intact).
+  - All page and asset requests return `200`, including the self-hosted Roboto `.woff2` files from `/_next/static/media/` — confirming the ADR-0017 build-reliability fix is live (no build-time Google Fonts fetch).
+  - *(The two authenticated end-to-end flows are covered by manual tests MT-1 / MT-2, run signed-in.)*
