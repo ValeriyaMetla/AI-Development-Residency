@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && node scripts/filter-noise.mjs npm run test:run && node scripts/filter-noise.mjs npm run build && cd .. && node scripts/arch-gate.mjs --changed --base main"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
