@@ -27,7 +27,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const roleLabel = profile ? (ROLE_LABEL[profile.role] ?? profile.role) : '';
 
   return (
-    <AppShell email={user.email ?? ''} roleLabel={roleLabel} signOutAction={signout}>
+    <AppShell
+      email={user.email ?? ''}
+      roleLabel={roleLabel}
+      role={profile?.role ?? null}
+      signOutAction={signout}
+    >
       {children}
     </AppShell>
   );
