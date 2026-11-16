@@ -85,6 +85,28 @@ mechanically, so a violation can't reach `main` even if the review above is skip
 
 ---
 
+## Local verify (clean scans)
+
+Run the full pre-PR gate in one command from `studio/`:
+
+```
+npm run verify
+```
+
+It chains `format:check → lint → typecheck → test:run → build → arch-gate` and **preserves the
+real exit code** — a red step still fails the command. It routes `test:run` and `build` through
+`scripts/filter-noise.mjs`, which drops one known-harmless line from the output:
+
+> `@supabase/supabase-js` prints "Node.js 20 and below are deprecated…" once per worker process
+> whenever it runs on Node ≤ 20 (our current toolchain is Node 20). It is a plain `console.warn`
+> with **no opt-out flag**; it only stops on **Node ≥ 21**, and it does not affect correctness.
+> The filter removes it from local scans only (CI logs are unchanged). The real fix — moving the
+> toolchain and CI to **Node 22** (also off end-of-life Node 20) — is tracked as a separate,
+> cross-cutting change owned by the CI/CD workstream (CI workflows + `.nvmrc`), to be recorded as
+> its own ADR.
+
+---
+
 ## Recording decisions
 
 When a build decision is settled (tracked in [BUILD-DECISIONS.md](BUILD-DECISIONS.md)), record

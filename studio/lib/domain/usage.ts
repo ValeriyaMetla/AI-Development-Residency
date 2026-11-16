@@ -1,4 +1,4 @@
-import type { RunSummary } from '@/lib/data/usage';
+import type { RunSummary, TaskStatus } from '@/lib/data/usage';
 
 /**
  * Pure aggregation + presentation-state logic for the Registry view (Chunk 3, Domain layer,
@@ -73,6 +73,26 @@ function weekLabel(i: number): string {
   if (i === 0) return 'This week';
   if (i === 1) return 'Last week';
   return `${i} weeks ago`;
+}
+
+/**
+ * Plain-language outcome for a single run's status, for the per-run "my entries" rows.
+ * Text carries the meaning (never color alone), and it names what the safety net did.
+ */
+export function outcomeLabel(status: TaskStatus): string {
+  switch (status) {
+    case 'completed':
+    case 'approved':
+      return 'Completed';
+    case 'needs_review':
+      return 'Needed review';
+    case 'blocked':
+      return 'Blocked by a rule';
+    case 'rejected':
+      return 'Rejected on review';
+    case 'running':
+      return 'In progress';
+  }
 }
 
 export type SafetyNetSummary = {
