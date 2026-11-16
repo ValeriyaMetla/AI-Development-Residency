@@ -1,15 +1,20 @@
 name: CI
 
 # The app-level quality gate for the studio/ Next.js project (Build Plan NFR-O1 / Step 6):
-# lint, format, types, unit tests, build, and dependency + secret scanning. Runs on every PR
-# and on push to main, alongside the Architecture Quality Gate (arch-gate.yml). See ADR-0006
-# (supersedes ADR-0002).
+# lint, format, types, unit tests, build, and dependency + secret scanning. Runs on every push
+# (any branch) and on every PR into main, alongside the Architecture Quality Gate
+# (arch-gate.yml). See ADR-0006 (supersedes ADR-0002).
 
 on:
+  # Week 5: CI must run on EVERY push, not just main — so `push:` has no branch filter.
+  push:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
+
+# Only keep the latest run per branch/PR; cancel superseded runs so pushes don't pile up.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   app-checks:
