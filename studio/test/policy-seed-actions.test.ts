@@ -9,7 +9,7 @@ import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { seedPolicyFromAnswers } from '@/lib/domain/policy-seed';
 import { activatePolicy } from '@/lib/data/policy';
-import { runPolicySeed, confirmPolicy } from '@/app/policy-seed/actions';
+import { runPolicySeed, confirmPolicy } from '@/app/(app)/policy-seed/actions';
 
 const validAnswers = {
   accountablePerson: { name: 'Jane', role: 'ED' },

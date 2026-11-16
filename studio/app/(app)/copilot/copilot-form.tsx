@@ -16,7 +16,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import type { AlertColor } from '@mui/material/Alert';
-import { assessUse } from '@/app/copilot/actions';
+import { assessUse } from './actions';
 import { tierLabel, type CopilotVerdict, type SignalKey } from '@/lib/domain/copilot';
 import type { CopilotAssessmentResult } from '@/lib/domain/copilot-pipeline';
 
