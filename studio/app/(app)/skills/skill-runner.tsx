@@ -9,10 +9,13 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import { runSkill } from './actions';
 import { applicableRules } from '@/lib/domain/skills';
 import type { RunnableSkill } from '@/lib/data/runs';
 import type { RunResult } from '@/lib/domain/pipeline';
+import { detectPii, type PiiCategory } from '@/lib/domain/pii';
 
 /** Display-only policy-rule guidance passed from the server page. */
 export type RuleGuidance = { ruleText: string; category: string; citation: string | null };
@@ -57,6 +60,7 @@ export default function SkillRunner({
 }) {
   const [skillKey, setSkillKey] = useState(skills[0]?.key ?? '');
   const [input, setInput] = useState('');
+  const [lastInput, setLastInput] = useState('');
   const [result, setResult] = useState<RunResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -67,11 +71,17 @@ export default function SkillRunner({
   const hint = INPUT_HINTS[skillKey] ?? DEFAULT_HINT;
   const multiple = skills.length > 1;
   const rules = applicableRules(skillKey, policyRules);
+  // In-the-moment heads-up: the pure detector runs live on what the Doer has typed, so they see it
+  // before submitting. Non-blocking — it never stops the run (Epic 5 "in-the-moment PII warning").
+  const livePii = detectPii(input);
 
-  function handleRun() {
+  // A fresh run uses the textarea; a keep re-run reuses the exact input that produced the result.
+  function run(keep: PiiCategory[]) {
+    const text = keep.length > 0 ? lastInput : input;
     setResult(null);
     startTransition(async () => {
-      setResult(await runSkill(skillKey, input));
+      setLastInput(text);
+      setResult(await runSkill(skillKey, text, keep));
     });
   }
 
@@ -120,11 +130,20 @@ export default function SkillRunner({
           required
         />
 
+        {livePii.length > 0 ? (
+          <Alert severity="warning" role="status" sx={{ py: 0.5 }}>
+            Looks like your input includes {labelList(livePii)}. We&apos;ll remove{' '}
+            {livePii.length > 1 ? 'these' : 'it'} before the AI sees{' '}
+            {livePii.length > 1 ? 'them' : 'it'} — you can choose to keep{' '}
+            {livePii.length > 1 ? 'any' : 'it'} after running.
+          </Alert>
+        ) : null}
+
         <Box>
           <Button
             variant="contained"
             size="large"
-            onClick={handleRun}
+            onClick={() => run([])}
             disabled={isPending || !input.trim()}
           >
             {isPending ? 'Running…' : 'Run Skill'}
@@ -132,7 +151,9 @@ export default function SkillRunner({
         </Box>
       </Paper>
 
-      {result ? <RunResultView result={result} /> : null}
+      {result ? (
+        <RunResultView result={result} isPending={isPending} onKeepRerun={(keep) => run(keep)} />
+      ) : null}
     </Box>
   );
 }
@@ -171,7 +192,19 @@ function ApplicableRulesPanel({ rules }: { rules: RuleGuidance[] }) {
   );
 }
 
-function RunResultView({ result }: { result: RunResult }) {
+function labelList(findings: { label: string; count: number }[]): string {
+  return findings.map((f) => (f.count > 1 ? `${f.count} ${f.label}s` : f.label)).join(', ');
+}
+
+function RunResultView({
+  result,
+  isPending,
+  onKeepRerun,
+}: {
+  result: RunResult;
+  isPending: boolean;
+  onKeepRerun: (keep: PiiCategory[]) => void;
+}) {
   if (result.status === 'blocked') {
     return (
       <Alert severity="error" role="status">
@@ -197,6 +230,10 @@ function RunResultView({ result }: { result: RunResult }) {
         </Alert>
       ) : null}
 
+      {result.pii.length > 0 ? (
+        <PiiPanel result={result} isPending={isPending} onKeepRerun={onKeepRerun} />
+      ) : null}
+
       <Typography
         variant="body1"
         component="p"
@@ -209,5 +246,73 @@ function RunResultView({ result }: { result: RunResult }) {
         {result.provenanceLabel} · You decide before this is used.
       </Typography>
     </Paper>
+  );
+}
+
+/**
+ * Personal-information panel: what was stripped by default, and a per-category "keep and re-run"
+ * override (Epic 5 "Allow deliberate keep"). Keeping an item re-runs with it in the input and the
+ * pipeline logs the choice. Categories already kept this run are shown as such.
+ */
+function PiiPanel({
+  result,
+  isPending,
+  onKeepRerun,
+}: {
+  result: Extract<RunResult, { status: 'completed' | 'needs_review' }>;
+  isPending: boolean;
+  onKeepRerun: (keep: PiiCategory[]) => void;
+}) {
+  const [selected, setSelected] = useState<PiiCategory[]>([]);
+  const stripped = result.pii.filter((p) => !result.piiKept.includes(p.category));
+  const kept = result.pii.filter((p) => result.piiKept.includes(p.category));
+
+  const toggle = (c: PiiCategory) =>
+    setSelected((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
+
+  return (
+    <Alert severity="info" icon={false} role="status">
+      {stripped.length > 0 ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Typography variant="body2">
+            Personal information was removed before the AI saw it: {labelList(stripped)}.
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Need any of it in the note? Keep it and re-run — your choice is recorded.
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {stripped.map((f) => (
+              <FormControlLabel
+                key={f.category}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={selected.includes(f.category)}
+                    onChange={() => toggle(f.category)}
+                  />
+                }
+                label={`Keep the ${f.label}`}
+              />
+            ))}
+          </Box>
+          <Box>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={isPending || selected.length === 0}
+              onClick={() => onKeepRerun([...result.piiKept, ...selected])}
+            >
+              {isPending ? 'Re-running…' : 'Re-run keeping selected'}
+            </Button>
+          </Box>
+        </Box>
+      ) : null}
+
+      {kept.length > 0 ? (
+        <Typography variant="body2" sx={{ mt: stripped.length > 0 ? 1.5 : 0 }}>
+          Kept in your input by your choice: {labelList(kept)}.
+        </Typography>
+      ) : null}
+    </Alert>
   );
 }
