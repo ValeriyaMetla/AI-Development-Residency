@@ -40,6 +40,7 @@ const PASS_REASON = 'The self-check found no issues with this draft.';
 export function buildCritiquePrompt(
   skillIntent: string,
   policyRules: { ruleText: string }[] = [],
+  qualityCriteria?: string,
 ): string {
   const policyBlock =
     policyRules.length > 0
@@ -48,12 +49,20 @@ export function buildCritiquePrompt(
           .join('\n')}`
       : '';
 
+  // Optional per-Skill quality bar (e.g. tone for the thank-you Skill). Folded in only when the
+  // Skill defines one, so the generic critique is unchanged for Skills that don't (ADR-0015).
+  const qualityBlock = qualityCriteria
+    ? `\n\nQuality bar for this task — treat a draft that clearly misses it as "revise", but let a ` +
+      `reasonable one pass without nit-picking:\n${qualityCriteria}`
+    : '';
+
   return (
     'You are a strict reviewer (a "Challenger") checking a draft written by an AI assistant for a ' +
     'small nonprofit, BEFORE any person sees it. The draft was produced for this task: ' +
-    `"${skillIntent}".${policyBlock}\n\n` +
+    `"${skillIntent}".${policyBlock}${qualityBlock}\n\n` +
     'Review the draft for: factual errors or unsupported claims; unsafe, harmful, discriminatory, ' +
-    'or otherwise inappropriate content; and anything that violates the policy above. ' +
+    'or otherwise inappropriate content; anything that violates the policy above; and whether it ' +
+    'meets the quality bar above (if one is given). ' +
     'Be conservative about "pass" — but do not invent problems in a clean, ordinary draft.\n\n' +
     'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape:\n' +
     '{"verdict":"pass"|"revise"|"block","reason":"<one plain-language sentence>","revised":"<text>"}\n' +
