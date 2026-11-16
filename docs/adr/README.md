@@ -38,4 +38,5 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0013](0013-use-supabase.md) — Use Supabase for database, auth, and row-level security
 - [ADR-0014](0014-policy-rule-check.md) — Policy rule-check is deterministic, category-driven code (not an LLM judge)
 - [ADR-0015](0015-self-critique-pass.md) — Self-critique is a model-based Challenger pass with a bounded re-draft, behind the deterministic rule-check
+- [ADR-0016](0016-week-5-ci-safety-gates.md) — Run CI on every branch, gate-check the Claude Skills (structure + library-sync), and trace checks to Week-2 BDD (extends ADR-0006)
 - [ADR-0017](0017-self-host-roboto-font.md) — Self-host the Roboto font via @fontsource instead of next/font/google (removes the flaky build-time Google Fonts fetch)
