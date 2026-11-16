@@ -33,6 +33,30 @@ describe('buildCritiquePrompt', () => {
     expect(p).toContain('- A person has the final say.');
     expect(p).toContain('- Minimize personal information.');
   });
+
+  it('omits the quality bar when no criteria is given (generic critique unchanged)', () => {
+    const p = buildCritiquePrompt('Draft something.');
+    expect(p).not.toContain('Quality bar for this task');
+  });
+
+  it('folds in a per-Skill quality bar (e.g. tone) when criteria is given', () => {
+    const p = buildCritiquePrompt('Write a thank-you note.', [], 'The note must sound warm.');
+    expect(p).toContain('Quality bar for this task');
+    expect(p).toContain('The note must sound warm.');
+    // It stays conservative so a reasonable note is not nit-picked.
+    expect(p).toMatch(/let a reasonable one pass/i);
+  });
+
+  it('includes both policy and quality blocks together', () => {
+    const p = buildCritiquePrompt(
+      'Draft.',
+      [{ ruleText: 'A person has the final say.' }],
+      'Be warm.',
+    );
+    expect(p).toContain("organization's AI policy");
+    expect(p).toContain('Quality bar for this task');
+    expect(p).toContain('Be warm.');
+  });
 });
 
 describe('parseCritique — happy paths', () => {
