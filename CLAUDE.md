@@ -185,9 +185,13 @@ When creating or changing any skill:
    `docs/SKILLS-LIBRARY.md`.
 2. Draft the full `SKILL.md` in chat for review first — nothing lands in the repo until
    approved.
-3. It is not done until: the `SKILL.md` file is updated, `docs/SKILLS-LIBRARY.md` reflects
-   it in the same commit, and triggering is re-tested (it fires on its own phrases plus a
-   paraphrase, and not on an unrelated prompt).
+3. It is not done until (**Tier 1 / quick sync**): the `SKILL.md` file is updated, its
+   `CLAUDE.md` line is added, and triggering is re-tested (it fires on its own phrases plus a
+   paraphrase, and not on an unrelated prompt) — these land together in one commit. The
+   `docs/SKILLS-LIBRARY.md` catalog and other records are updated later in an on-demand
+   documentation sweep (**Tier 2**), not necessarily the same commit; the skill files remain the
+   source of truth and win on any disagreement. (Full two-tier checklist: the Skill-Governance
+   Sync runbook.)
 
 ## Skill usage receipts
 

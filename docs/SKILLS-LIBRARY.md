@@ -8,8 +8,9 @@ what they contain, and what's coming next.
 > The skill files in `.claude/skills/<name>/SKILL.md` are the **source of truth** — they
 > are what Claude loads (and are synced to `~/.claude/skills/` for account-wide use). This
 > document is the standard + index that mirrors them for reading, planning, and review.
-> **If the two ever disagree, the files win.** When you change a skill, update it here in
-> the same commit.
+> **If the two ever disagree, the files win.** When you change a skill, the file + its
+> `CLAUDE.md` line land first (Tier 1); this catalog is refreshed later in an on-demand
+> documentation sweep (Tier 2), so it may lag the files between sweeps.
 
 ---
 
@@ -80,12 +81,16 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
 4. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
    surfaced in chat. **Nothing lands in the repo yet.** Val reviews it (and may do more
    research), then approves.
-5. **Install — only after approval:** (1) create `.claude/skills/<name>/SKILL.md`,
-   (2) add a line to [`CLAUDE.md`](../CLAUDE.md), (3) paste its content into this library
-   under its category and flip ⬜ to ✅.
-   **Definition of done:** the `SKILL.md` file, its entry in this library, and a re-test of
-   triggering (it fires on its own phrases plus a paraphrase, and not on an unrelated
-   prompt) all land in the **same commit** — never the file alone.
+5. **Install — only after approval. Two tiers:**
+   **Tier 1 (operational — land together, now):** (1) create `.claude/skills/<name>/SKILL.md`,
+   (2) add a line to [`CLAUDE.md`](../CLAUDE.md), (3) add any reciprocal neighbor-boundary edit,
+   and re-test triggering (it fires on its own phrases plus a paraphrase, and not on an unrelated
+   prompt).
+   **Tier 2 (recording — batched into an on-demand documentation sweep):** paste the skill's
+   content into this library under its category, flip ⬜ to ✅, and update the status counts.
+   **Definition of done (Tier 1):** the `SKILL.md` file, its `CLAUDE.md` line, and the triggering
+   re-test land in the **same commit** — never the file alone. The catalog here may lag until the
+   next sweep; the files are the source of truth and win on any disagreement.
 6. **Commit & push on a dedicated branch** (Val does this hands-on to keep practicing).
    **Install a skill on its own branch cut fresh from `main`, never on an active feature
    branch** — otherwise the skill's files get swept into unrelated feature commits (as happened
