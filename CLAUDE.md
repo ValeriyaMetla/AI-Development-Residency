@@ -100,6 +100,11 @@ working, not optional suggestions.
 - **backlog-decomposition** — Apply when breaking a release scope into epics, features,
   and tasks, or building, structuring, or grooming a backlog / Kanban board. (SAFe
   hierarchy + INVEST + Scrum refinement + Kanban)
+- **skill-authoring** — Apply when creating, writing, drafting, structuring, or
+  restructuring a skill or `SKILL.md`, or fixing a bloated or poorly-structured one — the
+  *shape* (frontmatter, six-part body, authoring principles). Does NOT cover whether a skill
+  works or triggers (that's `skill-evaluation`). (Anthropic Skill authoring best practices +
+  canonical template)
 - **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
   to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
 - **responsible-ai** — Apply when building, reviewing, or shipping any AI-powered feature
