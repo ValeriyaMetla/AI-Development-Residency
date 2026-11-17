@@ -3,6 +3,20 @@
 This repository contains a set of enterprise-development Skills that Claude should
 apply consistently across all work in this project.
 
+## Working across two accounts
+
+This project is built from one GitHub repo but worked across **two Claude accounts**
+(a personal account and a Tech Fleet seat), from both Claude Code and claude.ai chat.
+To stay coherent across them:
+
+- `main` is the single source of truth. **Commit + push before switching accounts or
+  surfaces, and pull before you start** — whatever isn't pushed doesn't exist for the
+  other account.
+- Keep a running handover in [`docs/handovers/HANDOVER-LOG.md`](docs/handovers/HANDOVER-LOG.md).
+  **Log only at handoff points** — when you switch accounts or stop for the day, not every
+  change or message; heads-down in one account, there's nothing to write. Keep it to a line
+  or two (did / in progress / next) so the next session picks up without re-deriving context.
+
 ## How to work in this project
 
 At the start of every task, run an explicit **routing check before producing anything** —
