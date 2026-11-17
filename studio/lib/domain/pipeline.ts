@@ -12,6 +12,7 @@ import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardr
 import { withPolicyContext } from '@/lib/domain/policy-context';
 import { getSkillDef } from '@/lib/domain/skills';
 import { redactPii, piiSummary, type PiiFinding, type PiiCategory } from '@/lib/domain/pii';
+import { riskyUseFinding } from '@/lib/domain/risky-use';
 import {
   buildCritiquePrompt,
   parseCritique,
@@ -123,6 +124,26 @@ export async function runGovernedSkill(params: {
     }
   }
 
+  // 3b. Risky-use flagging (Epic 5, deterministic — code outside the model). Scans the task intent
+  // for patterns that warrant human scrutiny (a decision about a person, a high-stakes domain) and
+  // flags the run for the human-approval gate. Never blocks — a person reviews it.
+  const risky = riskyUseFinding(userInput);
+  if (risky.result === 'flag') {
+    await saveGuardrailCheck({
+      taskRunId,
+      checkType: 'risky_use',
+      result: 'flag',
+      reasonPlain: risky.reason,
+    });
+    await writeAuditEvent({
+      orgId,
+      taskRunId,
+      actor: userId,
+      eventType: 'risky_use_flagged',
+      payload: {}, // the fact only — no sensitive content (ADR-6)
+    });
+  }
+
   // 4. Draft (Claude, via the Data-Source layer) — grounded in the active policy, on the REDACTED input.
   const draft = await draftWithClaude(systemPrompt, safeInput);
   if (!draft.ok) {
@@ -185,10 +206,10 @@ export async function runGovernedSkill(params: {
     result: ruleResult.result,
     reasonPlain: ruleResult.reason,
   });
-  // PII is handled by default-strip above (not a review-forcing flag), so run status is driven by the
-  // output-side self-critique + rule-check (most-severe-wins). The stripped categories are surfaced
-  // separately on the result so the Doer always sees what was removed.
-  const guardrail = mostSevere([critiqueFinding, ruleResult]);
+  // Run status is most-severe-wins across: risky-use (input intent), self-critique, and the rule-check
+  // (ADR-0014/0015). PII is handled by default-strip above (not a review-forcing flag); its stripped
+  // categories are surfaced separately so the Doer always sees what was removed.
+  const guardrail = mostSevere([risky, critiqueFinding, ruleResult]);
 
   // 6. Provenance + persist output (self-critique summary carries no sensitive payload, ADR-6).
   await saveTaskOutput({
