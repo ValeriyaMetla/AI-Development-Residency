@@ -97,13 +97,13 @@ It chains `format:check → lint → typecheck → test:run → build → arch-g
 real exit code** — a red step still fails the command. It routes `test:run` and `build` through
 `scripts/filter-noise.mjs`, which drops one known-harmless line from the output:
 
-> `@supabase/supabase-js` prints "Node.js 20 and below are deprecated…" once per worker process
-> whenever it runs on Node ≤ 20 (our current toolchain is Node 20). It is a plain `console.warn`
-> with **no opt-out flag**; it only stops on **Node ≥ 21**, and it does not affect correctness.
-> The filter removes it from local scans only (CI logs are unchanged). The real fix — moving the
-> toolchain and CI to **Node 22** (also off end-of-life Node 20) — is tracked as a separate,
-> cross-cutting change owned by the CI/CD workstream (CI workflows + `.nvmrc`), to be recorded as
-> its own ADR.
+> `@supabase/supabase-js` printed "Node.js 20 and below are deprecated…" once per worker process
+> whenever it ran on Node ≤ 20. **The toolchain and CI are now on Node 22 (ADR-0019)**, so the
+> warning no longer appears and `scripts/filter-noise.mjs` is effectively a **no-op** — kept because
+> it still strips any future known-harmless line from local scans without masking exit codes.
+> _(Historical note: on Node ≤ 20 the line was a plain `console.warn` with no opt-out flag —
+> `NODE_NO_WARNINGS` did not catch it — and it only stopped on Node ≥ 21, which is why the real fix
+> was to move the toolchain off Node 20.)_
 
 ---
 

@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Validate SKILL.md structure
         run: node scripts/skills-gate.mjs structure
 
@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Validate skills ↔ SKILLS-LIBRARY.md sync
         run: node scripts/skills-gate.mjs sync
 
@@ -50,6 +50,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Prove the gate catches malformed fixtures
         run: node --test scripts/skills-gate.test.mjs
