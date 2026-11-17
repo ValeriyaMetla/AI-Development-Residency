@@ -226,3 +226,32 @@ describe('PII detection + strip on input (Epic 5)', () => {
     expect(JSON.stringify(keptEvent?.[0])).not.toContain('maria@example.org');
   });
 });
+
+describe('Risky-use flagging (Epic 5)', () => {
+  it('flags a risky task to needs_review and records a risky_use check', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Here is a draft.', 'pass');
+
+    const res = await runGovernedSkill({
+      ...RUN,
+      userInput: 'decide whether to fire this volunteer',
+    });
+
+    expect(res.status).toBe('needs_review');
+    const check = vi
+      .mocked(saveGuardrailCheck)
+      .mock.calls.find((c) => c[0].checkType === 'risky_use');
+    expect(check?.[0].result).toBe('flag');
+  });
+
+  it('a routine task is not risk-flagged', async () => {
+    setPolicy('policyA', [OVERSIGHT]);
+    setClaude('Thanks!', 'pass');
+
+    const res = await runGovernedSkill(RUN); // 'Maria, monthly gift' — routine
+    expect(res.status).toBe('completed');
+    expect(
+      vi.mocked(saveGuardrailCheck).mock.calls.find((c) => c[0].checkType === 'risky_use'),
+    ).toBeUndefined();
+  });
+});
