@@ -105,8 +105,9 @@ working, not optional suggestions.
   *shape* (frontmatter, six-part body, authoring principles). Does NOT cover whether a skill
   works or triggers (that's `skill-evaluation`). (Anthropic Skill authoring best practices +
   canonical template)
-- **skill-evaluation** — Apply when creating, reviewing, improving, or deciding whether
-  to keep a skill, or writing SKILL.md test cases. (Baseline comparison + eval-driven)
+- **skill-evaluation** — Apply when reviewing, improving, or deciding whether to keep a
+  skill, writing SKILL.md test cases, or checking whether a skill works/triggers — not its
+  *shape* (that's `skill-authoring`). (Baseline comparison + eval-driven)
 - **responsible-ai** — Apply when building, reviewing, or shipping any AI-powered feature
   (a prompt, chatbot, agentic workflow, generated content, a recommendation, or an automated
   decision about a person): human-in-the-loop, disclosure, grounding/anti-fabrication, bias

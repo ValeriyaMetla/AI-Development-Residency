@@ -146,6 +146,7 @@ thick arrow = flows into):
 ```mermaid
 flowchart TD
     SE["skill-evaluation · ② AI Dev<br/>oversight — audits every skill"]
+    SA["skill-authoring · ② AI Dev<br/>shapes HOW a skill is built ✅"]
     AIE["ai-evaluation · ② AI Dev<br/>evaluates AI outputs ✅"]
 
     subgraph C1["① Product & Planning — the specialist pipeline"]
@@ -174,6 +175,7 @@ flowchart TD
     TP ==> XC
     XC ==> C6
     SE -. seats .-> AID
+    SA -. pairs with .- SE
     RAI -. defers measurement to .-> AIE
 
     classDef strat fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
@@ -184,7 +186,7 @@ flowchart TD
     class PF,MVP,PS,TP,BD,RP,AS,MA,CA,POS,PD strat;
     class UX,A11Y,DOC build;
     class SEC,TCR,JA,RAI,AIE gate;
-    class SE over;
+    class SE,SA over;
     class AID,C6 plan;
 ```
 
@@ -195,13 +197,13 @@ flowchart TD
 | Category | Skills | Built |
 |---|---|---|
 | 1. Product & Planning | problem-framing ✅ · mvp-scoping ✅ · product-specs ✅ · technical-planning ✅ · rapid-prototyping ✅ · backlog-decomposition ✅ · audience-segmentation ✅ · market-analysis ✅ · competitive-analysis ✅ · positioning ✅ · pitch-deck ✅ | 11 / 11 |
-| 2. AI Development | skill-evaluation ✅ · responsible-ai ✅ · ai-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ | 3 / 6 |
+| 2. AI Development | skill-authoring ✅ · skill-evaluation ✅ · responsible-ai ✅ · ai-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ | 4 / 7 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
 | 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 20 built · 10 planned**
+**Total: 21 built · 10 planned**
 
 ---
 
@@ -303,6 +305,12 @@ The communication capstone: synthesizes the finished strategy/discovery delivera
 
 
 Proves a skill beats a no-skill baseline — triggering tests, verifiable assertions, and a keep/revise/cut verdict.
+
+### skill-authoring ✅
+*Grounded in: Anthropic Skill authoring best practices + the canonical template in SKILLS-LIBRARY.md · [`SKILL.md`](../.claude/skills/skill-authoring/SKILL.md) · Meta-tooling (not tied to a residency week)*
+
+
+Owns HOW a skill is shaped and built — frontmatter, the six-part body, and the authoring principles (concise first, match degrees of freedom, explain the *why*, progressive disclosure, split past ~500 lines). The authoring half of the meta-tooling pair with [[skill-evaluation]] (which proves it works / triggers / earns its cost).
 
 ### prompt-engineering ⬜ *(planned — Week 4, due Nov 9)*
 Intended scope: writing effective prompts for the Claude API — clear role/task/context,

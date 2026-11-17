@@ -19,6 +19,7 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-17 — [personal · claude.ai skill-sync chat] — Stood up the two-tier sync model (Tier 1 operational = skill file + `CLAUDE.md` line; Tier 2 recording = catalog/log, on-demand sweep). Did: loosened the "same commit" rule (`819b5ff`); added `skill-authoring` v1.1 (`ed6a29e`); this commit = full sweep for it + `skill-evaluation` v1.1 routing boundary. Next: re-upload the `skill-evaluation` zip to the personal account; reconcile runbook↔operating-model account-upload wording.
 - 2026-11-17 — [personal · claude.ai planning chat] — Setup/cleanup session. Confirmed
   cross-account setup (GitHub + Notion are the shared bridges; `main` is source of truth).
   Release 1b: `main` is ahead of the Notion board and the build-outline doc (~19/48 built).
