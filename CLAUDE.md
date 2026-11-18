@@ -60,6 +60,9 @@ working, not optional suggestions.
   image, color, or interaction. (WCAG 2.2 AA / POUR)
 - **testing-code-review** — Apply when writing tests or reviewing a change before it
   ships. (Testing pyramid + Google review practices)
+- **ci-cd-pipeline** — Apply when setting up CI, adding/fixing a GitHub Actions check or
+  workflow, running checks on every push, speeding up a slow pipeline, deciding what belongs in a
+  pipeline, or wiring deploy-on-merge. (Week-5 QA/CI-CD lecture + ADR-0016/0019 + Fowler CI)
 - **judge-arch** — Apply when reviewing a diff/PR for architectural integrity before done or
   merge — layering, data ownership, dependencies, resilience. (Fowler layers + the 4 questions;
   back-end is `arch-gate.mjs` in CI)
