@@ -10,8 +10,11 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import NextLink from 'next/link';
 import { getMyRunEntries } from '@/lib/data/usage';
+import { getMyCorrections } from '@/lib/data/corrections';
 import { outcomeLabel } from '@/lib/domain/usage';
+import { correctionsByRun } from '@/lib/domain/corrections';
 import { UsageEmptyState, UsageErrorState } from '../usage-states';
+import CorrectionActions from './correction-actions';
 
 /**
  * My entries (Registry view, Chunk 3 — Lane B). The per-user transparency view: a person sees
@@ -21,10 +24,14 @@ import { UsageEmptyState, UsageErrorState } from '../usage-states';
  * Transparency toward the data subject (responsible-AI): this is the person's own record, visible
  * to them and to their org's Leader — accountability, not covert surveillance.
  *
- * STEP 3 — the list. The per-row flag/note action is wired in Step 4 (entry-correction flow).
+ * STEP 4 (ADR-0021) — each row carries an entry-correction / note action: a person can annotate
+ * their OWN run (additive, never an edit). Corrections are fetched once and grouped by run; a query
+ * error on them degrades gracefully (the list still renders) rather than failing the whole page.
  */
 export default async function MyEntriesPage() {
   const entries = await getMyRunEntries();
+  const corrections = await getMyCorrections();
+  const byRun = correctionsByRun(corrections ?? []);
 
   let body: ReactNode;
   if (entries === null) {
@@ -51,6 +58,9 @@ export default async function MyEntriesPage() {
               <TableCell component="th" scope="col">
                 How it was handled
               </TableCell>
+              <TableCell component="th" scope="col">
+                Your notes
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -61,6 +71,13 @@ export default async function MyEntriesPage() {
                 </TableCell>
                 <TableCell>{formatWhen(e.createdAt)}</TableCell>
                 <TableCell>{outcomeLabel(e.status)}</TableCell>
+                <TableCell>
+                  <CorrectionActions
+                    runId={e.id}
+                    skillName={e.skillName}
+                    corrections={byRun.get(e.id) ?? []}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

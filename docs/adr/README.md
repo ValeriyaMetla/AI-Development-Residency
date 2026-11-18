@@ -42,3 +42,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0017](0017-self-host-roboto-font.md) — Self-host the Roboto font via @fontsource instead of next/font/google (removes the flaky build-time Google Fonts fetch)
 - [ADR-0018](0018-no-active-policy-baseline-safety.md) — With no active policy, a governed run proceeds on baseline safety (discloses, does not block)
 - [ADR-0019](0019-move-toolchain-to-node-22.md) — Move the toolchain and CI to Node 22 (silences the supabase Node-20 warning at the source; off EOL-bound Node 20)
+- [ADR-0021](0021-run-correction-flow.md) — Entry correction is an additive, append-only annotation on a run — never an edit of the original record
