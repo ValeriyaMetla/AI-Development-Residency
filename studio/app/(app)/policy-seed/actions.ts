@@ -1,10 +1,14 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
+import { getMyProfile } from '@/lib/data/profile';
 import { seedPolicyFromAnswers, type SeedPolicyResult } from '@/lib/domain/policy-seed';
-import { activatePolicy } from '@/lib/data/policy';
+import { activatePolicy, getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
+import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
+import { publishEditedPolicy } from '@/lib/domain/policy-publish';
 
 /**
  * Service layer (ADR-0003): the front door for the policy-seed intake. Each action verifies
@@ -52,4 +56,51 @@ export async function confirmPolicy(policyId: string): Promise<ConfirmPolicyResu
   return ok
     ? { status: 'activated', policyId }
     : { status: 'failed', message: 'Could not activate the policy. Please try again.' };
+}
+
+export type PublishEditsResult =
+  | { status: 'published'; ruleCount: number }
+  | { status: 'blocked'; message: string }
+  | { status: 'failed'; message: string };
+
+/**
+ * Publish edits to the org's active policy as a new version (ADR-0024). Editing the policy is a
+ * Leader action (access control, secure-coding A01), so the role is enforced here — not just hidden
+ * in the nav. The current rules are read server-side (authoritative); the client's `input` is a
+ * trusted-nowhere diff validated by the Domain parser before any write.
+ */
+export async function publishRuleEdits(input: unknown): Promise<PublishEditsResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: 'Only an Accountable Leader can edit the policy.' };
+  }
+
+  const orgId = await getMyOrgId();
+  if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
+
+  const active = await getActivePolicy(orgId);
+  if (!active) return { status: 'blocked', message: 'There is no active policy to edit yet.' };
+
+  const parsed = parsePolicyEditInput(input);
+  if (!parsed.ok) return { status: 'blocked', message: parsed.error };
+
+  // Authoritative current rules — never trust a client-sent ruleset; apply the diff to these.
+  const current = await getPolicyRules(active.id);
+
+  const result = await publishEditedPolicy({
+    orgId,
+    createdBy: user.id,
+    policyName: active.name,
+    current,
+    input: parsed.value,
+  });
+
+  if (result.status === 'published') {
+    revalidatePath('/policy-seed');
+    return { status: 'published', ruleCount: result.ruleCount };
+  }
+  return result;
 }

@@ -19,6 +19,18 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine] — Started **Chunk 4 (Living Policy)**: the editable rule
+  set. Did: **ADR-0024** (edit = publish a new policy version, never in-place; baseline rules
+  **locked**); pure `lib/domain/policy-edit.ts` (parse + assemble) split from server
+  `lib/domain/policy-publish.ts` (create→insert→activate — reuses existing writers, **no
+  migration**); leader-only `publishRuleEdits` action; `/policy-seed` now branches (active policy →
+  editor for a Leader / read-only for a Doer; none → seed wizard) via `policy-editor.tsx`; tests
+  (`policy-edit.test.ts`, 9). `npm run verify` green for my files (234 tests, build, arch-gate).
+  Split pure-vs-data modules so the client bundle stays server-free (caught in build). **Uncommitted
+  — needs a code PR** (new rule: code via PR, docs straight to main). Notes: ADR-0023 was taken by
+  the free-tier lane → mine is **ADR-0024**; their `lib/domain/entitlements.ts` is unformatted
+  (theirs to fix). Next: Chunk 4 **Should** cards (registry → rule suggestions) + **Could** (export);
+  baseline handling is **locked**, stronger than the spec's confirm-to-override.
 - 2026-11-18 — [Claude Code · Lane A spine] — Built **Chunk 2 Wave 3 — all 3 cards** (human-approval
   gate). Card 1: ADR-0020 + `approval` migration (`20261118000000`, append-only, org-scoped RLS);
   `listPendingReviews` + `recordApproval` (`lib/data/runs.ts`); `parseReviewInput`
