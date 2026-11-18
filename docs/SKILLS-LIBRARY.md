@@ -8,9 +8,10 @@ what they contain, and what's coming next.
 > The skill files in `.claude/skills/<name>/SKILL.md` are the **source of truth** — they
 > are what Claude loads (and are synced to `~/.claude/skills/` for account-wide use). This
 > document is the standard + index that mirrors them for reading, planning, and review.
-> **If the two ever disagree, the files win.** When you change a skill, the file + its
-> `CLAUDE.md` line land first (Tier 1); this catalog is refreshed later in an on-demand
-> documentation sweep (Tier 2), so it may lag the files between sweeps.
+> **If the two ever disagree, the files win.** When you change a skill, edit every place in one
+> commit — the file, its `CLAUDE.md` line, this catalog's **full** entry (heading, `SKILL.md`
+> link, description, cross-links, and the counts), and any neighbor-boundary edit — so the repo is
+> always consistent. The sync gate runs on every push, so nothing about the catalog may lag.
 
 ---
 
@@ -81,16 +82,17 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
 4. **Review gate — draft in chat first.** Produce the full `SKILL.md` as a draft file
    surfaced in chat. **Nothing lands in the repo yet.** Val reviews it (and may do more
    research), then approves.
-5. **Install — only after approval. Two tiers:**
-   **Tier 1 (operational — land together, now):** (1) create `.claude/skills/<name>/SKILL.md`,
-   (2) add a line to [`CLAUDE.md`](../CLAUDE.md), (3) add any reciprocal neighbor-boundary edit,
-   and re-test triggering (it fires on its own phrases plus a paraphrase, and not on an unrelated
-   prompt).
-   **Tier 2 (recording — batched into an on-demand documentation sweep):** paste the skill's
-   content into this library under its category, flip ⬜ to ✅, and update the status counts.
-   **Definition of done (Tier 1):** the `SKILL.md` file, its `CLAUDE.md` line, and the triggering
-   re-test land in the **same commit** — never the file alone. The catalog here may lag until the
-   next sweep; the files are the source of truth and win on any disagreement.
+5. **Install — only after approval. One commit edits every place at once:**
+   (1) create `.claude/skills/<name>/SKILL.md`, (2) add a line to [`CLAUDE.md`](../CLAUDE.md),
+   (3) add any reciprocal neighbor-boundary edit, and (4) add this library's **full catalog
+   entry** — the `### <name> ✅` heading with its canonical `../.claude/skills/<name>/SKILL.md`
+   link, the complete description and any `[[cross-links]]`, flip ⬜ to ✅ in the category table,
+   and bump the status counts — then re-test triggering (it fires on its own phrases plus a
+   paraphrase, and not on an unrelated prompt).
+   **Definition of done:** all four, plus the triggering re-test, land in the **same commit** —
+   never the file alone, and no deferred catalog sweep. `scripts/skills-gate.mjs` enforces this
+   sync on every push, so an incomplete commit reds `main`. The files are the source of truth and
+   win on any disagreement.
 6. **Commit & push on a dedicated branch** (Val does this hands-on to keep practicing).
    **Install a skill on its own branch cut fresh from `main`, never on an active feature
    branch** — otherwise the skill's files get swept into unrelated feature commits (as happened
@@ -104,6 +106,9 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
    ```
    Then open a PR to `main`. (A pure-doc skill may instead commit straight to `main` per the git
    rule D12 — but still stage only the skill's files, never `git add .`.)
+   This branch rule governs **installing or changing a skill**. An incidental repo fix that merely
+   touches the catalog (e.g. a sync/count correction, or a governance-text edit) is not a skill
+   install — it follows the normal workflow (docs straight to `main`, code via PR).
 
 ### How the skills relate (governance)
 
@@ -200,10 +205,10 @@ flowchart TD
 | 2. AI Development | skill-authoring ✅ · skill-evaluation ✅ · responsible-ai ✅ · ai-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ | 4 / 7 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
-| 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · security-testing ⬜ | 2 / 3 |
+| 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · ci-cd-pipeline ✅ · security-testing ⬜ | 3 / 4 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 21 built · 10 planned**
+**Total: 22 built · 10 planned**
 
 ---
 
@@ -396,6 +401,12 @@ OWASP Top 10 defenses — access control, injection prevention, safe secrets, in
 
 
 Meaningful tests (the pyramid) + rigorous review (Google priorities). The final gate before "done".
+
+### ci-cd-pipeline ✅
+*Grounded in: GitHub Actions CI/CD practice · [`SKILL.md`](../.claude/skills/ci-cd-pipeline/SKILL.md)*
+
+
+Automated CI/CD gate on GitHub Actions — required checks on every push, kept fast and deterministic; script-judgeable checks (architecture, tests, regressions, security/dependency scans, a11y) in CI and human/real-env concerns out; each check traced to the requirement it protects; proven by a red-to-green run.
 
 ### security-testing ⬜ *(planned — Week 5, due Nov 16)*
 Intended scope: finding vulnerabilities in a codebase — threat modeling, testing against

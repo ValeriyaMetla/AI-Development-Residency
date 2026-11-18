@@ -44,22 +44,62 @@ export const CAPABILITY_MATRIX: readonly Capability[] = [
   // — Baseline safety net: free forever, never gateable (ADR-0023 §1) —
   { id: 'policy_grounding', label: 'Policy grounding on every run', kind: 'safety', tier: 'free' },
   { id: 'self_critique', label: 'Self-critique (Challenger) pass', kind: 'safety', tier: 'free' },
-  { id: 'rule_check', label: 'Deterministic rule-check / guardrails', kind: 'safety', tier: 'free' },
-  { id: 'pii_handling', label: 'PII detection + strip/minimize (confirm-to-keep)', kind: 'safety', tier: 'free' },
-  { id: 'human_approval_gate', label: 'Human-approval gate on flagged runs', kind: 'safety', tier: 'free' },
+  {
+    id: 'rule_check',
+    label: 'Deterministic rule-check / guardrails',
+    kind: 'safety',
+    tier: 'free',
+  },
+  {
+    id: 'pii_handling',
+    label: 'PII detection + strip/minimize (confirm-to-keep)',
+    kind: 'safety',
+    tier: 'free',
+  },
+  {
+    id: 'human_approval_gate',
+    label: 'Human-approval gate on flagged runs',
+    kind: 'safety',
+    tier: 'free',
+  },
   { id: 'provenance_label', label: 'Provenance label on output', kind: 'safety', tier: 'free' },
   { id: 'audit_logging', label: 'Per-run audit logging', kind: 'safety', tier: 'free' },
 
   // — Oversight & growth tools: free, so any org can see/improve/prove its AI use (ADR-0023 §2) —
   { id: 'usage_dashboard', label: 'Usage dashboard (Epic 2)', kind: 'oversight', tier: 'free' },
-  { id: 'living_policy', label: 'Living-policy suggestions / editable rules (Epic 1)', kind: 'oversight', tier: 'free' },
-  { id: 'audit_export', label: 'Responsible-AI / audit export (Epic 7)', kind: 'oversight', tier: 'free' },
+  {
+    id: 'living_policy',
+    label: 'Living-policy suggestions / editable rules (Epic 1)',
+    kind: 'oversight',
+    tier: 'free',
+  },
+  {
+    id: 'audit_export',
+    label: 'Responsible-AI / audit export (Epic 7)',
+    kind: 'oversight',
+    tier: 'free',
+  },
 
   // — Capacity: the generous baseline is free; only what is BEYOND it is premium (ADR-0023 §3) —
-  { id: 'monthly_runs_within_cap', label: 'Governed runs within the generous monthly cap', kind: 'capacity', tier: 'free' },
-  { id: 'monthly_runs_beyond_cap', label: 'Run volume beyond the free monthly cap', kind: 'capacity', tier: 'premium' },
+  {
+    id: 'monthly_runs_within_cap',
+    label: 'Governed runs within the generous monthly cap',
+    kind: 'capacity',
+    tier: 'free',
+  },
+  {
+    id: 'monthly_runs_beyond_cap',
+    label: 'Run volume beyond the free monthly cap',
+    kind: 'capacity',
+    tier: 'premium',
+  },
   { id: 'starter_skills', label: 'Starter Skill set', kind: 'capacity', tier: 'free' },
-  { id: 'additional_skills', label: 'Additional Skills beyond the starter set', kind: 'capacity', tier: 'premium' },
+  {
+    id: 'additional_skills',
+    label: 'Additional Skills beyond the starter set',
+    kind: 'capacity',
+    tier: 'premium',
+  },
   { id: 'included_seats', label: 'Included staff seats', kind: 'capacity', tier: 'free' },
   { id: 'additional_seats', label: 'Additional staff seats', kind: 'capacity', tier: 'premium' },
 ] as const;
@@ -72,7 +112,9 @@ export const SAFETY_STEP_IDS: readonly string[] = CAPABILITY_MATRIX.filter(
 /** The capabilities a given tier includes (a free org gets every free-tier capability). */
 export function capabilitiesForTier(tier: TierName): readonly Capability[] {
   // Premium is additive over free: a premium org gets free capabilities plus the premium ones.
-  return tier === 'premium' ? CAPABILITY_MATRIX : CAPABILITY_MATRIX.filter((c) => c.tier === 'free');
+  return tier === 'premium'
+    ? CAPABILITY_MATRIX
+    : CAPABILITY_MATRIX.filter((c) => c.tier === 'free');
 }
 
 /**

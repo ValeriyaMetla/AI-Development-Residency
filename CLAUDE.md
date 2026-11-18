@@ -194,13 +194,15 @@ When creating or changing any skill:
    `docs/SKILLS-LIBRARY.md`.
 2. Draft the full `SKILL.md` in chat for review first — nothing lands in the repo until
    approved.
-3. It is not done until (**Tier 1 / quick sync**): the `SKILL.md` file is updated, its
-   `CLAUDE.md` line is added, and triggering is re-tested (it fires on its own phrases plus a
-   paraphrase, and not on an unrelated prompt) — these land together in one commit. The
-   `docs/SKILLS-LIBRARY.md` catalog and other records are updated later in an on-demand
-   documentation sweep (**Tier 2**), not necessarily the same commit; the skill files remain the
-   source of truth and win on any disagreement. (Full two-tier checklist: the Skill-Governance
-   Sync runbook.)
+3. It is not done until **every place is edited in one commit** — one skill, one proper commit
+   that leaves the repo consistent. That commit updates: the `SKILL.md` file; its `CLAUDE.md`
+   line; the **full** `docs/SKILLS-LIBRARY.md` catalog entry (the `### <name> ✅` heading, its
+   canonical `../.claude/skills/<name>/SKILL.md` link, the complete description, any
+   `[[cross-links]]`, the category-table ✅, and the built-count totals); and any reciprocal
+   neighbor-boundary edit — with triggering re-tested (it fires on its own phrases plus a
+   paraphrase, and not on an unrelated prompt). Never the file alone, and no deferred "catalog
+   sweep." This keeps `main` green: `scripts/skills-gate.mjs` enforces catalog-sync on every
+   push. The skill files remain the source of truth and win on any disagreement.
 
 ## Skill usage receipts
 

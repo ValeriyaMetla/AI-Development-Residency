@@ -19,6 +19,14 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [personal · Claude Code · main] — **Reversed the two-tier skill-sync model** (set up
+  2026-11-17, see entry below) → **one complete commit per skill**: `SKILL.md` + `CLAUDE.md` line +
+  full `SKILLS-LIBRARY` catalog entry + any neighbor-boundary edit, together; no deferred catalog
+  sweep. Also healed red `main`: added the `ci-cd-pipeline` catalog entry (sync gate: built 21 ≠ 22
+  real skills) and ran prettier on `lib/domain/entitlements.ts` + `test/entitlements.test.ts`. Did:
+  edited CLAUDE.md step 3 + the two matching spots in SKILLS-LIBRARY.md, plus a step-6 scope clause.
+  **Uncommitted** (docs → straight to `main`). Next: the other account should drop any two-tier
+  assumptions; skills-gate enforces catalog-sync on every push.
 - 2026-11-18 — [Claude Code · Lane A spine] — Started **Chunk 4 (Living Policy)**: the editable rule
   set. Did: **ADR-0024** (edit = publish a new policy version, never in-place; baseline rules
   **locked**); pure `lib/domain/policy-edit.ts` (parse + assemble) split from server

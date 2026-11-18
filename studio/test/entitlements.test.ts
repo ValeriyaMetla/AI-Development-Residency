@@ -74,24 +74,64 @@ describe('resolveEntitlement — capacity gate, never safety (ADR-0023 §4–7)'
   });
 
   it('free org at/over cap: blocked (before any output), reason cap_reached', () => {
-    const atCap = resolveEntitlement({ tier: 'free', premiumUntil: null, runsThisMonth: cap, cap, now });
-    const overCap = resolveEntitlement({ tier: 'free', premiumUntil: null, runsThisMonth: cap + 5, cap, now });
+    const atCap = resolveEntitlement({
+      tier: 'free',
+      premiumUntil: null,
+      runsThisMonth: cap,
+      cap,
+      now,
+    });
+    const overCap = resolveEntitlement({
+      tier: 'free',
+      premiumUntil: null,
+      runsThisMonth: cap + 5,
+      cap,
+      now,
+    });
     expect(atCap).toMatchObject({ canRun: false, reason: 'cap_reached' });
     expect(overCap).toMatchObject({ canRun: false, reason: 'cap_reached' });
   });
 
   it('active premium: uncapped, may run even past the free cap', () => {
-    const nullEnd = resolveEntitlement({ tier: 'premium', premiumUntil: null, runsThisMonth: 9999, cap, now });
-    const futureEnd = resolveEntitlement({ tier: 'premium', premiumUntil: future, runsThisMonth: 9999, cap, now });
+    const nullEnd = resolveEntitlement({
+      tier: 'premium',
+      premiumUntil: null,
+      runsThisMonth: 9999,
+      cap,
+      now,
+    });
+    const futureEnd = resolveEntitlement({
+      tier: 'premium',
+      premiumUntil: future,
+      runsThisMonth: 9999,
+      cap,
+      now,
+    });
     expect(nullEnd).toMatchObject({ effectiveTier: 'premium', cap: null, canRun: true });
     expect(futureEnd).toMatchObject({ effectiveTier: 'premium', cap: null, canRun: true });
   });
 
   it('lapsed premium falls back to the free cap, safety intact (ADR-0023 §7)', () => {
-    const withinFreeCap = resolveEntitlement({ tier: 'premium', premiumUntil: past, runsThisMonth: 2, cap, now });
-    const overFreeCap = resolveEntitlement({ tier: 'premium', premiumUntil: past, runsThisMonth: cap, cap, now });
+    const withinFreeCap = resolveEntitlement({
+      tier: 'premium',
+      premiumUntil: past,
+      runsThisMonth: 2,
+      cap,
+      now,
+    });
+    const overFreeCap = resolveEntitlement({
+      tier: 'premium',
+      premiumUntil: past,
+      runsThisMonth: cap,
+      cap,
+      now,
+    });
     expect(withinFreeCap).toMatchObject({ effectiveTier: 'free', canRun: true });
-    expect(overFreeCap).toMatchObject({ effectiveTier: 'free', canRun: false, reason: 'cap_reached' });
+    expect(overFreeCap).toMatchObject({
+      effectiveTier: 'free',
+      canRun: false,
+      reason: 'cap_reached',
+    });
   });
 
   it('decides capacity ONLY — no input or output references a safety step (R1/R2)', () => {
