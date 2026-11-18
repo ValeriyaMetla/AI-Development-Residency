@@ -12,23 +12,23 @@ Must → Should → Could, verify cards last.
 (card body written, no app code yet).
 
 **Status:** **Chunks 1–3 are complete on `main`.** Chunk 4 has started (rule editor built) and
-Chunk 5 has started (free-tier gate built). **26 built, 2 partly built, 20 not started.**
+Chunk 5 has started (free-tier gate built). **26 built, 1 partly built, 21 not started.**
 
 > **How this status was set:** from the commits and tests on `main` (commit hashes cited per card),
 > then checked against the board's `Status` field on 2026-11-18. All 48 titles and priorities match,
 > and the board's **26 `Done`** cards are exactly the ✅ cards here. (The two Chunk 5 free-tier cards,
 > `Define & gate the free baseline-safety tier` and `Keep free safety active behind the paywall`,
 > were moved from `Requirements` to `Done` on 2026-11-18 to match their merged code, ADR-0023.) The
-> two 🟡 cards stay `Requirements` on the board.
+> one 🟡 card stays `Requirements` on the board.
 >
 > The chunk grouping and priorities are fields on the cards. The ordering *within* each chunk is a
 > synthesis from the dependency notes, not a board field.
 
-**Before the next deploy (Val):** run the four 2026-11-18 migrations in Supabase with **"Run
-without RLS"**, in timestamp order — `20261118000000_approval_table`,
-`20261118010000_run_correction_table`, `20261118020000_task_output_edited_by`,
-`20261118030000_org_premium_until`. The Chunk 2/3/5 features below that depend on them won't work
-on Vercel until they exist in the database.
+**Database:** all four 2026-11-18 migrations are **applied** in Supabase —
+`20261118000000_approval_table`, `20261118010000_run_correction_table`,
+`20261118020000_task_output_edited_by`, `20261118030000_org_premium_until` (confirmed 2026-11-18 by
+a read-only check of the live database). The Chunk 2/3/5 features below that depend on them have
+their tables and columns in place.
 
 ---
 
@@ -122,13 +122,13 @@ guardrails never read entitlement.
 12. ⬜ `Add resume-after-interruption to onboarding` — [Must]
 13. ✅ `Define & gate the free baseline-safety tier` — [Must] — capability matrix (safety + oversight free, only capacity premium) + server-side capacity gate before the pipeline; free monthly run cap is a **placeholder** to tune later; billing out of scope (ADR-0023, `638d358`, `bb221a1`)
 14. ✅ `Keep free safety active behind the paywall` — [Must] — regression test: safety net holds on free / capped / lapsed / paid; lapsed premium falls back to the free cap (`org.premium_until`) (`bb221a1`)
-15. 🟡 `Add in-product unblock guidance` — [Must] — partly covered: a capped-out run gets one plain message ("safety stays on — upgrade or try next month"). **Missing:** guidance for the other blocked states, and any real upgrade path.
+15. ⬜ `Add in-product unblock guidance` — [Must] — Feature: Self-serve setup; the board describes it as helping a stuck leader in-product without a support ticket. Not started. (The free-tier gate's "you've reached this month's free run limit" message is part of card 13, not this card.)
 
 ---
 
 ## Totals
 
-48 tickets — **26 built**, **2 partly built**, **20 specced only**.
+48 tickets — **26 built**, **1 partly built**, **21 specced only**.
 
 | Chunk | Tickets | Built | Partly built | Specced |
 | --- | --- | --- | --- | --- |
@@ -136,8 +136,8 @@ guardrails never read entitlement.
 | 2 — Safety net | 10 | 10 | 0 | 0 |
 | 3 — Registry view | 4 | 4 | 0 | 0 |
 | 4 — Living policy | 10 | 1 | 1 | 8 |
-| 5 — Coach / Report / Onboard | 15 | 2 | 1 | 12 |
-| **Total** | **48** | **26** | **2** | **20** |
+| 5 — Coach / Report / Onboard | 15 | 2 | 0 | 13 |
+| **Total** | **48** | **26** | **1** | **21** |
 
 **ADRs added during Release 1b:**
 
