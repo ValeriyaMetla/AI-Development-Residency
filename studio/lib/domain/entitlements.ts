@@ -92,3 +92,73 @@ export const DEFAULT_COST_PAYER: CostPayer = 'platform';
  * unsafely (enforced in Phase 1). Tune here; nothing else should hardcode a cap.
  */
 export const FREE_MONTHLY_RUN_CAP = 500;
+
+// ============================================================================
+// Entitlement resolution (ADR-0023 §4–7) — pure, the Service gate's decision core.
+//
+// CRITICAL INVARIANT: this function decides CAPACITY only (may a run START?). It takes no safety
+// input and has no output that could turn a safety step off — safety is decoupled from entitlement
+// (ADR-0023 §4; tested in entitlements.test.ts). A denied decision blocks the run BEFORE output; a
+// run that is allowed goes through the unchanged pipeline, so its safety is identical on every plan.
+// ============================================================================
+
+export type EntitlementInput = {
+  readonly tier: TierName;
+  /** When premium ends; null = no end / not applicable. A past value means lapsed (ADR-0023 §7). */
+  readonly premiumUntil: Date | null;
+  /** Governed runs the org has already made this calendar month. */
+  readonly runsThisMonth: number;
+  /** Override the free cap (tests); defaults to FREE_MONTHLY_RUN_CAP. */
+  readonly cap?: number;
+  /** Override "now" (tests); defaults to the current instant. */
+  readonly now?: Date;
+};
+
+export type EntitlementDecision = {
+  /** The tier actually in force: lapsed/expired premium resolves to 'free'. */
+  readonly effectiveTier: TierName;
+  readonly runsThisMonth: number;
+  /** The run cap in force, or null when uncapped (premium). */
+  readonly cap: number | null;
+  readonly withinCap: boolean;
+  /**
+   * Whether a run may START. Reflects CAPACITY ONLY — never safety. `false` means block before any
+   * output (capacity/cap), never "run without safety".
+   */
+  readonly canRun: boolean;
+  readonly reason: 'ok' | 'cap_reached';
+};
+
+/**
+ * Resolve an org's effective tier and whether its next run may start, from plan + usage.
+ * Premium is uncapped (capacity is what premium buys); free is metered by the soft cap. Lapsed or
+ * expired premium is treated as free. Default-deny on tier (unknown/absent premium → free) is the
+ * caller's job (ADR-0023 §5); this takes an explicit tier.
+ */
+export function resolveEntitlement(input: EntitlementInput): EntitlementDecision {
+  const now = input.now ?? new Date();
+  const cap = input.cap ?? FREE_MONTHLY_RUN_CAP;
+  const premiumActive =
+    input.tier === 'premium' && (input.premiumUntil === null || input.premiumUntil > now);
+
+  if (premiumActive) {
+    return {
+      effectiveTier: 'premium',
+      runsThisMonth: input.runsThisMonth,
+      cap: null,
+      withinCap: true,
+      canRun: true,
+      reason: 'ok',
+    };
+  }
+
+  const withinCap = input.runsThisMonth < cap;
+  return {
+    effectiveTier: 'free',
+    runsThisMonth: input.runsThisMonth,
+    cap,
+    withinCap,
+    canRun: withinCap,
+    reason: withinCap ? 'ok' : 'cap_reached',
+  };
+}
