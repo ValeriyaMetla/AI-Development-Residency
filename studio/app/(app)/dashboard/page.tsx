@@ -7,6 +7,8 @@ import NextLink from 'next/link';
 import { getMyProfile } from '@/lib/data/profile';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getActivePolicy } from '@/lib/data/policy';
+import { getMyRunEntries, type MyRunEntry } from '@/lib/data/usage';
+import { outcomeLabel } from '@/lib/domain/usage';
 
 /**
  * Home (Presentation layer, ADR-0003). Renders inside the shared app shell
@@ -26,6 +28,11 @@ export default async function DashboardPage() {
   const isLeader = role === 'accountable_leader';
   const isDoer = role === 'frontline_doer';
 
+  // Recent-activity feed is a Doer card (Chunk 3 wire-up): fetch only for a Doer, and only the few
+  // most recent. getMyRunEntries is Lane B's existing read accessor (run_by = me, non-sensitive);
+  // null = failed to load (error state), [] = no runs yet (empty state) — the two must differ.
+  const recentRuns = isDoer ? await getMyRunEntries(5) : null;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
@@ -40,7 +47,7 @@ export default async function DashboardPage() {
       {isDoer ? (
         <>
           <RunSkillCard />
-          <RecentActivityCard />
+          <RecentActivityCard runs={recentRuns} />
           <CopilotCard />
         </>
       ) : isLeader ? (
@@ -136,19 +143,70 @@ function RunSkillCard() {
 }
 
 /**
- * Recent activity — STUB. The real feed (a Doer's own recent runs + a link to the registry) lands
- * with Chunk 3 (Registry view, Lane B). Wire-up point: replace this empty state with that feed when
- * it exists. Presentation-only — no data access here (the card's own constraint).
+ * Recent activity (Chunk 3 wire-up, Lane B). A Doer's few most recent runs + a link into the full
+ * registry. Presentation-only: it renders the `runs` passed in — the page does the data access (the
+ * card's own constraint holds). `null` = failed to load (error state), `[]` = no runs yet (empty
+ * state); the two are shown differently so an error never masquerades as "no activity".
  */
-function RecentActivityCard() {
+function RecentActivityCard({ runs }: { runs: MyRunEntry[] | null }) {
   return (
-    <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Typography variant="h6" component="h2">
         Recent activity
       </Typography>
-      <Typography variant="body2" color="text.secondary">
-        Your recent Skill runs will show here once you&apos;ve run a few.
-      </Typography>
+
+      {runs === null ? (
+        <Typography variant="body2" color="text.secondary" role="status">
+          We couldn&apos;t load your recent activity just now. Please try again shortly.
+        </Typography>
+      ) : runs.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          Your recent Skill runs will show here once you&apos;ve run a few.
+        </Typography>
+      ) : (
+        <>
+          <Box
+            component="ul"
+            aria-label="Your recent runs"
+            sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column' }}
+          >
+            {runs.map((r) => (
+              <Box
+                component="li"
+                key={r.id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  gap: 2,
+                  py: 1,
+                  borderTop: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {r.skillName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                  {formatWhen(r.createdAt)} · {outcomeLabel(r.status)}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Box>
+            <Button variant="text" component={NextLink} href="/dashboard/usage/mine">
+              See your full record
+            </Button>
+          </Box>
+        </>
+      )}
     </Paper>
   );
+}
+
+/** Render a timestamp as a short, readable date. */
+function formatWhen(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
