@@ -45,3 +45,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0020](0020-human-approval-gate.md) — Human-approval gate: a flagged run is cleared by an org member's recorded, append-only approve/reject decision
 - [ADR-0021](0021-run-correction-flow.md) — Entry correction is an additive, append-only annotation on a run — never an edit of the original record
 - [ADR-0022](0022-reviewer-edit-and-provenance.md) — A reviewer may edit a flagged draft; edits append a new output version and provenance reflects human involvement (supersedes ADR-0020's no-edit scope)
+- [ADR-0023](0023-free-tier-safety-and-capacity-only-premium.md) — Free = full safety net + oversight tools; premium = capacity only; no plan state can disable a safety step (Epic 8 / Lane D free-tier line + never-disable invariant + cost-payer attribute for future BYOK)
