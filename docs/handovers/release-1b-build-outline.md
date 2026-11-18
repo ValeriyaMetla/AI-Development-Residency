@@ -15,8 +15,11 @@ Must → Should → Could, verify cards last.
 Chunk 5 has started (free-tier gate built). **26 built, 2 partly built, 20 not started.**
 
 > **How this status was set:** from the commits and tests on `main` (commit hashes cited per card),
-> not from the board's `Status` field. The board may still show some of these cards as
-> `Requirements` — move them to `Done` to match, or flag here if the board disagrees.
+> then checked against the board's `Status` field on 2026-11-18. All 48 titles and priorities match,
+> and the board's **26 `Done`** cards are exactly the ✅ cards here. (The two Chunk 5 free-tier cards,
+> `Define & gate the free baseline-safety tier` and `Keep free safety active behind the paywall`,
+> were moved from `Requirements` to `Done` on 2026-11-18 to match their merged code, ADR-0023.) The
+> two 🟡 cards stay `Requirements` on the board.
 >
 > The chunk grouping and priorities are fields on the cards. The ordering *within* each chunk is a
 > synthesis from the dependency notes, not a board field.
