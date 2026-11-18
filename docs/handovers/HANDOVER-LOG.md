@@ -19,6 +19,22 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine] — Built **Chunk 2 Wave 3 — all 3 cards** (human-approval
+  gate). Card 1: ADR-0020 + `approval` migration (`20261118000000`, append-only, org-scoped RLS);
+  `listPendingReviews` + `recordApproval` (`lib/data/runs.ts`); `parseReviewInput`
+  (`lib/domain/approvals.ts`); `/approvals` queue + shared `review-actions.tsx` (also inline on the
+  Skill-runner `needs_review` result); nav entry; `taskRunId` on `RunResult`. Card 2 (no rubber
+  stamp): approve gated behind a required acknowledgement checkbox; reject stays free. Card 3
+  (editing + provenance, **ADR-0022** + `20261118020000_task_output_edited_by` migration): reviewer
+  may edit the draft; an edit appends a new `task_output` version marked `edited_by` (AI original
+  kept); provenance composed from run state in `lib/domain/provenance.ts` ("edited and approved by a
+  person"). Decisions: any org member approves (self-approval MVP); edits version, never overwrite.
+  `npm run verify` green (build, tests, arch-gate). **COLLISION RESOLVED:** Lane B took ADR-0021 +
+  migration `…010000` for the correction flow (same folder, in parallel) — I yielded, renumbered to
+  ADR-0022 and migration `…020000`. No data overlap (their `run_correction` table doesn't touch
+  `task_output`). **All uncommitted.** Next (Val): run **three** migrations in Supabase with "Run
+  without RLS" (`…000000` approval, `…010000` correction [Lane B], `…020000` edited_by); commit Lane
+  A and Lane B as **separate** PRs; sync with the Lane B chat so you don't both commit at once.
 - 2026-11-17 — [personal · claude.ai skill-sync chat] — Stood up the two-tier sync model (Tier 1 operational = skill file + `CLAUDE.md` line; Tier 2 recording = catalog/log, on-demand sweep). Did: loosened the "same commit" rule (`819b5ff`); added `skill-authoring` v1.1 (`ed6a29e`); this commit = full sweep for it + `skill-evaluation` v1.1 routing boundary. Next: re-upload the `skill-evaluation` zip to the personal account; reconcile runbook↔operating-model account-upload wording.
 - 2026-11-17 — [personal · claude.ai planning chat] — Setup/cleanup session. Confirmed
   cross-account setup (GitHub + Notion are the shared bridges; `main` is source of truth).

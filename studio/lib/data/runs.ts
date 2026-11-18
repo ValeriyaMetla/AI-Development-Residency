@@ -142,3 +142,150 @@ export async function writeAuditEvent(params: {
   });
   if (error) console.error('writeAuditEvent failed:', error.message);
 }
+
+// ---------------------------------------------------------------------------
+// Human-approval gate (Chunk 2 Wave 3, ADR-0020). The spine routes flagged runs to
+// 'needs_review'; these two accessors are the consumer — list what's waiting, and record a
+// reviewer's approve/reject decision. RLS scopes every row to the caller's org.
+// ---------------------------------------------------------------------------
+
+/** One flagged guardrail reason behind a pending run, in plain language (no sensitive payload). */
+export type PendingReviewFlag = { checkType: CheckType; reason: string };
+
+/** A run awaiting human review, with just enough to decide (ADR-0020): the draft + why it flagged. */
+export type PendingReview = {
+  taskRunId: string;
+  skillName: string;
+  inputSummary: string | null;
+  createdAt: string;
+  output: string | null;
+  provenanceLabel: string | null;
+  flags: PendingReviewFlag[];
+};
+
+type PendingReviewRow = {
+  id: string;
+  input_summary: string | null;
+  created_at: string;
+  skill: { name: string } | { name: string }[] | null;
+  task_output:
+    | { content: string | null; provenance_label: string | null }
+    | { content: string | null; provenance_label: string | null }[]
+    | null;
+  guardrail_check: { check_type: CheckType; result: CheckResult; reason_plain: string | null }[];
+};
+
+function firstOf<T>(value: T | T[] | null): T | null {
+  if (value == null) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+/**
+ * The review queue: the org's runs sitting at 'needs_review', newest first, each joined to its
+ * draft output and the guardrail checks that flagged it. RLS limits this to the caller's org.
+ * Returns null on a query error (the page shows an error state), [] when nothing is pending.
+ */
+export async function listPendingReviews(): Promise<PendingReview[] | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('task_run')
+    .select(
+      'id, input_summary, created_at, ' +
+        'skill:skill_id ( name ), ' +
+        'task_output ( content, provenance_label ), ' +
+        'guardrail_check ( check_type, result, reason_plain )',
+    )
+    .eq('status', 'needs_review')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('listPendingReviews failed:', error.message);
+    return null;
+  }
+  return ((data ?? []) as unknown as PendingReviewRow[]).map((row) => {
+    const output = firstOf(row.task_output);
+    const skill = firstOf(row.skill);
+    const flags = (row.guardrail_check ?? [])
+      .filter((c) => c.result === 'flag' || c.result === 'block')
+      .map((c) => ({ checkType: c.check_type, reason: c.reason_plain ?? '' }));
+    return {
+      taskRunId: row.id,
+      skillName: skill?.name ?? 'Skill',
+      inputSummary: row.input_summary,
+      createdAt: row.created_at,
+      output: output?.content ?? null,
+      provenanceLabel: output?.provenance_label ?? null,
+      flags,
+    };
+  });
+}
+
+/**
+ * Record a reviewer's decision on a flagged run (ADR-0020 / ADR-0022). Writes, each with one job:
+ *   0. (approve + edit only) append a NEW task_output version with the reviewer's edited draft,
+ *      marked edited_by — the AI original row is preserved (ADR-0022);
+ *   1. the APPEND-ONLY approval row — the durable, attributable record (who/what/when, + note);
+ *   2. flip task_run.status to approved/rejected — it leaves the review queue;
+ *   3. an audit event — the event-log entry (payload carries no sensitive content, ADR-6).
+ * Fails closed: the edited version is saved BEFORE the decision, so a failed edit aborts with the
+ * run still in review (no half-approved state). RLS enforces org scope and that the caller authors
+ * both the approval and the edited row.
+ */
+export async function recordApproval(params: {
+  orgId: string;
+  taskRunId: string;
+  decidedBy: string;
+  decision: 'approved' | 'rejected';
+  note: string | null;
+  /** The reviewer's edited draft (approve-only). Saved as a new output version; null = no edit. */
+  editedOutput?: string | null;
+  /** Base provenance label for the edited row, passed down by the caller (Domain owns the string). */
+  editedProvenanceLabel?: string;
+}): Promise<boolean> {
+  const supabase = await createClient();
+
+  // 0. An edit only applies when approving — a rejected draft is discarded, not versioned.
+  if (params.decision === 'approved' && params.editedOutput) {
+    const { error: editError } = await supabase.from('task_output').insert({
+      task_run_id: params.taskRunId,
+      content: params.editedOutput,
+      // The stored label stays the AI base (passed in — the Domain owns the string); the "edited by
+      // a person" layer is composed from edited_by at display time (ADR-0022): one source of truth.
+      provenance_label: params.editedProvenanceLabel ?? null,
+      edited_by: params.decidedBy,
+    });
+    if (editError) {
+      console.error('recordApproval edit save failed:', editError.message);
+      return false;
+    }
+  }
+
+  const { error: insertError } = await supabase.from('approval').insert({
+    task_run_id: params.taskRunId,
+    decided_by: params.decidedBy,
+    decision: params.decision,
+    note: params.note,
+  });
+  if (insertError) {
+    console.error('recordApproval insert failed:', insertError.message);
+    return false;
+  }
+
+  const { error: statusError } = await supabase
+    .from('task_run')
+    .update({ status: params.decision, updated_at: new Date().toISOString() })
+    .eq('id', params.taskRunId);
+  if (statusError) {
+    console.error('recordApproval status update failed:', statusError.message);
+    return false;
+  }
+
+  await writeAuditEvent({
+    orgId: params.orgId,
+    taskRunId: params.taskRunId,
+    actor: params.decidedBy,
+    eventType: params.decision === 'approved' ? 'task_approved' : 'task_rejected',
+    payload: {}, // the decision fact only — no sensitive content (ADR-6)
+  });
+
+  return true;
+}

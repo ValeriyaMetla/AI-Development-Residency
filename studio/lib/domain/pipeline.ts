@@ -13,6 +13,7 @@ import { withPolicyContext } from '@/lib/domain/policy-context';
 import { getSkillDef } from '@/lib/domain/skills';
 import { redactPii, piiSummary, type PiiFinding, type PiiCategory } from '@/lib/domain/pii';
 import { riskyUseFinding } from '@/lib/domain/risky-use';
+import { AI_PROVENANCE } from '@/lib/domain/provenance';
 import {
   buildCritiquePrompt,
   parseCritique,
@@ -34,11 +35,15 @@ import {
  * stripping and the human-approval gate before anything is sent arrive with Chunk 2.
  */
 
-const PROVENANCE_LABEL = 'AI-generated with Claude (Sonnet)';
+// One source of truth for the base label (ADR-0022): the human-review/edit layer is composed from
+// run state in lib/domain/provenance.ts, never baked into the stored row here.
+const PROVENANCE_LABEL = AI_PROVENANCE;
 
 export type RunResult =
   | {
       status: 'completed' | 'needs_review';
+      /** The run's id — lets a needs_review result carry an inline approve/reject (ADR-0020). */
+      taskRunId: string;
       output: string;
       provenanceLabel: string;
       guardrail: GuardrailResult;
@@ -244,6 +249,7 @@ export async function runGovernedSkill(params: {
   }
   return {
     status,
+    taskRunId,
     output: finalText,
     provenanceLabel: PROVENANCE_LABEL,
     guardrail,

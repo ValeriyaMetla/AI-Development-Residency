@@ -10,6 +10,10 @@ export type NavItem = { label: string; href: string; leaderOnly?: boolean };
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard' },
   { label: 'Skills', href: '/skills' },
+  // Approvals (the human-review queue, Chunk 2 Wave 3). Flagged runs land here for a person to
+  // approve/reject. Visible to everyone — any org member may review in the MVP (ADR-0020), not a
+  // leader-only admin action.
+  { label: 'Approvals', href: '/approvals' },
   { label: 'Co-Pilot', href: '/copilot' },
   // Usage (Registry view, Chunk 3) — oversight the whole org can see; a Doer uses it for their
   // own entries, a Leader for org-wide totals. Not leader-only (transparency, not surveillance).
