@@ -19,6 +19,16 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine · main] — **Chunk 4 verify cards.** Did: "Verify a rule
+  change propagates" — `studio/test/policy-propagation.test.ts` (6 tests; real edit → publish →
+  next-run path over an in-memory policy store; mutation-checked; `npm run verify` green) pushed to
+  `main` as `9804f84` (no PR — test-only); card → **Done**. Finding: no editor action can flip a
+  guardrail outcome on a seeded policy (the `data-protection` rule is a locked baseline), so the
+  proof is draft/self-critique grounding + baseline survival. In progress: "Verify the 5-minute
+  promise" → **In Progress** — manual only (seed has no AI call; time is the person's). Next (Val):
+  run Notion "Week 5 Manual Test Case Scenarios" → Test Case 1 with a non-expert (not the builder);
+  time from first seed question to Activate; ≤5:00 + friction notes → move card to Done. Optional
+  question-budget guard test was considered and skipped (YAGNI). Check the Actions tab for `9804f84`.
 - 2026-11-18 — [personal · Claude Code · main] — **Reversed the two-tier skill-sync model** (set up
   2026-11-17, see entry below) → **one complete commit per skill**: `SKILL.md` + `CLAUDE.md` line +
   full `SKILLS-LIBRARY` catalog entry + any neighbor-boundary edit, together; no deferred catalog
