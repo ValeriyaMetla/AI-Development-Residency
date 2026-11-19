@@ -12,6 +12,7 @@ import { getMyOrgId } from '@/lib/data/runs';
 import { getActivePolicy } from '@/lib/data/policy';
 import { countOrgRuns } from '@/lib/data/usage';
 import { setupProgress, type SetupStepKey } from '@/lib/domain/setup';
+import { skipSetup } from './actions';
 
 /**
  * Self-serve setup hub (Presentation layer, ADR-0003) — Epic 8, "Build self-serve setup (no
@@ -195,10 +196,12 @@ export default async function SetupPage() {
       </Box>
 
       {!progress.isComplete ? (
-        <Box>
-          <Link component={NextLink} href="/dashboard">
+        // A form, not a link: skipping records the choice for this session so Home does not send
+        // the leader straight back here (no redirect loop).
+        <Box component="form" action={skipSetup}>
+          <Button type="submit" variant="text" sx={{ px: 0 }}>
             Skip for now — go to Home
-          </Link>
+          </Button>
         </Box>
       ) : null}
     </Box>

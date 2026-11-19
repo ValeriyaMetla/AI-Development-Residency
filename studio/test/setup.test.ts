@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { setupProgress, type SetupFacts } from '@/lib/domain/setup';
+import { setupProgress, shouldRouteToSetup, type SetupFacts } from '@/lib/domain/setup';
 
 const fresh: SetupFacts = { orgName: 'Riverside Food Bank', hasActivePolicy: false, runCount: 0 };
 
@@ -46,5 +46,43 @@ describe('setupProgress (self-serve setup, Epic 8)', () => {
   it('a failed org-name read never blocks completion once the real work is done', () => {
     const p = setupProgress({ orgName: null, hasActivePolicy: true, runCount: 2 });
     expect(p.isComplete).toBe(true);
+  });
+});
+
+describe('shouldRouteToSetup (Home → /setup redirect)', () => {
+  const incomplete = setupProgress(fresh);
+  const complete = setupProgress({ ...fresh, hasActivePolicy: true, runCount: 1 });
+  const leader = 'accountable_leader' as const;
+
+  it('routes a leader with unfinished setup', () => {
+    expect(
+      shouldRouteToSetup({ role: leader, progress: incomplete, skippedThisSession: false }),
+    ).toBe(true);
+  });
+
+  it('does not route once setup is complete (no repeat)', () => {
+    expect(
+      shouldRouteToSetup({ role: leader, progress: complete, skippedThisSession: false }),
+    ).toBe(false);
+  });
+
+  it('does not route after "Skip for now" in this session (no loop)', () => {
+    expect(
+      shouldRouteToSetup({ role: leader, progress: incomplete, skippedThisSession: true }),
+    ).toBe(false);
+  });
+
+  it('never routes a Doer or an unknown role', () => {
+    for (const role of ['frontline_doer', null, undefined] as const) {
+      expect(shouldRouteToSetup({ role, progress: incomplete, skippedThisSession: false })).toBe(
+        false,
+      );
+    }
+  });
+
+  it('a failed progress read never traps the leader in setup', () => {
+    expect(shouldRouteToSetup({ role: leader, progress: null, skippedThisSession: false })).toBe(
+      false,
+    );
   });
 });

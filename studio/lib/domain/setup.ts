@@ -61,3 +61,23 @@ export function setupProgress(facts: SetupFacts): SetupProgress {
     isComplete: doneByKey.rules && doneByKey.first_run,
   };
 }
+
+/**
+ * Whether Home should send this person to /setup instead of rendering.
+ *
+ * Only an Accountable Leader with unfinished setup is routed, and only if they have not chosen
+ * "Skip for now" in this browser session — so skipping never loops back. `progress` is null when
+ * the facts could not be read; a failed read never traps anyone in setup (Home renders as usual).
+ */
+export function shouldRouteToSetup(input: {
+  role: 'accountable_leader' | 'frontline_doer' | null | undefined;
+  progress: SetupProgress | null;
+  skippedThisSession: boolean;
+}): boolean {
+  return (
+    input.role === 'accountable_leader' &&
+    input.progress !== null &&
+    !input.progress.isComplete &&
+    !input.skippedThisSession
+  );
+}
