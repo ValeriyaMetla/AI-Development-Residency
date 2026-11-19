@@ -54,9 +54,9 @@ describe('eventWording — the approved copy', () => {
   });
 
   it('a correction and a note are distinct, and never carry text', () => {
-    expect(eventWording({ type: 'task_run_corrected', detail: { correctionKind: 'correction' } })).toBe(
-      'Correction added',
-    );
+    expect(
+      eventWording({ type: 'task_run_corrected', detail: { correctionKind: 'correction' } }),
+    ).toBe('Correction added');
     expect(eventWording({ type: 'task_run_corrected', detail: { correctionKind: 'note' } })).toBe(
       'Note added',
     );
@@ -122,9 +122,10 @@ describe('detectRunGaps — gaps are visible, not invented (US5)', () => {
   });
 
   it('ignores terminal events with no run id', () => {
-    const gaps = detectRunGaps([{ id: 'r-missing', status: 'completed' }], [
-      { type: 'task_completed', taskRunId: null },
-    ]);
+    const gaps = detectRunGaps(
+      [{ id: 'r-missing', status: 'completed' }],
+      [{ type: 'task_completed', taskRunId: null }],
+    );
     expect(gaps.has('r-missing')).toBe(true);
   });
 });

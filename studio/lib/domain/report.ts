@@ -82,7 +82,8 @@ function categoryList(categories: string[] | undefined): string {
  * Wording is the copy Val approved for card 1 (US2).
  */
 const WORDING: Record<AuditEventType, (d: AuditDetail) => string> = {
-  pii_stripped: (d) => `Personal details removed before the AI saw them — ${categoryList(d.categories)}`,
+  pii_stripped: (d) =>
+    `Personal details removed before the AI saw them — ${categoryList(d.categories)}`,
   pii_kept: (d) => `Personal details kept by the person’s choice — ${categoryList(d.categories)}`,
   risky_use_flagged: () => 'Sent for human review — a sensitive kind of task',
   task_blocked: () => 'Run stopped by a safety check',
