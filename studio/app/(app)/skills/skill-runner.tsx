@@ -17,6 +17,7 @@ import { applicableRules } from '@/lib/domain/skills';
 import type { RunnableSkill } from '@/lib/data/runs';
 import type { RunResult } from '@/lib/domain/pipeline';
 import { detectPii, type PiiCategory } from '@/lib/domain/pii';
+import { coachingFor, type CoachingNudge } from '@/lib/domain/coaching';
 
 /** Display-only policy-rule guidance passed from the server page. */
 export type RuleGuidance = { ruleText: string; category: string; citation: string | null };
@@ -63,6 +64,7 @@ export default function SkillRunner({
   const [input, setInput] = useState('');
   const [lastInput, setLastInput] = useState('');
   const [result, setResult] = useState<RunResult | null>(null);
+  const [dismissedCoaching, setDismissedCoaching] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
   if (skills.length === 0) {
@@ -75,6 +77,9 @@ export default function SkillRunner({
   // In-the-moment heads-up: the pure detector runs live on what the Doer has typed, so they see it
   // before submitting. Non-blocking — it never stops the run (Epic 5 "in-the-moment PII warning").
   const livePii = detectPii(input);
+  // In-the-moment coaching (Epic 6): the same pure risk detector, surfaced as a kind nudge with a
+  // concrete safer way — a guide, never a block. A dismissed pattern won't nag again this session.
+  const coaching = coachingFor(input).filter((n) => !dismissedCoaching.includes(n.id));
 
   // A fresh run uses the textarea; a keep re-run reuses the exact input that produced the result.
   function run(keep: PiiCategory[]) {
@@ -140,6 +145,14 @@ export default function SkillRunner({
           </Alert>
         ) : null}
 
+        {coaching.length > 0 ? (
+          <CoachingPanel
+            nudges={coaching}
+            onUseSaferWay={(text) => setInput(text)}
+            onDismiss={(id) => setDismissedCoaching((d) => [...d, id])}
+          />
+        ) : null}
+
         <Box>
           <Button
             variant="contained"
@@ -195,6 +208,45 @@ function ApplicableRulesPanel({ rules }: { rules: RuleGuidance[] }) {
 
 function labelList(findings: { label: string; count: number }[]): string {
   return findings.map((f) => (f.count > 1 ? `${f.count} ${f.label}s` : f.label)).join(', ');
+}
+
+/**
+ * In-the-moment coaching (Epic 6). For each risk pattern in the live input, a kind heads-up (guide,
+ * not scold) with a concrete safer way the Doer can apply — which rewrites the input to a safe task —
+ * or dismiss, which hides it and doesn't nag again this session. Display-only; the server-side
+ * guardrails still run regardless of what the Doer does here.
+ */
+function CoachingPanel({
+  nudges,
+  onUseSaferWay,
+  onDismiss,
+}: {
+  nudges: CoachingNudge[];
+  onUseSaferWay: (text: string) => void;
+  onDismiss: (id: string) => void;
+}) {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {nudges.map((n) => {
+        const rewrite = n.saferRewrite;
+        return (
+          <Alert key={n.id} severity="info" role="status">
+            <Typography variant="body2">{n.message}</Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+              {rewrite ? (
+                <Button size="small" variant="outlined" onClick={() => onUseSaferWay(rewrite)}>
+                  Use the safer way
+                </Button>
+              ) : null}
+              <Button size="small" color="inherit" onClick={() => onDismiss(n.id)}>
+                Dismiss
+              </Button>
+            </Box>
+          </Alert>
+        );
+      })}
+    </Box>
+  );
 }
 
 function RunResultView({
