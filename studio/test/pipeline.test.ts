@@ -17,11 +17,11 @@ vi.mock('@/lib/data/runs', () => ({
   saveGuardrailCheck: vi.fn(),
   writeAuditEvent: vi.fn(),
 }));
-vi.mock('@/lib/data/policy', () => ({ getActivePolicy: vi.fn(), getPolicyRules: vi.fn() }));
+vi.mock('@/lib/data/policy', () => ({ getActivePolicy: vi.fn(), getPolicyRulesOrNull: vi.fn() }));
 
 import { draftWithClaude } from '@/lib/data/claude';
 import { getSkillByKey, createTaskRun, saveGuardrailCheck, writeAuditEvent } from '@/lib/data/runs';
-import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
+import { getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import { runGovernedSkill } from '@/lib/domain/pipeline';
 
 type Rule = { ruleText: string; category: string };
@@ -47,7 +47,7 @@ function setClaude(draft: string, critiqueVerdict: 'pass' | 'revise' | 'block', 
 
 function setPolicy(policyId: string | null, rules: Rule[]) {
   vi.mocked(getActivePolicy).mockResolvedValue(policyId ? ({ id: policyId } as never) : null);
-  vi.mocked(getPolicyRules).mockResolvedValue(rules as never);
+  vi.mocked(getPolicyRulesOrNull).mockResolvedValue(rules as never);
 }
 
 const RUN = {
@@ -258,5 +258,40 @@ describe('Risky-use flagging (Epic 5)', () => {
     expect(
       vi.mocked(saveGuardrailCheck).mock.calls.find((c) => c[0].checkType === 'risky_use'),
     ).toBeUndefined();
+  });
+});
+
+describe("Policy rules can't be read → degrade + disclose + review (ADR-0027)", () => {
+  it('an active policy whose rules fail to load is forced to review, not run silently', async () => {
+    // Active policy present, but the rules read FAILS (null) — not an empty policy ([]).
+    vi.mocked(getActivePolicy).mockResolvedValue({ id: 'policyA' } as never);
+    vi.mocked(getPolicyRulesOrNull).mockResolvedValue(null as never);
+    setClaude('Thank you, Maria.', 'pass'); // even a clean draft + passing critique...
+
+    const res = await runGovernedSkill(RUN);
+
+    expect(res.status).toBe('needs_review'); // ...is forced to review, never a silent completion
+    if (res.status === 'needs_review') {
+      expect(res.guardrail.reason).toContain('baseline safety only');
+    }
+    // The reviewer sees why, via a rule_check flag (reuses the approval gate's reason surface).
+    const ruleFlag = vi
+      .mocked(saveGuardrailCheck)
+      .mock.calls.map((c) => c[0])
+      .find((a) => a.checkType === 'rule_check');
+    expect(ruleFlag?.result).toBe('flag');
+    // The fact is on the audit trail (no sensitive content).
+    const done = vi
+      .mocked(writeAuditEvent)
+      .mock.calls.find((c) => c[0].eventType === 'task_completed');
+    expect(done?.[0].payload).toMatchObject({ policyUnavailable: true });
+  });
+
+  it('a genuinely empty policy still completes — empty is not a failure', async () => {
+    setPolicy('policyA', []); // active policy, zero rules, read SUCCEEDED
+    setClaude('Thank you, Maria.', 'pass');
+
+    const res = await runGovernedSkill(RUN);
+    expect(res.status).toBe('completed'); // [] != null; no false alarm
   });
 });

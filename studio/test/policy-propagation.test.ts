@@ -39,6 +39,10 @@ vi.mock('@/lib/data/policy', () => ({
   getActivePolicy: async (orgId: string) =>
     store.policies.find((p) => p.orgId === orgId && p.status === 'active') ?? null,
   getPolicyRules: async (policyId: string) => store.rules.filter((r) => r.policyId === policyId),
+  // The pipeline reads rules via getPolicyRulesOrNull (ADR-0027); the in-memory store never errors,
+  // so it mirrors getPolicyRules and never returns null.
+  getPolicyRulesOrNull: async (policyId: string) =>
+    store.rules.filter((r) => r.policyId === policyId),
   createPolicy: async (params: { orgId: string; name: string; status?: Policy['status'] }) => {
     const id = `policy-${++store.seq}`;
     store.policies.push({

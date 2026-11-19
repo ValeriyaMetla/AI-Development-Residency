@@ -7,7 +7,7 @@ import {
   saveGuardrailCheck,
   writeAuditEvent,
 } from '@/lib/data/runs';
-import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
+import { getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardrails';
 import { withPolicyContext } from '@/lib/domain/policy-context';
 import { getSkillDef } from '@/lib/domain/skills';
@@ -74,7 +74,12 @@ export async function runGovernedSkill(params: {
   }
   const basePrompt = skillDef.basePrompt;
   const activePolicy = await getActivePolicy(orgId);
-  const policyRules = activePolicy ? await getPolicyRules(activePolicy.id) : [];
+  // Tell a genuine read FAILURE from an empty/absent policy (ADR-0027): getPolicyRulesOrNull returns
+  // null only on error. An active policy whose rules can't be read must NOT run as if it had no rules
+  // — the run still degrades to baseline below, but it is disclosed and forced to human review.
+  const loadedRules = activePolicy ? await getPolicyRulesOrNull(activePolicy.id) : [];
+  const policyUnavailable = activePolicy !== null && loadedRules === null;
+  const policyRules = loadedRules ?? [];
   const systemPrompt = withPolicyContext(basePrompt, policyRules);
 
   // 2. PII detection + strip BEFORE anything is stored or sent (Epic 5, deterministic — code outside
@@ -206,7 +211,16 @@ export async function runGovernedSkill(params: {
   // 5. Deterministic, policy-grounded rule-check (Domain, ADR-0014) — checks the (possibly revised)
   // output against the org's active policy rules; code outside the model, so injection can't disable
   // it. Self-critique + rule-check are combined most-severe-wins (block > flag > pass, ADR-0015).
-  const ruleResult = ruleCheck(finalText, policyRules);
+  // When the active policy's rules couldn't be read (ADR-0027), the rule-check can't be grounded, so
+  // it reports a flag with a plain disclosure instead of a meaningless pass over zero rules. Via
+  // most-severe-wins this forces needs_review, routing the run to the human-approval gate (ADR-0020).
+  const ruleResult: GuardrailResult = policyUnavailable
+    ? {
+        result: 'flag',
+        reason:
+          "We couldn't load your organization's rules, so this draft wasn't checked against them — it ran on baseline safety only. A person should review it before it's used.",
+      }
+    : ruleCheck(finalText, policyRules);
   await saveGuardrailCheck({
     taskRunId,
     checkType: 'rule_check',
@@ -243,6 +257,7 @@ export async function runGovernedSkill(params: {
       guardrail: guardrail.result,
       selfCritique: critique?.verdict ?? 'unavailable',
       status,
+      policyUnavailable, // ADR-0027: the org's rules couldn't be read; ran on baseline + forced review
     },
   });
 
