@@ -1,7 +1,9 @@
 # Release 1b — Build Outline
 
-**Source:** Kanban board "Tasks Go Here" (Notion), filter `Release = 1b` — 48 tickets.
-**Refreshed on:** 2026-11-18. **Owner view:** Val (tracking).
+**Source:** Kanban board "Tasks Go Here" (Notion), filter `Release = 1b` — **52 tickets**
+(48 chunked + 4 new un-chunked Co-Pilot cards, added 2026-11-18).
+**Refreshed on:** 2026-11-18 (second pass — after Chunk 4 rule-suggestions, audit-integrity, and the
+self-serve setup hub landed on `main`). **Owner view:** Val (tracking).
 
 Every item below is the **exact card title**, grouped by its `Chunk`, ordered the way the build
 depends (foundations/spine first, "verify" cards last), with `[Must/Should/Could]`, its `Epic`, and
@@ -11,15 +13,22 @@ Must → Should → Could, verify cards last.
 **Legend:** ✅ built & merged to `main` · 🟡 partly built (what's missing is noted) · ⬜ specced only
 (card body written, no app code yet).
 
-**Status:** **Chunks 1–3 are complete on `main`.** Chunk 4 has started (rule editor built) and
-Chunk 5 has started (free-tier gate built). **26 built, 1 partly built, 21 not started.**
+**Status:** **Chunks 1–3 are complete on `main`.** **Chunk 4 is all but done** — the rule editor,
+propagation proof, and the full rule-suggestions feature (4 cards) are merged; only the manual
+5-minute verify is in progress and three [Should]/[Could] cards remain. **Chunk 5 has started** on
+all three strands' edges (free-tier gate, audit-integrity, self-serve setup hub).
+**~33 built, 1 in progress (manual), ~14 not started, 4 new/backlog.** (Lane C's Report statuses are
+now board-checked; the two Lane D onboarding remainders still carry a "confirm with Lane D" note.)
 
 > **How this status was set:** from the commits and tests on `main` (commit hashes cited per card),
-> then checked against the board's `Status` field on 2026-11-18. All 48 titles and priorities match,
-> and the board's **26 `Done`** cards are exactly the ✅ cards here. (The two Chunk 5 free-tier cards,
-> `Define & gate the free baseline-safety tier` and `Keep free safety active behind the paywall`,
-> were moved from `Requirements` to `Done` on 2026-11-18 to match their merged code, ADR-0023.) The
-> one 🟡 card stays `Requirements` on the board.
+> then checked against the board's `Status` field on 2026-11-18. The 48 chunked titles and priorities
+> match, and the board's **33 `Done`** cards are exactly the ✅ cards here. Four cards were moved from
+> `Requirements` to `Done` on 2026-11-18 to match their merged code: the two Chunk 5 free-tier cards
+> (`Define & gate the free baseline-safety tier`, `Keep free safety active behind the paywall`;
+> ADR-0023), plus `Ensure audit entries can't be silently altered` (ADR-0026, PR #85) and
+> `Build self-serve setup (no consultant)` (PR #84). The one 🟡 card (`Verify the 5-minute promise`)
+> stays `In Progress` on the board. **Four new un-chunked Co-Pilot cards** (Epic #4, `Backlog`) were
+> added 2026-11-18 — listed after the chunks, outside the chunk totals.
 >
 > The chunk grouping and priorities are fields on the cards. The ordering *within* each chunk is a
 > synthesis from the dependency notes, not a board field.
@@ -77,21 +86,29 @@ user ≈ one org).
 **Also shipped (not a card):** the home dashboard's Recent-activity card now shows the Doer's real
 recent runs instead of a stub (`1f8f897`).
 
-## Chunk 4 — Living policy (Epics #1/#2/#4) — grow the policy by using it ⬅ NEXT
+## Chunk 4 — Living policy (Epics #1/#2/#4) — grow the policy by using it 🟢 NEARLY COMPLETE
+
+All Musts built except the manual 5-minute verify; the whole rule-suggestions feature is merged.
 
 1. ✅ `Build the rule viewer/editor` — [Must] — [Epic #1] — Leader edits/retires/adds rules at `/policy-seed`; publishing creates a **new policy version**, never edits in place; baseline rules **locked**; Doers get a read-only view (ADR-0024, `35e4bd0`)
-2. 🟡 `Verify a rule change propagates` — [Must] — [Epic #1] — partly covered: `pipeline.test.ts` already proves "a policy change applies on the next run with no redeploy". **Missing:** a test that a version *published from the editor* is what the next run is stamped with and checked against.
-3. ⬜ `Verify the 5-minute promise` — [Must] — [Epic #1]
-4. ⬜ `Design rule-suggestion logic from registry` — [Should] — [Epic #1]
-5. ⬜ `Detect recurring patterns from the registry` — [Should] — [Epic #2]
-6. ⬜ `Surface candidate rule suggestions (dedup)` — [Should] — [Epic #2]
-7. ⬜ `Build "accept suggested rule" flow` — [Should] — [Epic #1]
+2. ✅ `Verify a rule change propagates` — [Must] — [Epic #1] — `test/policy-propagation.test.ts`: real edit → publish → next-run path over an in-memory store (`9804f84`). Finding: no editor action flips a guardrail outcome on a seeded policy (data-protection is a locked baseline), so the proof is prompt grounding + baseline survival + truthful policy stamping.
+3. 🟡 `Verify the 5-minute promise` — [Must] — [Epic #1] — **In progress, manual only** (the seed makes no AI call, so the time is the person's). Next: run Notion "Week 5 Manual Test Case Scenarios" → Test Case 1 with a **non-expert** (not the builder); time first-seed-question → Activate; ≤5:00 + friction notes → Done.
+4. ✅ `Design rule-suggestion logic from registry` — [Should] — [Epic #1] — spec `docs/specs/epic-1-rule-suggestion-logic.md` + ADR-0025 (`c59a1ac`)
+5. ✅ `Detect recurring patterns from the registry` — [Should] — [Epic #2] — pipeline logs risky-use pattern ids in the audit payload; pure counting in `lib/domain/rule-suggestions.ts` (3+ distinct runs / 30 days); reads no who-ran-it (`5b15b9b`)
+6. ✅ `Surface candidate rule suggestions (dedup)` — [Should] — [Epic #2] — 7-key standards-cited catalog; a key is skipped once accepted/dismissed or already covered; fails closed. Migration `20261118050000_rule_suggestions.sql` (`suggested` origin, `policy_rule.suggestion_key`, append-only `rule_suggestion_decision`) — **applied** (`4a8c2d4`)
+7. ✅ `Build "accept suggested rule" flow` — [Should] — [Epic #1] — leader-only section on `/policy-seed`; accept re-derives server-side and publishes a new version (ADR-0024); dismiss is remembered (`b65da4b`)
 8. ⬜ `Ship sensible expert defaults` — [Should] — [Epic #4]
 9. ⬜ `Allow org overrides that persist` — [Should] — [Epic #4]
 10. ⬜ `Export + re-import policy` — [Could] — [Epic #1]
 
 **Note:** baseline rules are fully **locked** in the editor — stronger than the spec's
 confirm-to-override. Revisit if `Allow org overrides that persist` needs baseline overrides.
+
+**Open decision (Lane A, risk 3):** when an active policy's rules **can't be read**,
+`runGovernedSkill` still runs — ungrounded and silent. The editor side is now fail-closed (`f6e92dd`,
+`getPolicyRulesOrNull`), but the **pipeline run** path is not. Options: (a) proceed on baseline +
+banner + flag the run `needs_review`, or (b) block with "try again". Needs a new ADR + a `pipeline.ts`
+change. Not started.
 
 ## Chunk 5 — Coach / Report / Onboard (Epics #6/#7/#8) — packaging; goes last
 
@@ -102,10 +119,10 @@ guardrails never read entitlement.
 
 **Report (Epic #7):**
 
-1. ⬜ `Build the audit trail from registry data` — [Must]
-2. ⬜ `Ensure audit entries can't be silently altered` — [Must]
-3. ⬜ `Build one-click responsible-AI summary export` — [Must]
-4. ⬜ `Handle low-data honestly in the summary` — [Must]
+1. ⬜ `Build the audit trail from registry data` — [Must] — spec in the card; **not built** (no `/report` route yet). **← Lane C next:** read-only `lib/data` reader + pure `lib/domain` helpers + `/report` page (Leader-only), reusing `AUDIT_EVENT_TYPES`/`isAuditEventType` and showing `AUDIT_PROTECTION_STATEMENT`.
+2. ✅ `Ensure audit entries can't be silently altered` — [Must] — DB stamps each audit entry's time + identity; app users may insert only known event kinds, as themselves, about their own org; TRUNCATE revoked from app roles (ADR-0026, `06b818b`/PR #85; `4f26171`/PR #83)
+3. ⬜ `Build one-click responsible-AI summary export` — [Must] — spec blank. Approved: printable `/report` + browser **Print / Save as PDF** (no PDF library); Leader-only, checked server-side; CSV a later Could.
+4. ⬜ `Handle low-data honestly in the summary` — [Must] — spec blank. Approved: summary **templated from data** (not model-written); empty/low-data are first-class states, never overstated.
 
 **Coach (Epic #6):**
 
@@ -117,33 +134,51 @@ guardrails never read entitlement.
 
 **Onboard + free tier (Epic #8):**
 
-10. ⬜ `Build self-serve setup (no consultant)` — [Must]
-11. ⬜ `Build the minutes-to-value onboarding flow` — [Must]
-12. ⬜ `Add resume-after-interruption to onboarding` — [Must]
+10. ✅ `Build self-serve setup (no consultant)` — [Must] — `/setup` self-serve setup hub; Home routes an unfinished leader there (`1d27592`, `13ccbce`, PR #84)
+11. ⬜ `Build the minutes-to-value onboarding flow` — [Must] — *(the /setup hub may partly cover this — confirm with Lane D)*
+12. ⬜ `Add resume-after-interruption to onboarding` — [Must] — *(confirm with Lane D)*
 13. ✅ `Define & gate the free baseline-safety tier` — [Must] — capability matrix (safety + oversight free, only capacity premium) + server-side capacity gate before the pipeline; free monthly run cap is a **placeholder** to tune later; billing out of scope (ADR-0023, `638d358`, `bb221a1`)
 14. ✅ `Keep free safety active behind the paywall` — [Must] — regression test: safety net holds on free / capped / lapsed / paid; lapsed premium falls back to the free cap (`org.premium_until`) (`bb221a1`)
 15. ⬜ `Add in-product unblock guidance` — [Must] — Feature: Self-serve setup; the board describes it as helping a stuck leader in-product without a support ticket. Not started. (The free-tier gate's "you've reached this month's free run limit" message is part of card 13, not this card.)
 
 ---
 
+## New — Co-Pilot "Not sure" handling (Epic #4, un-chunked) ⬛ BACKLOG
+
+Added 2026-11-18 by a separate Co-Pilot session, which found the Co-Pilot treats unanswered
+checkboxes as "no risk." Not yet sequenced into a chunk. **Decision so far:** every question must be
+answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specced as app work.)
+
+- ⬛ `Add Yes / No / Not sure answers to the Co-Pilot questions` — [Must] — [Epic #4]
+- ⬛ `Treat "Not sure" as a careful but helpful answer` — [Must] — [Epic #4]
+- ⬛ `Decide what "Not sure" on a banned purpose means` — [Must] — [Epic #4]
+- ⬛ `Save the leader's actual answers with each assessment` — [Should] — [Epic #4]
+
+---
+
 ## Totals
 
-48 tickets — **26 built**, **1 partly built**, **21 specced only**.
+52 tickets — **33 built**, **1 in progress (manual)**, **14 specced**, **4 new/backlog**.
 
-| Chunk | Tickets | Built | Partly built | Specced |
-| --- | --- | --- | --- | --- |
-| 1 — Doer core | 9 | 9 | 0 | 0 |
-| 2 — Safety net | 10 | 10 | 0 | 0 |
-| 3 — Registry view | 4 | 4 | 0 | 0 |
-| 4 — Living policy | 10 | 1 | 1 | 8 |
-| 5 — Coach / Report / Onboard | 15 | 2 | 0 | 13 |
-| **Total** | **48** | **26** | **1** | **21** |
+| Chunk | Tickets | Built | In progress | Specced | New |
+| --- | --- | --- | --- | --- | --- |
+| 1 — Doer core | 9 | 9 | 0 | 0 | 0 |
+| 2 — Safety net | 10 | 10 | 0 | 0 | 0 |
+| 3 — Registry view | 4 | 4 | 0 | 0 | 0 |
+| 4 — Living policy | 10 | 6 | 1 | 3 | 0 |
+| 5 — Coach / Report / Onboard | 15 | 4 | 0 | 11 | 0 |
+| (un-chunked) — Co-Pilot "Not sure" | 4 | 0 | 0 | 0 | 4 |
+| **Total** | **52** | **33** | **1** | **14** | **4** |
+
+**Next in Lane C (Report / Epic #7):** apply the ADR-0026 migration in Supabase + run the check
+(Val), then **build card 1** (`/report` audit trail), then spec + build cards 3 (export) and 4
+(low-data honesty) together.
 
 **ADRs added during Release 1b:**
 
 - Chunk 1: ADR-0015 (self-critique), ADR-0018 (no-active-policy → baseline safety)
 - Chunk 2: ADR-0020 (human-approval gate), ADR-0022 (reviewer edit + provenance)
 - Chunk 3: ADR-0021 (entry-correction flow)
-- Chunk 4: ADR-0024 (policy editing is versioned)
-- Chunk 5: ADR-0023 (free safety net + capacity-only premium)
+- Chunk 4: ADR-0024 (policy editing is versioned), ADR-0025 (rule suggestions from registry)
+- Chunk 5: ADR-0023 (free safety net + capacity-only premium), ADR-0026 (audit insert integrity)
 - Not chunk-specific: ADR-0016/0017 (Week-5 CI + self-hosted font), ADR-0019 (Node 22 toolchain)
