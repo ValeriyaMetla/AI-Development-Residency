@@ -38,6 +38,20 @@ const theme = createTheme({
     button: { textTransform: 'none', fontWeight: 600 },
   },
   components: {
+    // Visible keyboard focus (WCAG 2.2 SC 2.4.7). With disableElevation, MUI's default
+    // focus-visible cue on buttons is effectively invisible, so every ButtonBase (buttons,
+    // links styled as buttons, chips, list items) gets an explicit 3px outline in primary —
+    // >= 3:1 against the page background — offset so it also shows around filled buttons.
+    MuiButtonBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '&.Mui-focusVisible': {
+            outline: `3px solid ${theme.palette.primary.main}`,
+            outlineOffset: '2px',
+          },
+        }),
+      },
+    },
     MuiButton: { defaultProps: { disableElevation: true } },
     MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
   },
