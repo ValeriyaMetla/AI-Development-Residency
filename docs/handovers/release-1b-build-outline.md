@@ -99,7 +99,7 @@ All Musts built except the manual 5-minute verify; the whole rule-suggestions fe
 7. ✅ `Build "accept suggested rule" flow` — [Should] — [Epic #1] — leader-only section on `/policy-seed`; accept re-derives server-side and publishes a new version (ADR-0024); dismiss is remembered (`b65da4b`)
 8. ✅ `Ship sensible expert defaults` — [Should] — [Epic #4] — **met by existing work** (reviewed 2026-11-19 against the card): every org, new included, gets the baseline safety net (ADR-0018) + the Co-Pilot's deterministic, standards-grounded engine with no setup — the "expert defaults applied with no manual setup". No build.
 9. ✅ `Allow org overrides that persist` — [Should] — [Epic #4] — **met by the rule editor** (ADR-0024): a leader's rule change publishes a new version that persists + applies on the next run (`policy-propagation.test.ts`), and baseline-safety rules are locked / can't be disabled — matching both acceptance criteria exactly. No build.
-10. ⬜ `Export + re-import policy` — [Could] — [Epic #1]
+10. ✅ `Export + re-import policy` — [Could] — [Epic #1] — **built** (in a PR, board → In Review): leader-only Export (downloads the active policy as portable JSON — no org/row ids) + Import from file (validates untrusted input, rejects malformed cleanly, publishes a new version via ADR-0024, baseline flags + citation provenance preserved). Pure `lib/domain/policy-export.ts`; reuses the `policy_edited` audit kind (no migration). Tests: `policy-export.test.ts` (round-trip + malformed-reject).
 
 **Note:** baseline rules are fully **locked** in the editor — stronger than the spec's
 confirm-to-override. Revisit if `Allow org overrides that persist` needs baseline overrides.
@@ -133,7 +133,7 @@ guardrails never read entitlement.
 6. ✅ `Offer concrete safer alternatives in the moment` — [Must] — a per-pattern safer rewrite (or, for a safety/crisis, "bring in a person" with no AI rewrite)
 7. ✅ `Apply the safer way on accept` — [Must] — "Use the safer way" rewrites the input to a safe task (tested: the rewrite no longer trips any risk pattern)
 8. ✅ `Add dismiss / no-nag behavior` — [Must] — Dismiss hides a nudge and it doesn't reappear for that pattern this session
-9. ⬜ `Make the governed option the default low-friction path` — [Should] — *(partly served: the safer way is one prominent click; not a dedicated build)*
+9. ✅ `Make the governed option the default low-friction path` — [Should] — **met by existing work** (reviewed 2026-11-19 against the card): the Doer's home leads with the "Run a Skill" primary CTA, the product has no ungoverned path, the runner is one low-friction screen, and coaching makes the safe option one click — satisfies both requirements + the acceptance criterion. No build.
 
 **Onboard + free tier (Epic #8):**
 
@@ -161,17 +161,17 @@ answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specce
 
 ## Totals
 
-52 tickets — **39 built**, **1 in progress (manual)**, **8 specced**, **4 new/backlog**.
+52 tickets — **41 built**, **1 in progress (manual)**, **6 specced**, **4 new/backlog**.
 
 | Chunk | Tickets | Built | In progress | Specced | New |
 | --- | --- | --- | --- | --- | --- |
 | 1 — Doer core | 9 | 9 | 0 | 0 | 0 |
 | 2 — Safety net | 10 | 10 | 0 | 0 | 0 |
 | 3 — Registry view | 4 | 4 | 0 | 0 | 0 |
-| 4 — Living policy | 10 | 8 | 1 | 1 | 0 |
-| 5 — Coach / Report / Onboard | 15 | 8 | 0 | 7 | 0 |
+| 4 — Living policy | 10 | 9 | 1 | 0 | 0 |
+| 5 — Coach / Report / Onboard | 15 | 9 | 0 | 6 | 0 |
 | (un-chunked) — Co-Pilot "Not sure" | 4 | 0 | 0 | 0 | 4 |
-| **Total** | **52** | **39** | **1** | **8** | **4** |
+| **Total** | **52** | **41** | **1** | **6** | **4** |
 
 **Next in Lane C (Report / Epic #7):** apply the ADR-0026 migration in Supabase + run the check
 (Val), then **build card 1** (`/report` audit trail), then spec + build cards 3 (export) and 4

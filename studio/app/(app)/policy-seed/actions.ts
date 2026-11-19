@@ -8,7 +8,8 @@ import { seedPolicyFromAnswers, type SeedPolicyResult } from '@/lib/domain/polic
 import { activatePolicy, getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
-import { publishEditedPolicy } from '@/lib/domain/policy-publish';
+import { publishEditedPolicy, publishImportedPolicy } from '@/lib/domain/policy-publish';
+import { serializePolicy, parsePolicyImport } from '@/lib/domain/policy-export';
 
 /**
  * Service layer (ADR-0003): the front door for the policy-seed intake. Each action verifies
@@ -99,6 +100,82 @@ export async function publishRuleEdits(input: unknown): Promise<PublishEditsResu
     policyName: active.name,
     current,
     input: parsed.value,
+  });
+
+  if (result.status === 'published') {
+    revalidatePath('/policy-seed');
+    return { status: 'published', ruleCount: result.ruleCount };
+  }
+  return result;
+}
+
+export type ExportPolicyResult =
+  { status: 'ok'; filename: string; json: string } | { status: 'blocked'; message: string };
+
+/**
+ * Export the org's active policy as a portable JSON string for the client to download (Epic 1
+ * portability). Leader-only (access control); reads the active policy + its rules and serializes
+ * them via the pure Domain serializer — no org/row ids, so the file re-imports into any org.
+ */
+export async function exportPolicy(): Promise<ExportPolicyResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: 'Only an Accountable Leader can export the policy.' };
+  }
+
+  const orgId = await getMyOrgId();
+  if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
+
+  const active = await getActivePolicy(orgId);
+  if (!active) return { status: 'blocked', message: 'There is no active policy to export yet.' };
+
+  const rules = await getPolicyRulesOrNull(active.id);
+  if (rules === null) {
+    return { status: 'blocked', message: 'Could not load your rules. Nothing was exported.' };
+  }
+
+  const json = JSON.stringify(serializePolicy(active, rules), null, 2);
+  const slug = active.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  return { status: 'ok', filename: `policy-${slug || 'export'}.json`, json };
+}
+
+export type ImportPolicyResult =
+  | { status: 'published'; ruleCount: number }
+  | { status: 'blocked'; message: string }
+  | { status: 'failed'; message: string };
+
+/**
+ * Import a policy from an uploaded file's text and publish it as a new active version (Epic 1
+ * portability). Leader-only. `raw` is untrusted — the pure Domain parser validates it (secure-coding)
+ * and rejects a malformed file with a clear message before anything is written; a valid file publishes
+ * via the same versioned path as an edit (ADR-0024).
+ */
+export async function importPolicy(raw: unknown): Promise<ImportPolicyResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: 'Only an Accountable Leader can import a policy.' };
+  }
+
+  const orgId = await getMyOrgId();
+  if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
+
+  const parsed = parsePolicyImport(raw);
+  if (!parsed.ok) return { status: 'blocked', message: parsed.error };
+
+  const result = await publishImportedPolicy({
+    orgId,
+    createdBy: user.id,
+    policyName: parsed.name,
+    rules: parsed.rules,
   });
 
   if (result.status === 'published') {

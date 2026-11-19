@@ -3,6 +3,7 @@ import {
   insertPolicyRules,
   activatePolicy,
   type PolicyRule,
+  type NewPolicyRule,
 } from '@/lib/data/policy';
 import { writeAuditEvent } from '@/lib/data/runs';
 import { assembleEditedRules, type ParsedPolicyEdit } from '@/lib/domain/policy-edit';
@@ -59,4 +60,42 @@ export async function publishEditedPolicy(params: {
   });
 
   return { status: 'published', policyId, ruleCount: assembled.rules.length };
+}
+
+/**
+ * Publish an IMPORTED policy as a new active version (Epic 1 portability). Takes a validated,
+ * ready-to-insert ruleset (from parsePolicyImport) rather than a diff, then create -> insert ->
+ * activate, the same versioned path as an edit (ADR-0024). Audited as a `policy_edited` event (an
+ * allowed kind — ADR-0026) with `source: 'import'` so the trail distinguishes it; no new audit kind,
+ * no migration. Fails closed at each write.
+ */
+export async function publishImportedPolicy(params: {
+  orgId: string;
+  createdBy: string;
+  policyName: string;
+  rules: NewPolicyRule[];
+}): Promise<PublishEditResult> {
+  if (params.rules.length === 0) {
+    return { status: 'blocked', message: 'The imported policy has no rules.' };
+  }
+
+  const policyId = await createPolicy({ orgId: params.orgId, name: params.policyName });
+  if (!policyId)
+    return { status: 'failed', message: 'Could not create the imported policy version.' };
+
+  const rulesOk = await insertPolicyRules(policyId, params.rules);
+  if (!rulesOk) return { status: 'failed', message: 'Could not save the imported rules.' };
+
+  const activated = await activatePolicy({ orgId: params.orgId, policyId });
+  if (!activated) return { status: 'failed', message: 'Could not activate the imported version.' };
+
+  await writeAuditEvent({
+    orgId: params.orgId,
+    taskRunId: null,
+    actor: params.createdBy,
+    eventType: 'policy_edited',
+    payload: { policyId, ruleCount: params.rules.length, source: 'import' }, // no rule text (ADR-6)
+  });
+
+  return { status: 'published', policyId, ruleCount: params.rules.length };
 }

@@ -8,6 +8,7 @@ import PolicySeedWizard from './policy-seed-wizard';
 import PolicyRuleList from './policy-rule-list';
 import PolicyEditor from './policy-editor';
 import RuleSuggestions from './rule-suggestions';
+import PolicyPortability from './policy-portability';
 import { getRuleSuggestions } from '@/lib/domain/rule-suggestion-service';
 
 /**
@@ -99,6 +100,9 @@ export default async function PolicySeedPage() {
       ) : (
         <PolicyRuleList rules={rules} />
       )}
+
+      {/* Own-your-rules portability (Epic 1): export/import is a Leader action; shown once a policy exists. */}
+      {canEdit && rules && rules.length > 0 ? <PolicyPortability /> : null}
     </Box>
   );
 }

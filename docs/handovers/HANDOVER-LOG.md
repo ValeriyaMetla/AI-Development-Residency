@@ -19,6 +19,17 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-19 — [Claude Code · Lane A spine · main] — **Export + re-import policy built (Epic 1, the
+  last Lane A card).** Did: pure `lib/domain/policy-export.ts` (`serializePolicy` → portable JSON with
+  no org/row ids; `parsePolicyImport` validates untrusted input, rejects malformed cleanly, preserves
+  baseline flags + citation provenance, drops the internal `standard_rule_id`); `publishImportedPolicy`
+  in `policy-publish.ts` (versioned publish via ADR-0024, audited as `policy_edited` + `source:import`
+  — **reuses an allowed audit kind, no migration**); leader-only `exportPolicy`/`importPolicy` actions;
+  `policy-portability.tsx` on `/policy-seed` (Download policy + Import from file). Tests
+  `policy-export.test.ts` (11 — round-trip into a fresh org + malformed-reject). `npm run verify` green
+  (build, arch-gate, tests). **Uncommitted — code via PR** (6 files); board card → **In Review** (flip
+  to Done on merge); outline + this log are docs. **→ Lane A is now COMPLETE** — every card built or
+  verified-as-met; only the manual 5-minute verify remains (Val's).
 - 2026-11-19 — [Claude Code · Lane A spine · main] — **Expert-defaults pair closed by review — no build.** Pulled the exact
   Kanban cards: *Ship sensible expert defaults* + *Allow org overrides that persist* (both Epic #4,
   [Should]). Verified against the code: expert defaults = the baseline safety net (ADR-0018) + the
@@ -26,8 +37,10 @@ Entry format:
   that persist" = the rule editor (ADR-0024) — change persists + applies next run, baseline locked /
   can't disable — matching both acceptance criteria exactly. Both **moved to Done** on the board (Val
   agreed); **no code**. Build outline updated (Lane A Chunk 4 → 8/10). Lane A remainder: `Export +
-  re-import policy` [Could], `Make the governed option the default low-friction path` [Should, partly
-  served], and the manual 5-minute verify — **no required build left in Lane A.**
+  re-import policy` [Could] and the manual 5-minute verify — **no required build left in Lane A.**
+  (2026-11-19: also reviewed `Make the governed option the default low-friction path` [Should] →
+  **Done** by existing work — the Doer home leads with the Run-a-Skill primary CTA, no ungoverned
+  path, coaching makes the safe option one click.)
 - 2026-11-18 — [Claude Code · Lane A spine · main] — **Coaching (Epic 6) — 4 Must cards Done.** Did:
   pure `lib/domain/coaching.ts` turns the existing risky-use signal into an in-the-moment nudge
   (guide-not-scold `info` tone), with a per-pattern **safer rewrite** the Doer can apply ("Use the
