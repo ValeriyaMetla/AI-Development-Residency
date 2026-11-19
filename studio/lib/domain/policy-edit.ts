@@ -19,7 +19,25 @@ export const MAX_RULE_TEXT = 500;
 
 /** One kept (possibly edited) existing non-baseline rule, by id. Omitting a rule retires it. */
 export type RuleEdit = { id: string; ruleText: string };
-export type ParsedPolicyEdit = { edits: RuleEdit[]; additions: string[] };
+/**
+ * An accepted rule suggestion to add (ADR-0025). Built ONLY on the server from the suggestion
+ * catalog + standards — never parsed from client input (parsePolicyEditInput never returns it), so a
+ * client cannot mark a rule as `suggested` or supply its citation.
+ */
+export type SuggestedAddition = {
+  suggestionKey: string;
+  ruleText: string;
+  standardRuleId: string;
+  citation: string;
+  category: string;
+  riskTier: string;
+};
+export type ParsedPolicyEdit = {
+  edits: RuleEdit[];
+  additions: string[];
+  /** Server-side only: an accepted rule suggestion to add as origin 'suggested'. */
+  suggested?: SuggestedAddition;
+};
 
 export type ParsePolicyEditResult =
   { ok: true; value: ParsedPolicyEdit } | { ok: false; error: string };
@@ -86,6 +104,7 @@ export function assembleEditedRules(
       isBaselineSafety: false,
       needsReview: false,
       sourceQuestion: orig.sourceQuestion,
+      suggestionKey: orig.suggestionKey ?? null, // an accepted suggestion keeps its provenance
     });
   }
 
@@ -106,6 +125,32 @@ export function assembleEditedRules(
     });
   }
 
+  // An accepted rule suggestion (server-built, ADR-0025). Its text may be the leader's edit, so it
+  // is validated like any other rule; its citation/category come from the catalog, not the client.
+  const suggestedRules: NewPolicyRule[] = [];
+  if (input.suggested) {
+    const sg = input.suggested;
+    if (current.some((r) => r.suggestionKey === sg.suggestionKey)) {
+      return { ok: false, error: 'That suggestion is already in your rules.' };
+    }
+    const text = sg.ruleText.trim();
+    if (text === '') return { ok: false, error: 'A rule can’t be empty.' };
+    if (text.length > MAX_RULE_TEXT) {
+      return { ok: false, error: `Keep each rule under ${MAX_RULE_TEXT} characters.` };
+    }
+    suggestedRules.push({
+      ruleText: text,
+      standardRuleId: sg.standardRuleId,
+      citation: sg.citation,
+      category: sg.category,
+      riskTier: sg.riskTier,
+      origin: 'suggested',
+      isBaselineSafety: false,
+      needsReview: false,
+      suggestionKey: sg.suggestionKey,
+    });
+  }
+
   const baselineRules: NewPolicyRule[] = baseline.map((r) => ({
     ruleText: r.ruleText,
     standardRuleId: r.standardRuleId,
@@ -118,7 +163,7 @@ export function assembleEditedRules(
     sourceQuestion: r.sourceQuestion,
   }));
 
-  const rules = [...baselineRules, ...kept, ...added];
+  const rules = [...baselineRules, ...kept, ...added, ...suggestedRules];
   if (rules.length === 0) {
     return { ok: false, error: 'A policy needs at least one rule.' };
   }

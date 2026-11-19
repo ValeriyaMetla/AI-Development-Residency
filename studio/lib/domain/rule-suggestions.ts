@@ -210,3 +210,31 @@ export function surfaceSuggestions(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------------------------
+// Decision input (card: Build "accept suggested rule" flow) — validates the UNTRUSTED client
+// payload's shape. Whether the key is currently valid, and its citation, are re-derived server-side.
+// ---------------------------------------------------------------------------------------------
+
+const SUGGESTION_KEY = /^(risky|pii):[a-z0-9_-]{1,40}$/;
+
+export type ParsedSuggestionDecision = { suggestionKey: string; ruleText?: string };
+
+export type ParseSuggestionDecisionResult =
+  { ok: true; value: ParsedSuggestionDecision } | { ok: false; error: string };
+
+/** Shape-check `{ suggestionKey, ruleText? }`. Text length/emptiness is checked when assembling. */
+export function parseSuggestionDecisionInput(input: unknown): ParseSuggestionDecisionResult {
+  if (typeof input !== 'object' || input === null) return { ok: false, error: 'Invalid request.' };
+  const { suggestionKey, ruleText } = input as Record<string, unknown>;
+  if (typeof suggestionKey !== 'string' || !SUGGESTION_KEY.test(suggestionKey)) {
+    return { ok: false, error: 'Unknown suggestion.' };
+  }
+  if (ruleText !== undefined && typeof ruleText !== 'string') {
+    return { ok: false, error: 'Invalid rule text.' };
+  }
+  return {
+    ok: true,
+    value: ruleText === undefined ? { suggestionKey } : { suggestionKey, ruleText },
+  };
+}

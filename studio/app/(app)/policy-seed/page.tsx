@@ -7,6 +7,8 @@ import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
 import PolicySeedWizard from './policy-seed-wizard';
 import PolicyRuleList from './policy-rule-list';
 import PolicyEditor from './policy-editor';
+import RuleSuggestions from './rule-suggestions';
+import { getRuleSuggestions } from '@/lib/domain/rule-suggestion-service';
 
 /**
  * "Your rules" route (Presentation layer). Branches on whether the org has an active policy
@@ -38,6 +40,8 @@ export default async function PolicySeedPage() {
 
   const [profile, rules] = await Promise.all([getMyProfile(), getPolicyRules(activePolicy.id)]);
   const canEdit = profile?.role === 'accountable_leader';
+  // Rule suggestions are a Leader-only view (ADR-0025); the accept/dismiss actions re-check the role.
+  const suggestions = canEdit && orgId ? await getRuleSuggestions(orgId) : null;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -52,10 +56,29 @@ export default async function PolicySeedPage() {
         </Typography>
       </Box>
 
+      {suggestions ? (
+        <RuleSuggestions
+          unavailable={suggestions.status === 'unavailable'}
+          suggestions={
+            suggestions.status === 'ok'
+              ? suggestions.suggestions.map((s) => ({
+                  key: s.key,
+                  ruleText: s.ruleText,
+                  citation: s.citation,
+                  evidenceLabel: s.evidenceLabel,
+                }))
+              : []
+          }
+        />
+      ) : null}
+
       {rules.length === 0 ? (
         <Alert severity="info">This policy has no rules yet.</Alert>
       ) : canEdit ? (
         <PolicyEditor
+          // Re-mount on each published version so the editor never holds a prior version's rule
+          // ids (a publish or an accepted suggestion creates new ids — ADR-0024).
+          key={activePolicy.id}
           rules={rules.map((r) => ({
             id: r.id,
             ruleText: r.ruleText,

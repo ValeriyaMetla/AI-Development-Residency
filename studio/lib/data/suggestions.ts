@@ -75,3 +75,32 @@ export async function getSuggestionDecisionKeys(): Promise<Set<string> | null> {
     ((data as { suggestion_key: string }[] | null) ?? []).map((row) => row.suggestion_key),
   );
 }
+
+export type SuggestionDecision = 'accepted' | 'dismissed';
+
+/**
+ * Append the leader's decision on a suggestion key (ADR-0025 §4). Append-only: never updates or
+ * deletes. RLS requires the row to be for the caller's org and decided by the caller.
+ * Returns true on success, false on error (logged; callers decide how to degrade).
+ */
+export async function recordSuggestionDecision(params: {
+  orgId: string;
+  suggestionKey: string;
+  decision: SuggestionDecision;
+  decidedBy: string;
+  policyId?: string | null;
+}): Promise<boolean> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('rule_suggestion_decision').insert({
+    org_id: params.orgId,
+    suggestion_key: params.suggestionKey,
+    decision: params.decision,
+    decided_by: params.decidedBy,
+    policy_id: params.policyId ?? null,
+  });
+  if (error) {
+    console.error('recordSuggestionDecision failed:', error.message);
+    return false;
+  }
+  return true;
+}

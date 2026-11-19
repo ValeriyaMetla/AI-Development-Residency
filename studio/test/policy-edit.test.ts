@@ -53,6 +53,19 @@ describe('parsePolicyEditInput', () => {
   });
 });
 
+describe('parsePolicyEditInput — client cannot mark a rule as suggested', () => {
+  it('drops a smuggled `suggested` field from the client payload', () => {
+    const res = parsePolicyEditInput({
+      edits: [],
+      additions: [],
+      suggested: { suggestionKey: 'risky:medical', ruleText: 'x', citation: 'forged' },
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value).toEqual({ edits: [], additions: [] });
+  });
+});
+
 describe('assembleEditedRules', () => {
   const current: PolicyRule[] = [
     rule({ id: 'b1', ruleText: 'Always keep a human in the loop', isBaselineSafety: true }),
@@ -116,6 +129,90 @@ describe('assembleEditedRules', () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.rules.some((r) => r.ruleText.trim() === '')).toBe(false);
+  });
+
+  // --- Accepted rule suggestions (ADR-0025) ---
+
+  const SUGGESTED = {
+    suggestionKey: 'risky:medical',
+    ruleText: '  We don’t use AI to give medical advice.  ',
+    standardRuleId: 'sr-override',
+    citation: 'EU AI Act, Article 14',
+    category: 'human-oversight',
+    riskTier: 'high',
+  };
+
+  it('adds an accepted suggestion as origin "suggested" with its key and catalog citation', () => {
+    const res = assembleEditedRules(current, {
+      edits: [
+        { id: 'r1', ruleText: 'Original rule one' },
+        { id: 'r2', ruleText: 'Original rule two' },
+      ],
+      additions: [],
+      suggested: SUGGESTED,
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const added = res.rules.find((r) => r.origin === 'suggested');
+    expect(added).toMatchObject({
+      ruleText: 'We don’t use AI to give medical advice.', // trimmed
+      suggestionKey: 'risky:medical',
+      standardRuleId: 'sr-override',
+      citation: 'EU AI Act, Article 14',
+      category: 'human-oversight',
+      riskTier: 'high',
+      isBaselineSafety: false,
+    });
+    expect(res.rules).toHaveLength(4); // baseline + 2 kept + suggested
+  });
+
+  it('carries a suggested rule’s key and origin forward through a later edit', () => {
+    const withSuggested: PolicyRule[] = [
+      ...current,
+      rule({
+        id: 's1',
+        ruleText: 'Suggested rule',
+        origin: 'suggested',
+        suggestionKey: 'pii:us_ssn',
+      }),
+    ];
+    const res = assembleEditedRules(withSuggested, {
+      edits: [{ id: 's1', ruleText: 'Suggested rule, reworded' }],
+      additions: [],
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.rules.find((r) => r.ruleText === 'Suggested rule, reworded')).toMatchObject({
+      origin: 'suggested',
+      suggestionKey: 'pii:us_ssn',
+    });
+  });
+
+  it('refuses to add a suggestion that is already in the rules', () => {
+    const withSuggested: PolicyRule[] = [
+      ...current,
+      rule({ id: 's1', ruleText: 'x', origin: 'suggested', suggestionKey: 'risky:medical' }),
+    ];
+    expect(
+      assembleEditedRules(withSuggested, { edits: [], additions: [], suggested: SUGGESTED }).ok,
+    ).toBe(false);
+  });
+
+  it('rejects an accepted suggestion whose edited text is empty or too long', () => {
+    for (const ruleText of ['   ', 'x'.repeat(MAX_RULE_TEXT + 1)]) {
+      expect(
+        assembleEditedRules(current, {
+          edits: [],
+          additions: [],
+          suggested: { ...SUGGESTED, ruleText },
+        }).ok,
+      ).toBe(false);
+    }
+  });
+
+  it('plain additions stay "custom" — never "suggested"', () => {
+    const res = assembleEditedRules(current, { edits: [], additions: ['A custom rule'] });
+    expect(res.ok && res.rules.find((r) => r.ruleText === 'A custom rule')?.origin).toBe('custom');
   });
 
   it('errors when the result would have no rules at all', () => {

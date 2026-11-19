@@ -11,7 +11,7 @@ const calls: { method: string; args: unknown[] }[] = [];
 
 vi.mock('@/lib/data/supabase/server', () => {
   const builder: Record<string, unknown> = {};
-  for (const m of ['select', 'in', 'gte']) {
+  for (const m of ['select', 'in', 'gte', 'insert']) {
     builder[m] = (...args: unknown[]) => {
       calls.push({ method: m, args });
       return builder;
@@ -31,6 +31,7 @@ vi.mock('@/lib/data/supabase/server', () => {
 import {
   getSuggestionSignalsSince,
   getSuggestionDecisionKeys,
+  recordSuggestionDecision,
   mapSignalEventRow,
   SIGNAL_EVENT_TYPES,
 } from '@/lib/data/suggestions';
@@ -121,5 +122,53 @@ describe('getSuggestionDecisionKeys', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mockResult.mockReturnValue({ data: null, error: { message: 'boom' } });
     expect(await getSuggestionDecisionKeys()).toBeNull();
+  });
+});
+
+describe('recordSuggestionDecision', () => {
+  it('appends one row for the caller’s org, key, decision, and the published policy', async () => {
+    mockResult.mockReturnValue({ error: null });
+    const ok = await recordSuggestionDecision({
+      orgId: 'org1',
+      suggestionKey: 'risky:medical',
+      decision: 'accepted',
+      decidedBy: 'user1',
+      policyId: 'policy2',
+    });
+    expect(ok).toBe(true);
+    expect(calls.find((c) => c.method === 'from')?.args).toEqual(['rule_suggestion_decision']);
+    expect(calls.find((c) => c.method === 'insert')?.args[0]).toEqual({
+      org_id: 'org1',
+      suggestion_key: 'risky:medical',
+      decision: 'accepted',
+      decided_by: 'user1',
+      policy_id: 'policy2',
+    });
+  });
+
+  it('stores a null policy for a dismissal', async () => {
+    mockResult.mockReturnValue({ error: null });
+    await recordSuggestionDecision({
+      orgId: 'org1',
+      suggestionKey: 'pii:us_ssn',
+      decision: 'dismissed',
+      decidedBy: 'user1',
+    });
+    expect(
+      (calls.find((c) => c.method === 'insert')?.args[0] as { policy_id: unknown }).policy_id,
+    ).toBeNull();
+  });
+
+  it('returns false on error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockResult.mockReturnValue({ error: { message: 'boom' } });
+    expect(
+      await recordSuggestionDecision({
+        orgId: 'org1',
+        suggestionKey: 'pii:us_ssn',
+        decision: 'dismissed',
+        decidedBy: 'user1',
+      }),
+    ).toBe(false);
   });
 });
