@@ -86,3 +86,37 @@ describe('shouldRouteToSetup (Home → /setup redirect)', () => {
     );
   });
 });
+
+describe('resume-after-interruption (Epic 8, "Add resume-after-interruption")', () => {
+  // Resume is delivered by /setup's derived progress (see docs/reference/onboarding-resume.md):
+  // because progress is computed from server-owned facts, the leader returns to the next
+  // incomplete step with no browser state. These assert the card's ACs against that mechanism.
+  const leader = 'accountable_leader' as const;
+
+  it('AC1 — resumes at the next incomplete step, not the beginning', () => {
+    // Org confirmed + policy active, no run yet → resume lands on "first_run", not step 1.
+    expect(setupProgress({ ...fresh, hasActivePolicy: true }).nextStep).toBe('first_run');
+  });
+
+  it('AC3 — cross-device: the same server facts resume identically on any device', () => {
+    // Progress is a pure function of server-owned facts (no browser/session state), so a return
+    // on a different device computes the same next step.
+    const facts: SetupFacts = { ...fresh, hasActivePolicy: true };
+    expect(setupProgress(facts)).toEqual(setupProgress(facts));
+    expect(setupProgress(facts).nextStep).toBe('first_run');
+  });
+
+  it('AC4 — a completed leader is never re-prompted to resume', () => {
+    const complete = setupProgress({ ...fresh, hasActivePolicy: true, runCount: 1 });
+    expect(
+      shouldRouteToSetup({ role: leader, progress: complete, skippedThisSession: false }),
+    ).toBe(false);
+  });
+
+  it('AC5 — what is done and what remains is visible on resume', () => {
+    const p = setupProgress({ ...fresh, hasActivePolicy: true });
+    expect(p.doneCount).toBe(2);
+    expect(p.total).toBe(3);
+    expect(p.steps.filter((s) => !s.done).map((s) => s.key)).toEqual(['first_run']);
+  });
+});
