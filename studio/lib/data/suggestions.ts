@@ -58,3 +58,20 @@ export async function getSuggestionSignalsSince(sinceIso: string): Promise<Signa
   }
   return ((data as SignalEventRow[] | null) ?? []).map(mapSignalEventRow);
 }
+
+/**
+ * The suggestion keys the org has already decided on (accepted or dismissed) — the dedup memory
+ * (ADR-0025 §4). Selects only the key, never who decided. RLS scopes it to the caller's org.
+ * Returns `null` on failure, so the caller can fail closed instead of re-surfacing a dismissal.
+ */
+export async function getSuggestionDecisionKeys(): Promise<Set<string> | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('rule_suggestion_decision').select('suggestion_key');
+  if (error) {
+    console.error('getSuggestionDecisionKeys failed:', error.message);
+    return null;
+  }
+  return new Set(
+    ((data as { suggestion_key: string }[] | null) ?? []).map((row) => row.suggestion_key),
+  );
+}

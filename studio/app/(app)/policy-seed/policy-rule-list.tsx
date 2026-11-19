@@ -15,6 +15,7 @@ const ORIGIN_LABEL: Record<NewPolicyRule['origin'], string> = {
   standard: 'Seeded from a standard',
   baseline: 'Always-on safety baseline',
   custom: 'Added by your team',
+  suggested: 'Suggested from your usage', // reserved by the rule-format spec; ADR-0025
 };
 
 export default function PolicyRuleList({ rules }: { rules: NewPolicyRule[] }) {

@@ -4,11 +4,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // database. Every query-builder method returns the builder, and the builder is thenable:
 // awaiting any chain resolves to whatever mockResult() returns ({ data, error }).
 const mockResult = vi.fn();
+// Records the rows passed to .insert(), so a test can check exactly what is written.
+const inserted: unknown[] = [];
 
 vi.mock('@/lib/data/supabase/server', () => {
   const builder: Record<string, unknown> = {};
   for (const m of ['select', 'insert', 'update', 'eq', 'order', 'maybeSingle', 'single']) {
-    builder[m] = () => builder;
+    builder[m] = (...args: unknown[]) => {
+      if (m === 'insert') inserted.push(args[0]);
+      return builder;
+    };
   }
   builder.then = (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
     Promise.resolve(mockResult()).then(resolve, reject);
@@ -48,6 +53,7 @@ const ruleRow = {
   is_baseline_safety: true,
   needs_review: false,
   source_question: 'Q1',
+  suggestion_key: null,
   created_at: '2026-11-13T00:00:00Z',
 };
 
@@ -61,6 +67,7 @@ const responseRow = {
 
 beforeEach(() => {
   mockResult.mockReset();
+  inserted.length = 0;
 });
 
 describe('mappers', () => {
@@ -87,8 +94,20 @@ describe('mappers', () => {
       isBaselineSafety: true,
       needsReview: false,
       sourceQuestion: 'Q1',
+      suggestionKey: null,
       createdAt: '2026-11-13T00:00:00Z',
     });
+  });
+
+  it('mapPolicyRuleRow carries the suggestion key of an accepted suggestion (ADR-0025)', () => {
+    const mapped = mapPolicyRuleRow({
+      ...ruleRow,
+      origin: 'suggested',
+      is_baseline_safety: false,
+      suggestion_key: 'risky:medical',
+    });
+    expect(mapped.origin).toBe('suggested');
+    expect(mapped.suggestionKey).toBe('risky:medical');
   });
 
   it('mapPolicySeedResponseRow maps fields and keeps answers jsonb', () => {
@@ -155,6 +174,25 @@ describe('insertPolicyRules', () => {
       { ruleText: 'x', category: 'human-oversight', riskTier: 'all', origin: 'standard' },
     ]);
     expect(ok).toBe(true);
+  });
+
+  it('writes suggestion_key for an accepted suggestion, and null otherwise (ADR-0025)', async () => {
+    mockResult.mockResolvedValue({ error: null });
+    await insertPolicyRules('p1', [
+      { ruleText: 'plain', category: 'human-oversight', riskTier: 'all', origin: 'standard' },
+      {
+        ruleText: 'suggested',
+        category: 'human-oversight',
+        riskTier: 'high',
+        origin: 'suggested',
+        suggestionKey: 'risky:medical',
+      },
+    ]);
+    const rows = inserted.at(-1) as { origin: string; suggestion_key: string | null }[];
+    expect(rows.map((r) => [r.origin, r.suggestion_key])).toEqual([
+      ['standard', null],
+      ['suggested', 'risky:medical'],
+    ]);
   });
 
   it('returns false on error', async () => {

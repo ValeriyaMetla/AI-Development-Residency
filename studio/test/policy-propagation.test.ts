@@ -64,6 +64,7 @@ vi.mock('@/lib/data/policy', () => ({
         isBaselineSafety: r.isBaselineSafety ?? false,
         needsReview: r.needsReview ?? false,
         sourceQuestion: r.sourceQuestion ?? null,
+        suggestionKey: r.suggestionKey ?? null,
         createdAt: '2026-11-18',
       });
     }

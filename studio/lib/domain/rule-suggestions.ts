@@ -1,4 +1,5 @@
 import type { SignalEvent } from '@/lib/data/suggestions';
+import type { StandardsByCode } from '@/lib/domain/policy-generator';
 
 /**
  * Rule suggestions — PURE logic (Domain layer, ADR-0003 / ADR-0025; spec:
@@ -8,7 +9,7 @@ import type { SignalEvent } from '@/lib/data/suggestions';
  *
  * This module grows across the feature's cards:
  *   - Detect recurring patterns (this card): signal keys -> distinct-run counts -> threshold.
- *   - Surface candidate suggestions (dedup): catalog wording + recorded-decision dedup (next card).
+ *   - Surface candidate suggestions (dedup): catalog wording + coverage dedup.
  *
  * Output carries counts only — never run content and never who ran a task.
  */
@@ -79,4 +80,133 @@ export function detectPatterns(events: SignalEvent[], now: Date): PatternCandida
     .filter(([, runs]) => runs.size >= SUGGESTION_MIN_RUNS)
     .map(([key, runs]) => ({ key, count: runs.size, windowDays: SUGGESTION_WINDOW_DAYS }))
     .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Surfacing (card: "Surface candidate rule suggestions (dedup)") — spec §5–§6, ADR-0025 §3–§4.
+// ---------------------------------------------------------------------------------------------
+
+/** One catalog entry: the pre-written rule a key proposes, and the standard that grounds it. */
+export type SuggestionCatalogEntry = {
+  /** Plain-language rule, in the rule-format house style (one sentence, first person). */
+  ruleText: string;
+  /** The seeded `standard_rule` code it cites — the citation is resolved, never generated. */
+  standardCode: string;
+  /** Plain name of the recurring use type, for the count-only evidence line. */
+  useLabel: string;
+};
+
+/**
+ * The suggestion catalog (spec §5). Only these keys can ever be surfaced. Deliberately absent:
+ * `risky:ranking-people` (already prohibited by a locked baseline rule — a coaching signal, not a
+ * missing rule) and `pii:email` / `pii:phone` (routine contact details, already stripped + flagged).
+ */
+export const SUGGESTION_CATALOG: Readonly<Record<string, SuggestionCatalogEntry>> = {
+  'risky:medical': {
+    ruleText:
+      "We don't use AI to give medical advice, and a person checks any health-related draft before it is used.",
+    standardCode: 'euaiact-human-override',
+    useLabel: 'Health-related tasks',
+  },
+  'risky:legal': {
+    ruleText:
+      "We don't use AI to give legal advice, and a person checks any legal-related draft before it is used.",
+    standardCode: 'euaiact-human-override',
+    useLabel: 'Legal-related tasks',
+  },
+  'risky:benefits-housing': {
+    ruleText:
+      "A person decides anything about someone's housing, benefits, or immigration situation, and AI only helps with drafting.",
+    standardCode: 'euaiact-human-override',
+    useLabel: 'Housing, benefits, or immigration tasks',
+  },
+  'risky:safety-crisis': {
+    ruleText:
+      "When a task involves someone's safety or a crisis, a person handles it directly and AI is not used to respond.",
+    standardCode: 'euaiact-human-override',
+    useLabel: 'Safety or crisis tasks',
+  },
+  'risky:decision-about-person': {
+    ruleText:
+      'A person makes every hiring, admission, or eligibility decision, and AI only helps prepare supporting material.',
+    standardCode: 'euaiact-human-override',
+    useLabel: 'Decisions about a specific person',
+  },
+  'pii:us_ssn': {
+    ruleText: 'We never put Social Security numbers into AI tools.',
+    standardCode: 'iso42001-data-governance',
+    useLabel: 'Social Security numbers in task input',
+  },
+  'pii:credit_card': {
+    ruleText: 'We never put payment card numbers into AI tools.',
+    standardCode: 'iso42001-data-governance',
+    useLabel: 'Payment card numbers in task input',
+  },
+};
+
+/** A surfaced, net-new rule suggestion — ready for the leader to review (card 4). */
+export type RuleSuggestion = {
+  key: string;
+  ruleText: string;
+  standardRuleId: string;
+  citation: string;
+  category: string;
+  riskTier: string;
+  /** Count-only evidence: how many distinct runs, over how many days. No content, no people. */
+  count: number;
+  windowDays: number;
+  evidenceLabel: string;
+};
+
+/** Plain evidence line, e.g. "Health-related tasks — 4 times in the last 30 days". */
+export function suggestionEvidenceLabel(
+  useLabel: string,
+  count: number,
+  windowDays: number,
+): string {
+  return `${useLabel} — ${count} times in the last ${windowDays} days`;
+}
+
+/** What "already covered" means (ADR-0025 §4, plus the card's check against existing rules). */
+export type CoverageContext = {
+  /** Keys the org has recorded a decision on (accepted or dismissed). */
+  decidedKeys: ReadonlySet<string>;
+  /** Keys carried by rules in the ACTIVE policy (accepted suggestions, origin 'suggested'). */
+  activeRuleKeys: ReadonlySet<string>;
+  /** The standards catalog, by code, for citations. */
+  standardsByCode: StandardsByCode;
+};
+
+/**
+ * Turn pattern candidates into net-new suggestions. A candidate is dropped when:
+ *   - its key is not in the catalog (unknown, or deliberately excluded);
+ *   - it is COVERED — the org recorded a decision on it, or the active policy already has a rule
+ *     accepted from it (this second check also covers an accept whose decision write failed);
+ *   - its grounding standard can't be resolved — a suggestion is never shown without a citation.
+ * Order follows the candidates (most frequent first).
+ */
+export function surfaceSuggestions(
+  candidates: PatternCandidate[],
+  ctx: CoverageContext,
+): RuleSuggestion[] {
+  const out: RuleSuggestion[] = [];
+  for (const c of candidates) {
+    const entry = Object.hasOwn(SUGGESTION_CATALOG, c.key) ? SUGGESTION_CATALOG[c.key] : undefined;
+    if (!entry) continue;
+    if (ctx.decidedKeys.has(c.key) || ctx.activeRuleKeys.has(c.key)) continue;
+    const standard = ctx.standardsByCode.get(entry.standardCode);
+    if (!standard) continue;
+    out.push({
+      key: c.key,
+      ruleText: entry.ruleText,
+      standardRuleId: standard.id,
+      citation: standard.citation,
+      category: standard.category,
+      riskTier: standard.riskTier,
+      count: c.count,
+      windowDays: c.windowDays,
+      evidenceLabel: suggestionEvidenceLabel(entry.useLabel, c.count, c.windowDays),
+    });
+  }
+  return out;
 }

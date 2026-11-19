@@ -21,6 +21,7 @@ function rule(partial: Partial<PolicyRule> & { id: string; ruleText: string }): 
     isBaselineSafety: partial.isBaselineSafety ?? false,
     needsReview: partial.needsReview ?? false,
     sourceQuestion: partial.sourceQuestion ?? null,
+    suggestionKey: partial.suggestionKey ?? null,
     createdAt: '2026-01-01',
   };
 }

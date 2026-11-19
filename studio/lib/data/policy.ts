@@ -11,7 +11,7 @@ import { createClient } from '@/lib/data/supabase/server';
  */
 
 export type PolicyStatus = 'draft' | 'active' | 'archived';
-export type PolicyRuleOrigin = 'standard' | 'baseline' | 'custom';
+export type PolicyRuleOrigin = 'standard' | 'baseline' | 'custom' | 'suggested';
 
 export type Policy = {
   id: string;
@@ -33,6 +33,8 @@ export type PolicyRule = {
   isBaselineSafety: boolean;
   needsReview: boolean;
   sourceQuestion: string | null;
+  /** For origin 'suggested': the rule-suggestion key it was accepted from (ADR-0025). */
+  suggestionKey: string | null;
   createdAt: string;
 };
 
@@ -64,6 +66,7 @@ type PolicyRuleRow = {
   is_baseline_safety: boolean;
   needs_review: boolean;
   source_question: string | null;
+  suggestion_key: string | null;
   created_at: string;
 };
 
@@ -77,7 +80,7 @@ type PolicySeedResponseRow = {
 
 const POLICY_COLUMNS = 'id, org_id, name, status, created_at';
 const POLICY_RULE_COLUMNS =
-  'id, policy_id, rule_text, standard_rule_id, citation, category, risk_tier, origin, is_baseline_safety, needs_review, source_question, created_at';
+  'id, policy_id, rule_text, standard_rule_id, citation, category, risk_tier, origin, is_baseline_safety, needs_review, source_question, suggestion_key, created_at';
 
 // --- Pure mappers (snake_case -> camelCase), kept separate so they are unit-testable ---
 
@@ -104,6 +107,7 @@ export function mapPolicyRuleRow(row: PolicyRuleRow): PolicyRule {
     isBaselineSafety: row.is_baseline_safety,
     needsReview: row.needs_review,
     sourceQuestion: row.source_question,
+    suggestionKey: row.suggestion_key ?? null,
     createdAt: row.created_at,
   };
 }
@@ -186,6 +190,8 @@ export type NewPolicyRule = {
   isBaselineSafety?: boolean;
   needsReview?: boolean;
   sourceQuestion?: string | null;
+  /** Set only for an accepted rule suggestion (origin 'suggested', ADR-0025). */
+  suggestionKey?: string | null;
 };
 
 /** Bulk-insert a policy's rules. Returns true on success, false on error. */
@@ -207,6 +213,7 @@ export async function insertPolicyRules(
       is_baseline_safety: r.isBaselineSafety ?? false,
       needs_review: r.needsReview ?? false,
       source_question: r.sourceQuestion ?? null,
+      suggestion_key: r.suggestionKey ?? null,
     })),
   );
   if (error) {

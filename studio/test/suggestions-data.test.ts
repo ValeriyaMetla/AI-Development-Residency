@@ -30,6 +30,7 @@ vi.mock('@/lib/data/supabase/server', () => {
 
 import {
   getSuggestionSignalsSince,
+  getSuggestionDecisionKeys,
   mapSignalEventRow,
   SIGNAL_EVENT_TYPES,
 } from '@/lib/data/suggestions';
@@ -96,5 +97,29 @@ describe('getSuggestionSignalsSince', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mockResult.mockReturnValue({ data: null, error: { message: 'boom' } });
     expect(await getSuggestionSignalsSince('2026-10-19T00:00:00Z')).toBeNull();
+  });
+});
+
+describe('getSuggestionDecisionKeys', () => {
+  it('reads only the suggestion key from the decision table and returns a set', async () => {
+    mockResult.mockReturnValue({
+      data: [{ suggestion_key: 'risky:medical' }, { suggestion_key: 'pii:us_ssn' }],
+      error: null,
+    });
+    const res = await getSuggestionDecisionKeys();
+    expect(res).toEqual(new Set(['risky:medical', 'pii:us_ssn']));
+    expect(calls.find((c) => c.method === 'from')?.args).toEqual(['rule_suggestion_decision']);
+    expect(calls.find((c) => c.method === 'select')?.args).toEqual(['suggestion_key']); // never who decided
+  });
+
+  it('returns an empty set when nothing has been decided', async () => {
+    mockResult.mockReturnValue({ data: null, error: null });
+    expect(await getSuggestionDecisionKeys()).toEqual(new Set());
+  });
+
+  it('returns null on error, so the caller can fail closed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockResult.mockReturnValue({ data: null, error: { message: 'boom' } });
+    expect(await getSuggestionDecisionKeys()).toBeNull();
   });
 });
