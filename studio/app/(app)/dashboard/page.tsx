@@ -4,11 +4,14 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import NextLink from 'next/link';
+import { redirect } from 'next/navigation';
 import { getMyProfile } from '@/lib/data/profile';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getActivePolicy } from '@/lib/data/policy';
-import { getMyRunEntries, type MyRunEntry } from '@/lib/data/usage';
+import { countOrgRuns, getMyRunEntries, type MyRunEntry } from '@/lib/data/usage';
+import { hasSkippedSetupThisSession } from '@/lib/data/setup-skip';
 import { outcomeLabel } from '@/lib/domain/usage';
+import { setupProgress, shouldRouteToSetup } from '@/lib/domain/setup';
 
 /**
  * Home (Presentation layer, ADR-0003). Renders inside the shared app shell
@@ -27,6 +30,31 @@ export default async function DashboardPage() {
   const role = profile?.role;
   const isLeader = role === 'accountable_leader';
   const isDoer = role === 'frontline_doer';
+
+  // First-run routing (Epic 8, Lane D): a leader with unfinished setup is sent to /setup, unless
+  // they chose "Skip for now" this browser session. Signup and login both land here, so this one
+  // check covers first sign-up and later logins. The decision is the Domain's (shouldRouteToSetup);
+  // a failed run-count read (null) never redirects.
+  if (isLeader) {
+    const runCount = await countOrgRuns();
+    const progress =
+      runCount === null
+        ? null
+        : setupProgress({
+            orgName: profile?.org?.name ?? null,
+            hasActivePolicy: activePolicy !== null,
+            runCount,
+          });
+    if (
+      shouldRouteToSetup({
+        role,
+        progress,
+        skippedThisSession: await hasSkippedSetupThisSession(),
+      })
+    ) {
+      redirect('/setup');
+    }
+  }
 
   // Recent-activity feed is a Doer card (Chunk 3 wire-up): fetch only for a Doer, and only the few
   // most recent. getMyRunEntries is Lane B's existing read accessor (run_by = me, non-sensitive);
