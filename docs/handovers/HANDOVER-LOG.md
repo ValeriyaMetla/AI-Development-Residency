@@ -19,6 +19,19 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane B · worktree `lane-b-landing-how-it-works` / branch
+  `worktree-lane-b-landing-how-it-works`] — **Landing page build-out started.** Lane B's Registry
+  chunk (Chunk 3) is DONE on `main` (correction flow ADR-0021 `538d78b`, recent-activity wire-up
+  `1f8f897`). New Lane B work = finish the **public landing page**, 7-section outline (hero →
+  how-it-works → safety net → who-it's-for → standards → free safety net → final CTA); hero (§1) was
+  already on `main` (`5796386`). Did: **§2 "How it works"** — `app/components/landing/how-it-works.tsx`
+  + wired into `app/page.tsx`; 3-step accessible section (ordered list, per-step headings, decorative
+  badge), copy limited to Release-1b claims; `npm run verify` green; live-checked desktop + mobile.
+  **Committing now** (Val, GitHub Desktop, on the worktree branch → PR → `main`). In progress: none.
+  Next: §3 "The safety net", then §4–§7, **one section at a time, copy drafted for approval BEFORE
+  building**. Parked: Lane B's "by staff" usage breakdown — still blocked on Lane A widening the
+  `profile` RLS (low value in one-user-one-org MVP). Worktree gotchas: run `npm ci` and copy
+  `studio/.env.local` from the primary checkout into the worktree before the dev server will boot.
 - 2026-11-18 — [Claude Code · Lane A spine · main] — **Risk-3 resolved (ADR-0027).** Did: the pipeline
   now tells a policy-rules READ FAILURE from an empty policy (`getPolicyRulesOrNull`); on failure it
   still runs on baseline, but the rule-check records a disclosure **flag** → `needs_review` via the
