@@ -46,3 +46,5 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0021](0021-run-correction-flow.md) — Entry correction is an additive, append-only annotation on a run — never an edit of the original record
 - [ADR-0022](0022-reviewer-edit-and-provenance.md) — A reviewer may edit a flagged draft; edits append a new output version and provenance reflects human involvement (supersedes ADR-0020's no-edit scope)
 - [ADR-0023](0023-free-tier-safety-and-capacity-only-premium.md) — Free = full safety net + oversight tools; premium = capacity only; no plan state can disable a safety step (Epic 8 / Lane D free-tier line + never-disable invariant + cost-payer attribute for future BYOK)
+- [ADR-0024](0024-policy-editing-is-versioned.md) — Editing a policy publishes a new version; rules are never mutated in place (baseline rules locked)
+- [ADR-0025](0025-rule-suggestions-from-registry.md) — Rule suggestions are deterministic, read from audit metadata, deduped by a recorded leader decision, and accepted as a new policy version
