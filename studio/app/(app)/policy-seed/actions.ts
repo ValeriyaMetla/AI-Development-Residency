@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getMyProfile } from '@/lib/data/profile';
 import { seedPolicyFromAnswers, type SeedPolicyResult } from '@/lib/domain/policy-seed';
-import { activatePolicy, getActivePolicy, getPolicyRules } from '@/lib/data/policy';
+import { activatePolicy, getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
 import { publishEditedPolicy } from '@/lib/domain/policy-publish';
@@ -88,7 +88,10 @@ export async function publishRuleEdits(input: unknown): Promise<PublishEditsResu
   if (!parsed.ok) return { status: 'blocked', message: parsed.error };
 
   // Authoritative current rules — never trust a client-sent ruleset; apply the diff to these.
-  const current = await getPolicyRules(active.id);
+  const current = await getPolicyRulesOrNull(active.id);
+  if (current === null) {
+    return { status: 'failed', message: 'Could not load your current rules. Nothing was changed.' };
+  }
 
   const result = await publishEditedPolicy({
     orgId,

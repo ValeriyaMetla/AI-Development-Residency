@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getMyProfile } from '@/lib/data/profile';
-import { getActivePolicy, getPolicyRules } from '@/lib/data/policy';
+import { getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import PolicySeedWizard from './policy-seed-wizard';
 import PolicyRuleList from './policy-rule-list';
 import PolicyEditor from './policy-editor';
@@ -38,7 +38,10 @@ export default async function PolicySeedPage() {
     );
   }
 
-  const [profile, rules] = await Promise.all([getMyProfile(), getPolicyRules(activePolicy.id)]);
+  const [profile, rules] = await Promise.all([
+    getMyProfile(),
+    getPolicyRulesOrNull(activePolicy.id),
+  ]);
   const canEdit = profile?.role === 'accountable_leader';
   // Rule suggestions are a Leader-only view (ADR-0025); the accept/dismiss actions re-check the role.
   const suggestions = canEdit && orgId ? await getRuleSuggestions(orgId) : null;
@@ -72,7 +75,14 @@ export default async function PolicySeedPage() {
         />
       ) : null}
 
-      {rules.length === 0 ? (
+      {rules === null ? (
+        // A failed read must never look like an empty policy, and the editor is hidden so nobody can
+        // publish a new version from a blank screen.
+        <Alert severity="error" role="status">
+          We couldn&apos;t load your rules right now. Nothing has changed — please refresh in a
+          moment.
+        </Alert>
+      ) : rules.length === 0 ? (
         <Alert severity="info">This policy has no rules yet.</Alert>
       ) : canEdit ? (
         <PolicyEditor

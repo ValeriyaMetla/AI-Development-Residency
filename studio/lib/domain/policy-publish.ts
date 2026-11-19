@@ -31,6 +31,13 @@ export async function publishEditedPolicy(params: {
   current: PolicyRule[];
   input: ParsedPolicyEdit;
 }): Promise<PublishEditResult> {
+  // Safety floor: an active policy always carries its baseline rules, so an empty `current` means the
+  // rules could not be read. Publishing from it would create a version WITHOUT the locked baselines
+  // (every caller — the editor and accepting a suggestion — passes through here). Fail closed.
+  if (params.current.length === 0) {
+    return { status: 'failed', message: 'Could not load your current rules. Nothing was changed.' };
+  }
+
   const assembled = assembleEditedRules(params.current, params.input);
   if (!assembled.ok) return { status: 'blocked', message: assembled.error };
 
