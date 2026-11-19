@@ -12,7 +12,7 @@ import { ruleCheck, mostSevere, type GuardrailResult } from '@/lib/domain/guardr
 import { withPolicyContext } from '@/lib/domain/policy-context';
 import { getSkillDef } from '@/lib/domain/skills';
 import { redactPii, piiSummary, type PiiFinding, type PiiCategory } from '@/lib/domain/pii';
-import { riskyUseFinding } from '@/lib/domain/risky-use';
+import { riskyUseFinding, detectRiskyUse } from '@/lib/domain/risky-use';
 import { AI_PROVENANCE } from '@/lib/domain/provenance';
 import {
   buildCritiquePrompt,
@@ -145,7 +145,9 @@ export async function runGovernedSkill(params: {
       taskRunId,
       actor: userId,
       eventType: 'risky_use_flagged',
-      payload: {}, // the fact only — no sensitive content (ADR-6)
+      // Pattern ids only (e.g. 'medical') — never the input text (ADR-6). Read by rule suggestions
+      // to spot recurring use types (ADR-0025).
+      payload: { patterns: detectRiskyUse(userInput).map((f) => f.id) },
     });
   }
 

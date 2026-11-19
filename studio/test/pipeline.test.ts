@@ -242,6 +242,11 @@ describe('Risky-use flagging (Epic 5)', () => {
       .mocked(saveGuardrailCheck)
       .mock.calls.find((c) => c[0].checkType === 'risky_use');
     expect(check?.[0].result).toBe('flag');
+    // The audit event carries the pattern ids (never the input text) for rule suggestions (ADR-0025).
+    const event = vi
+      .mocked(writeAuditEvent)
+      .mock.calls.find((c) => c[0].eventType === 'risky_use_flagged');
+    expect(event?.[0].payload).toEqual({ patterns: ['decision-about-person'] });
   });
 
   it('a routine task is not risk-flagged', async () => {
