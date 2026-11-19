@@ -163,7 +163,7 @@ begin
     );
   end loop;
 
-  -- History: do all EXISTING entries already use the 11 known kinds? (Try to validate the
+  -- History: do all EXISTING entries already use the known kinds? (Try to validate the
   -- constraint inside a savepoint, then undo — this decides whether it can later be validated.)
   v_n := v_n + 1;
   begin
@@ -172,11 +172,11 @@ begin
   exception
     when sqlstate 'P0001' then
       insert into audit_check_results values (v_n, 'history',
-        'Existing entries all use the 11 known kinds', 'yes', 'YES',
+        'Existing entries all use the known kinds', 'yes', 'YES',
         'Safe to validate the constraint for old entries too (optional follow-up).');
     when others then
       insert into audit_check_results values (v_n, 'history',
-        'Existing entries all use the 11 known kinds', 'yes', 'NO',
+        'Existing entries all use the known kinds', 'yes', 'NO',
         sqlstate || ': ' || sqlerrm || ' — leave the constraint NOT VALID; report this.');
   end;
 

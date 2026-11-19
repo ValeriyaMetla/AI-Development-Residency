@@ -25,6 +25,8 @@ export const AUDIT_EVENT_TYPES = [
   'copilot_assessed',
   'policy_seeded',
   'policy_edited',
+  'rule_suggestion_accepted',
+  'rule_suggestion_dismissed',
 ] as const;
 
 export type AuditEventType = (typeof AUDIT_EVENT_TYPES)[number];

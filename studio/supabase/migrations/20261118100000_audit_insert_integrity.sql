@@ -8,7 +8,7 @@
 --
 --   1. The database stamps id + created_at: app users may insert only the other columns.
 --   2. actor must be the signed-in user; task_run_id must be blank or a run in the caller's org.
---   3. event_type must be one of the 11 known kinds (new rows only — history is not rewritten).
+--   3. event_type must be one of the 13 known kinds (new rows only — history is not rewritten).
 --   4. Same id + created_at protection for approval and run_correction (ADR-0020 / ADR-0021).
 --
 -- REFUSE, never silently correct: a write that supplies a forbidden column or value fails
@@ -79,6 +79,8 @@ alter table public.audit_event
       'task_run_corrected',
       'copilot_assessed',
       'policy_seeded',
-      'policy_edited'
+      'policy_edited',
+      'rule_suggestion_accepted',
+      'rule_suggestion_dismissed'
     )
   ) not valid;
