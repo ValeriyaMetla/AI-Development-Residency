@@ -129,11 +129,11 @@ guardrails never read entitlement.
 
 **Coach (Epic #6):**
 
-5. ⬜ `Build in-task coaching (guide, not scold)` — [Must]
-6. ⬜ `Offer concrete safer alternatives in the moment` — [Must]
-7. ⬜ `Apply the safer way on accept` — [Must]
-8. ⬜ `Add dismiss / no-nag behavior` — [Must]
-9. ⬜ `Make the governed option the default low-friction path` — [Should]
+5. ✅ `Build in-task coaching (guide, not scold)` — [Must] — live `info`-tone nudge on the risky-use signal in the runner; pure `lib/domain/coaching.ts`, no model call
+6. ✅ `Offer concrete safer alternatives in the moment` — [Must] — a per-pattern safer rewrite (or, for a safety/crisis, "bring in a person" with no AI rewrite)
+7. ✅ `Apply the safer way on accept` — [Must] — "Use the safer way" rewrites the input to a safe task (tested: the rewrite no longer trips any risk pattern)
+8. ✅ `Add dismiss / no-nag behavior` — [Must] — Dismiss hides a nudge and it doesn't reappear for that pattern this session
+9. ⬜ `Make the governed option the default low-friction path` — [Should] — *(partly served: the safer way is one prominent click; not a dedicated build)*
 
 **Onboard + free tier (Epic #8):**
 
@@ -161,7 +161,7 @@ answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specce
 
 ## Totals
 
-52 tickets — **33 built**, **1 in progress (manual)**, **14 specced**, **4 new/backlog**.
+52 tickets — **37 built**, **1 in progress (manual)**, **10 specced**, **4 new/backlog**.
 
 | Chunk | Tickets | Built | In progress | Specced | New |
 | --- | --- | --- | --- | --- | --- |
@@ -169,9 +169,9 @@ answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specce
 | 2 — Safety net | 10 | 10 | 0 | 0 | 0 |
 | 3 — Registry view | 4 | 4 | 0 | 0 | 0 |
 | 4 — Living policy | 10 | 6 | 1 | 3 | 0 |
-| 5 — Coach / Report / Onboard | 15 | 4 | 0 | 11 | 0 |
+| 5 — Coach / Report / Onboard | 15 | 8 | 0 | 7 | 0 |
 | (un-chunked) — Co-Pilot "Not sure" | 4 | 0 | 0 | 0 | 4 |
-| **Total** | **52** | **33** | **1** | **14** | **4** |
+| **Total** | **52** | **37** | **1** | **10** | **4** |
 
 **Next in Lane C (Report / Epic #7):** apply the ADR-0026 migration in Supabase + run the check
 (Val), then **build card 1** (`/report` audit trail), then spec + build cards 3 (export) and 4

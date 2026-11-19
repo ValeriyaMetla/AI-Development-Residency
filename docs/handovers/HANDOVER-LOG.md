@@ -19,6 +19,18 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine · main] — **Coaching (Epic 6) — 4 Must cards Done.** Did:
+  pure `lib/domain/coaching.ts` turns the existing risky-use signal into an in-the-moment nudge
+  (guide-not-scold `info` tone), with a per-pattern **safer rewrite** the Doer can apply ("Use the
+  safer way" rewrites the input to a safe task) or **dismiss** (no-nag this session); a safety/crisis
+  pattern offers no AI rewrite and points to a person instead. Wired live into the `/skills` runner
+  (mirrors the live PII warning). Cards done: *Build in-task coaching (guide, not scold)*, *Offer
+  concrete safer alternatives in the moment*, *Apply the safer way on accept*, *Add dismiss/no-nag*.
+  Card *Make the governed option the default low-friction path* [Should] left (partly served). Tests
+  (`coaching.test.ts`, 4 — incl. the guarantee that each rewrite no longer trips any risk pattern).
+  `npm run verify` green (build, arch-gate, tests). **No migration, no ADR** (migration-free UI/domain
+  feature). **Uncommitted — code via PR** (`coaching.ts`, `skill-runner.tsx`, test); this log + outline
+  are docs. Next: Chunk 4 tail, or Report (Epic 7, Lane C).
 - 2026-11-18 — [Claude Code · Lane A spine · main] — **Risk-3 resolved (ADR-0027).** Did: the pipeline
   now tells a policy-rules READ FAILURE from an empty policy (`getPolicyRulesOrNull`); on failure it
   still runs on baseline, but the rule-check records a disclosure **flag** → `needs_review` via the
