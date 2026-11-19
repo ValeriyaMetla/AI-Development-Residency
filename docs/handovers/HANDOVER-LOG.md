@@ -19,6 +19,19 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine · main] — **Chunk 4 rule suggestions — all 4 cards Done.**
+  Did: spec `docs/specs/epic-1-rule-suggestion-logic.md` + ADR-0025 (`c59a1ac`); detect (`5b15b9b` —
+  pipeline now logs risky-use pattern ids in the audit payload); surface + dedup (`4a8c2d4` — migration
+  `20261118050000_rule_suggestions.sql`: `suggested` origin, `policy_rule.suggestion_key`, append-only
+  `rule_suggestion_decision`); accept/dismiss flow (`b65da4b` — leader-only section on `/policy-seed`,
+  accept re-derives server-side and publishes a new version via ADR-0024). Migration now RUN in
+  Supabase (verified: rules load again). ⚠️ Lesson: card 3 reached `main` before the migration ran →
+  rule reads failed silently ("no rules yet") until it did; run migrations BEFORE pushing code that
+  reads new columns. In progress: none. Next: (1) manual keyboard/screen-reader pass on a real
+  suggestion once 3+ runs of a pattern exist (counted from `5b15b9b` on); (2) new cards for two
+  pre-existing risks — `getPolicyRules` returns `[]` on error so the page shows "no rules yet", and
+  `publishRuleEdits` could publish without baselines if that read fails (accept is already guarded);
+  (3) optional: seed Q6 "myself" wording in a locked rule. Cards 2–4 went straight to `main` (no PR).
 - 2026-11-18 — [Claude Code · Lane A spine · main] — **Chunk 4 verify cards.** Did: "Verify a rule
   change propagates" — `studio/test/policy-propagation.test.ts` (6 tests; real edit → publish →
   next-run path over an in-memory policy store; mutation-checked; `npm run verify` green) pushed to
