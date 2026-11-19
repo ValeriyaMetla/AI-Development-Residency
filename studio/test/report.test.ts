@@ -4,6 +4,8 @@ import {
   actorLabel,
   detectRunGaps,
   eventWording,
+  extractDetail,
+  isActorMe,
   OTHER_EVENT_WORDING,
   RUN_GAP_MARKER,
   type AuditDetail,
@@ -94,6 +96,12 @@ describe('actorLabel — no names in 1b (card 1 Q1)', () => {
     expect(actorLabel('you')).toBe('You');
     expect(actorLabel('other')).toBe('Another team member');
   });
+
+  it('isActorMe is true only for my own id, never for a removed (null) actor', () => {
+    expect(isActorMe('user-1', 'user-1')).toBe(true);
+    expect(isActorMe('user-2', 'user-1')).toBe(false);
+    expect(isActorMe(null, 'user-1')).toBe(false);
+  });
 });
 
 describe('detectRunGaps — gaps are visible, not invented (US5)', () => {
@@ -127,6 +135,70 @@ describe('detectRunGaps — gaps are visible, not invented (US5)', () => {
       [{ type: 'task_completed', taskRunId: null }],
     );
     expect(gaps.has('r-missing')).toBe(true);
+  });
+});
+
+describe('counter-metric — no content ever reaches the trail (card 1)', () => {
+  // A payload stuffed with sensitive content under both plausible and junk keys. Only the
+  // allow-listed keys (categories, kind, verdict, tier, ruleCount) carry benign values.
+  const SECRET = 'John Doe — SSN 123-45-6789 — the draft text the AI wrote — private note body';
+  const hostilePayload: Record<string, unknown> = {
+    inputText: SECRET,
+    input_summary: SECRET,
+    draft: SECRET,
+    output: SECRET,
+    note: SECRET,
+    noteText: SECRET,
+    content: SECRET,
+    reason: SECRET,
+    patterns: [SECRET],
+    categories: ['email', 'phone'],
+    kind: 'note',
+    verdict: 'Allowed',
+    tier: 'Low',
+    ruleCount: 3,
+  };
+
+  it('extractDetail drops every non-allow-listed field, for every known kind', () => {
+    for (const type of AUDIT_EVENT_TYPES) {
+      const detail = extractDetail(type, hostilePayload, {
+        edited: true,
+        runStatus: 'needs_review',
+      });
+      const serialized = JSON.stringify(detail);
+      expect(serialized, `kind "${type}" leaked content into detail`).not.toContain(SECRET);
+      // And the rendered line never contains it either.
+      expect(
+        eventWording({ type, detail }),
+        `kind "${type}" leaked content into wording`,
+      ).not.toContain(SECRET);
+    }
+  });
+
+  it('an unknown kind carries no detail and no content', () => {
+    const detail = extractDetail('future_kind', hostilePayload);
+    expect(JSON.stringify(detail)).toBe('{}');
+    expect(eventWording({ type: 'future_kind', detail })).toBe(OTHER_EVENT_WORDING);
+  });
+
+  it('only the allow-listed detail keys are ever populated', () => {
+    const allowed = new Set([
+      'categories',
+      'outcome',
+      'edited',
+      'correctionKind',
+      'verdict',
+      'riskTier',
+      'ruleCount',
+    ]);
+    for (const type of AUDIT_EVENT_TYPES) {
+      const detail = extractDetail(type, hostilePayload, { edited: false, runStatus: 'completed' });
+      for (const key of Object.keys(detail)) {
+        expect(allowed.has(key), `kind "${type}" produced unexpected detail key "${key}"`).toBe(
+          true,
+        );
+      }
+    }
   });
 });
 
