@@ -21,6 +21,9 @@ export const NAV_ITEMS: NavItem[] = [
   // Administering the policy is a Leader action; a Doer sees the rules that apply in-context in the
   // runner, not as a top nav item (Epic 3 role-aware card). Route-guard authorization is separate.
   { label: 'Your rules', href: '/policy-seed', leaderOnly: true },
+  // Audit trail (funder-ready proof, Epic #7). Leader-only — the full org record is a leadership
+  // artifact; a Doer sees only their own activity under Usage. The page re-checks the role server-side.
+  { label: 'Report', href: '/report', leaderOnly: true },
 ];
 
 /**

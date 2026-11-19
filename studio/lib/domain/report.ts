@@ -66,6 +66,15 @@ export function actorLabel(actor: TrailActor): string {
   return actor === 'you' ? 'You' : 'Another team member';
 }
 
+/**
+ * Whether an event's `actor` is the signed-in user. A null actor (the account was removed —
+ * `audit_event.actor` is `on delete set null`) is never "me". The rule lives here so the you/other
+ * decision is one tested policy, not scattered across the reader.
+ */
+export function isActorMe(actor: string | null, me: string): boolean {
+  return actor != null && actor === me;
+}
+
 function plural(n: number, word: string): string {
   return `${n} ${n === 1 ? word : `${word}s`}`;
 }
@@ -111,6 +120,54 @@ const WORDING: Record<AuditEventType, (d: AuditDetail) => string> = {
 /** The plain-language line for an event; unknown kinds fall back to "Other recorded event". */
 export function eventWording(record: Pick<AuditRecord, 'type' | 'detail'>): string {
   return isAuditEventType(record.type) ? WORDING[record.type](record.detail) : OTHER_EVENT_WORDING;
+}
+
+/** Non-sensitive string array (e.g. PII category names) from an untyped payload value. */
+function stringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items = value.filter((v): v is string => typeof v === 'string');
+  return items.length ? items : undefined;
+}
+
+function stringField(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function numberField(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+/**
+ * The allow-listed detail for one event, extracted from its raw payload: the ONLY payload fields that
+ * may reach the screen. Any other stored field — input text, a draft, a note's text — is ignored, so
+ * content can never leak through the trail (card non-goal "No content, ever"). Pure, so that
+ * guarantee is testable without the database (see the counter-metric test in report.test.ts).
+ */
+export function extractDetail(
+  type: string,
+  payload: Record<string, unknown>,
+  context: { edited?: boolean; runStatus?: string | null } = {},
+): AuditDetail {
+  switch (type) {
+    case 'pii_stripped':
+    case 'pii_kept':
+      return { categories: stringArray(payload.categories) };
+    case 'task_completed':
+      return { outcome: context.runStatus === 'needs_review' ? 'needs_review' : 'completed' };
+    case 'task_approved':
+      return { edited: context.edited ?? false };
+    case 'task_run_corrected': {
+      const kind = stringField(payload.kind);
+      return { correctionKind: kind === 'note' ? 'note' : 'correction' };
+    }
+    case 'copilot_assessed':
+      return { verdict: stringField(payload.verdict), riskTier: stringField(payload.tier) };
+    case 'policy_seeded':
+    case 'policy_edited':
+      return { ruleCount: numberField(payload.ruleCount) };
+    default:
+      return {};
+  }
 }
 
 /** A run reduced to what gap detection needs (never any content). */
