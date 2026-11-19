@@ -140,8 +140,11 @@ export async function getActivePolicy(orgId: string): Promise<Policy | null> {
   return data ? mapPolicyRow(data as PolicyRow) : null;
 }
 
-/** A policy's rules, ordered by creation. Returns [] on error (ADR-14). */
-export async function getPolicyRules(policyId: string): Promise<PolicyRule[]> {
+/**
+ * A policy's rules, ordered by creation — or `null` if they could not be read. Use this where
+ * "couldn't load" must not be mistaken for "no rules" (showing the rule editor, publishing a version).
+ */
+export async function getPolicyRulesOrNull(policyId: string): Promise<PolicyRule[] | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('policy_rule')
@@ -150,9 +153,14 @@ export async function getPolicyRules(policyId: string): Promise<PolicyRule[]> {
     .order('created_at');
   if (error) {
     console.error('getPolicyRules failed:', error.message);
-    return [];
+    return null;
   }
   return ((data as PolicyRuleRow[] | null) ?? []).map(mapPolicyRuleRow);
+}
+
+/** A policy's rules, ordered by creation. Returns [] on error (ADR-14 graceful degradation). */
+export async function getPolicyRules(policyId: string): Promise<PolicyRule[]> {
+  return (await getPolicyRulesOrNull(policyId)) ?? [];
 }
 
 // --- Writes ----------------------------------------------------------------

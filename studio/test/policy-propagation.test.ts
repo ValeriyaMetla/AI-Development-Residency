@@ -94,6 +94,10 @@ vi.mock('@/lib/data/runs', () => ({
   saveGuardrailCheck: vi.fn(),
   writeAuditEvent: vi.fn(),
 }));
+// Accept-a-suggestion path (ADR-0025): the surfaced suggestion and the decision write are edges here;
+// the publish + next-run read go through the real code and the in-memory policy store.
+vi.mock('@/lib/domain/rule-suggestion-service', () => ({ getRuleSuggestions: vi.fn() }));
+vi.mock('@/lib/data/suggestions', () => ({ recordSuggestionDecision: vi.fn(async () => true) }));
 
 import { draftWithClaude } from '@/lib/data/claude';
 import { getSkillByKey, createTaskRun } from '@/lib/data/runs';
@@ -107,6 +111,8 @@ import {
 import { runGovernedSkill } from '@/lib/domain/pipeline';
 import { publishEditedPolicy } from '@/lib/domain/policy-publish';
 import type { RuleEdit } from '@/lib/domain/policy-edit';
+import { getRuleSuggestions } from '@/lib/domain/rule-suggestion-service';
+import { acceptSuggestion } from '@/lib/domain/rule-suggestion-decide';
 
 // --- Fixtures --------------------------------------------------------------------------------------
 
@@ -312,5 +318,62 @@ describe('Verify a rule change propagates (Epic 1 · Policy inheritance)', () =>
     expect(draftPrompts.at(-1)).toContain(`- ${PURPOSE}`);
     expect(draftPrompts.at(-1)).not.toContain(edited);
     expect(vi.mocked(createTaskRun).mock.calls.at(-1)?.[0].policyId).toBe(original);
+  });
+});
+
+describe('Build "accept suggested rule" flow — an accepted suggestion applies on the next run', () => {
+  const SUGGESTED_TEXT =
+    'We don’t use AI to give medical advice, and a person checks any health-related draft before it is used.';
+
+  beforeEach(() => {
+    vi.mocked(getRuleSuggestions).mockResolvedValue({
+      status: 'ok',
+      suggestions: [
+        {
+          key: 'risky:medical',
+          ruleText: SUGGESTED_TEXT,
+          standardRuleId: 'sr-override',
+          citation: 'EU AI Act (Reg. (EU) 2024/1689), Article 14 (human oversight)',
+          category: 'human-oversight',
+          riskTier: 'high',
+          count: 4,
+          windowDays: 30,
+          evidenceLabel: 'Health-related tasks — 4 times in the last 30 days',
+        },
+      ],
+    });
+  });
+
+  it('accepting adds the rule to the active policy and grounds the very next governed run', async () => {
+    const original = await seedActivePolicy();
+    await runGovernedSkill(RUN);
+    expect(draftPrompts.at(-1)).not.toContain(SUGGESTED_TEXT);
+
+    const res = await acceptSuggestion({
+      orgId: ORG,
+      userId: 'leader1',
+      suggestionKey: 'risky:medical',
+      ruleText: SUGGESTED_TEXT,
+    });
+    expect(res.status).toBe('accepted');
+    if (res.status !== 'accepted') return;
+
+    await runGovernedSkill(RUN);
+    expect(draftPrompts.at(-1)).toContain(`- ${SUGGESTED_TEXT}`);
+    expect(vi.mocked(createTaskRun).mock.calls.map((c) => c[0].policyId)).toEqual([
+      original,
+      res.policyId,
+    ]);
+
+    // The new version keeps every prior rule and records the suggestion's provenance.
+    const newRules = await getPolicyRules(res.policyId);
+    expect(newRules.map((r) => r.ruleText)).toEqual(
+      expect.arrayContaining(SEED_RULES.map((r) => r.ruleText)),
+    );
+    expect(newRules.find((r) => r.ruleText === SUGGESTED_TEXT)).toMatchObject({
+      origin: 'suggested',
+      suggestionKey: 'risky:medical',
+      citation: 'EU AI Act (Reg. (EU) 2024/1689), Article 14 (human oversight)',
+    });
   });
 });

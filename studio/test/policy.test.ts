@@ -27,6 +27,7 @@ import {
   mapPolicySeedResponseRow,
   getActivePolicy,
   getPolicyRules,
+  getPolicyRulesOrNull,
   createPolicy,
   insertPolicyRules,
   savePolicySeedResponse,
@@ -147,6 +148,23 @@ describe('getPolicyRules', () => {
   it('returns [] on error', async () => {
     mockResult.mockResolvedValue({ data: null, error: { message: 'boom' } });
     expect(await getPolicyRules('p1')).toEqual([]);
+  });
+});
+
+describe('getPolicyRulesOrNull (failed read is NOT an empty policy)', () => {
+  it('returns mapped rules on success', async () => {
+    mockResult.mockResolvedValue({ data: [ruleRow], error: null });
+    expect(await getPolicyRulesOrNull('p1')).toEqual([mapPolicyRuleRow(ruleRow)]);
+  });
+
+  it('returns [] for a policy that genuinely has no rules', async () => {
+    mockResult.mockResolvedValue({ data: [], error: null });
+    expect(await getPolicyRulesOrNull('p1')).toEqual([]);
+  });
+
+  it('returns null on error, so callers can tell "couldn\'t load" from "no rules"', async () => {
+    mockResult.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    expect(await getPolicyRulesOrNull('p1')).toBeNull();
   });
 });
 
