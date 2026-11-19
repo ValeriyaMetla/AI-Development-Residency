@@ -33,6 +33,11 @@ type StepCopy = {
   description: (orgName: string | null) => string;
   /** Where the step happens. The organization step is confirmation only, so it has none. */
   action?: { href: string; label: string };
+  /**
+   * In-product unblock guidance for this step (Epic 8, "Add in-product unblock guidance"): plain,
+   * guide-not-scold help the leader can open in place if they get stuck — no support ticket.
+   */
+  help: string;
 };
 
 const STEP_COPY: Record<SetupStepKey, StepCopy> = {
@@ -42,18 +47,21 @@ const STEP_COPY: Record<SetupStepKey, StepCopy> = {
       orgName
         ? `${orgName} was set up when you signed up. You're its Accountable Leader — the person who sets your AI rules.`
         : "We couldn't load your organization's name just now. You can carry on with the next steps.",
+    help: "There's nothing to fill in here — your organization was created when you signed up. If the name looks wrong, it won't stop you setting up; you can carry straight on to the next step.",
   },
   rules: {
     title: 'Set your AI rules',
     description: () =>
       "Answer a few plain questions about how your organization uses AI. We'll build a starter policy from recognized standards for you to review and turn on. About five minutes.",
     action: { href: '/policy-seed', label: 'Set your AI rules' },
+    help: 'Not sure how to answer? Answer for how your team works today — there are no wrong answers, and you can change any rule later. The starter policy is built from recognized standards, and nothing is shared or active until you review it and turn it on.',
   },
   first_run: {
     title: 'Run your first Skill',
     description: () =>
       'Try the starter Skill, "Draft a thank-you". Every run goes through the safety checks, and you review the draft before you use it.',
     action: { href: '/skills', label: 'Run your first Skill' },
+    help: "It's safe to try — every run goes through the safety checks and you review the draft before using it, so nothing is sent by accident. If a result is held for review, that's the safety net working, not a mistake.",
   },
 };
 
@@ -190,6 +198,27 @@ export default async function SetupPage() {
                   </Button>
                 </Box>
               ) : null}
+
+              {/* In-product unblock help (Epic 8): a native <details> disclosure — keyboard- and
+                  screen-reader-operable with no client JS, so a stuck leader gets an answer in
+                  place, never a dead end or a support ticket. */}
+              <Box
+                component="details"
+                sx={{
+                  '& > summary': {
+                    cursor: 'pointer',
+                    color: 'primary.main',
+                    width: 'fit-content',
+                  },
+                }}
+              >
+                <Typography component="summary" variant="body2">
+                  Stuck on this step?
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {copy.help}
+                </Typography>
+              </Box>
             </Paper>
           );
         })}
