@@ -19,6 +19,17 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-18 — [Claude Code · Lane A spine · main] — **Risk-3 resolved (ADR-0027).** Did: the pipeline
+  now tells a policy-rules READ FAILURE from an empty policy (`getPolicyRulesOrNull`); on failure it
+  still runs on baseline, but the rule-check records a disclosure **flag** → `needs_review` via the
+  approval gate (ADR-0020), and stamps `policyUnavailable` on the audit (chosen **Option A**: degrade
+  + disclose + force review, not block). **No migration.** `pipeline.ts` + 2 new `pipeline.test.ts`
+  tests; fixed `policy-propagation.test.ts`'s mock (it mocked the old `getPolicyRules`). `npm run
+  verify` green (**363 tests**, build, arch-gate). ADR number: used **0027** (next repo file — note
+  the many `ADR-27`/`ADR-0027` code comments mean the *Build-Plan* ADR-27, a separate scheme worth a
+  cleanup). **Uncommitted — code via PR** (`pipeline.ts` + the two tests); ADR-0027 + this log +
+  outline are docs (straight to main). Next: Chunk 4 tail ([Should] expert defaults / org overrides /
+  export) or start Coaching (Epic 6).
 - 2026-11-18 — [Claude Code · Lane A spine · main] — **Chunk 4 rule suggestions — all 4 cards Done.**
   Did: spec `docs/specs/epic-1-rule-suggestion-logic.md` + ADR-0025 (`c59a1ac`); detect (`5b15b9b` —
   pipeline now logs risky-use pattern ids in the audit payload); surface + dedup (`4a8c2d4` — migration

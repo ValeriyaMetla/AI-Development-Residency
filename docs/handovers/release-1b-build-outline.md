@@ -104,11 +104,14 @@ All Musts built except the manual 5-minute verify; the whole rule-suggestions fe
 **Note:** baseline rules are fully **locked** in the editor — stronger than the spec's
 confirm-to-override. Revisit if `Allow org overrides that persist` needs baseline overrides.
 
-**Open decision (Lane A, risk 3):** when an active policy's rules **can't be read**,
-`runGovernedSkill` still runs — ungrounded and silent. The editor side is now fail-closed (`f6e92dd`,
-`getPolicyRulesOrNull`), but the **pipeline run** path is not. Options: (a) proceed on baseline +
-banner + flag the run `needs_review`, or (b) block with "try again". Needs a new ADR + a `pipeline.ts`
-change. Not started.
+**Resolved (Lane A, risk 3) — ADR-0027:** when an active policy's rules **can't be read**,
+`runGovernedSkill` no longer runs ungrounded-and-silent. The pipeline now reads via
+`getPolicyRulesOrNull`, detects a read failure (active policy + null rules), still runs on baseline,
+but the rule-check records a **flag with a plain disclosure** → `needs_review` via the existing
+approval gate (ADR-0020), and stamps `policyUnavailable` on the audit. Chosen **Option A** (degrade +
+disclose + force review) over block. No migration. Tests in `pipeline.test.ts`; `npm run verify`
+green (363 tests). *(A `getActivePolicy` read failure still degrades to the ADR-0018 no-policy banner
+— milder, out of scope here.)*
 
 ## Chunk 5 — Coach / Report / Onboard (Epics #6/#7/#8) — packaging; goes last
 
