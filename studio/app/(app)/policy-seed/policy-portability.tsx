@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import NextLink from 'next/link';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -10,8 +11,9 @@ import Alert from '@mui/material/Alert';
 import { exportPolicy, importPolicy } from './actions';
 
 /**
- * Policy portability (Presentation layer, ADR-0003 / Epic 1 "own your rules"). Leader-only. Export
- * downloads the active policy as a JSON file the org owns; import reads an uploaded file and, after
+ * Policy portability (Presentation layer, ADR-0003 / Epic 1 "own your rules"). Leader-only. The main
+ * download is the readable policy document (/policy-seed/document → Print / Save as PDF); the backup
+ * download is the active policy as a JSON file the org owns; import reads an uploaded file and, after
  * server-side validation, publishes it as a new active version. No governance logic here — both
  * buttons call the Service actions (the Leak Test holds).
  */
@@ -38,7 +40,7 @@ export default function PolicyPortability() {
       a.download = res.filename;
       a.click();
       URL.revokeObjectURL(url);
-      setMsg({ severity: 'success', text: 'Policy exported to a file.' });
+      setMsg({ severity: 'success', text: 'Backup file downloaded.' });
     });
   }
 
@@ -73,8 +75,9 @@ export default function PolicyPortability() {
         Export or import your policy
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Download your rules as a file you own and can take anywhere, or bring a policy in from a
-        file. Importing publishes it as your new active version; your safety rules still apply.
+        Download a readable copy of your policy to share, print, or save as a PDF. The backup file
+        is for moving your rules to another account: importing one publishes it as your new active
+        version, and your safety rules still apply.
       </Typography>
 
       {msg ? (
@@ -84,8 +87,11 @@ export default function PolicyPortability() {
       ) : null}
 
       <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+        <Button variant="contained" component={NextLink} href="/policy-seed/document">
+          Download policy document
+        </Button>
         <Button variant="outlined" onClick={doExport} disabled={isPending}>
-          Download policy
+          Download backup file (for re-import)
         </Button>
         <Button variant="outlined" component="label" disabled={isPending}>
           Import from file
