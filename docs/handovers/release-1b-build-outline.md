@@ -143,42 +143,41 @@ guardrails never read entitlement.
 12. ✅ `Add resume-after-interruption to onboarding` — [Must] — step-level resume on `/setup` (Lane D, `a0148a8`) + **saved-draft resume** on `/policy-seed` (Lane A, 2026-11-19): a generated-but-unactivated draft reopens at its review screen on any device, with Activate + a confirmed **Start over** (archives drafts, never deletes). AC 2 (half-finished answers before Generate, cross-device) **moved to its own card** `Save half-finished policy-seed answers server-side` [Should, MMP, Backlog] — needs a migration + ADR. Same-device answers already kept in `localStorage`. Board → **Done**.
 13. ✅ `Define & gate the free baseline-safety tier` — [Must] — capability matrix (safety + oversight free, only capacity premium) + server-side capacity gate before the pipeline; free monthly run cap is a **placeholder** to tune later; billing out of scope (ADR-0023, `638d358`, `bb221a1`)
 14. ✅ `Keep free safety active behind the paywall` — [Must] — regression test: safety net holds on free / capped / lapsed / paid; lapsed premium falls back to the free cap (`org.premium_until`) (`bb221a1`)
-15. ⬜ `Add in-product unblock guidance` — [Must] — Feature: Self-serve setup; the board describes it as helping a stuck leader in-product without a support ticket. Not started. (The free-tier gate's "you've reached this month's free run limit" message is part of card 13, not this card.)
+15. ✅ `Add in-product unblock guidance` — [Must] — per-step "Stuck on this step?" help on `/setup` (accessible native `<details>`, guide-not-scold, no support ticket); the cap-reached message (ADR-0023) covers that moment (Lane D, `a0148a8`). Board → **Done** (2026-11-19).
 
 **Access-control fix (2026-11-19, Lane A):** the three policy-seed actions (Generate, Activate, Start over) are now **Leader-only**, checked server-side and failing closed; a Doer in an org with no policy sees a plain message instead of the wizard (baseline safety still applies, ADR-0018). Signup makes the first user a leader, so self-serve setup is unaffected.
 
 ---
 
-## New — Co-Pilot "Not sure" handling (Epic #4, un-chunked) ⬛ BACKLOG
+## New — Co-Pilot question clarity (Epic #4, un-chunked)
 
-Added 2026-11-18 by a separate Co-Pilot session, which found the Co-Pilot treats unanswered
-checkboxes as "no risk." Not yet sequenced into a chunk. **Decision so far:** every question must be
-answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specced as app work.)
+**2026-11-19 (Val): the four "Not sure" cards were dropped** (moved to Notion trash) — keep simple
+checkmarks rather than a third answer. The real gap they targeted (a blank form returned "Go ahead")
+is closed instead by two smaller cards, built together in one PR (branch
+`worktree-copilot-question-hints`):
 
-- ⬛ `Add Yes / No / Not sure answers to the Co-Pilot questions` — [Must] — [Epic #4]
-- ⬛ `Treat "Not sure" as a careful but helpful answer` — [Must] — [Epic #4]
-- ⬛ `Decide what "Not sure" on a banned purpose means` — [Must] — [Epic #4]
-- ⬛ `Save the leader's actual answers with each assessment` — [Should] — [Epic #4]
+- 🟡 `Require a "none of these apply" confirmation on the Co-Pilot` — [Must] — [Epic #4] — when no
+  risk box is ticked, the Leader must tick "I've read each question — none of these apply to this
+  use." Rule in Domain (`missingNoneApplyConfirmation`), enforced server-side in `actions.ts`
+  (only a literal `true` counts), mirrored in the form (message announced, focus moves). No
+  migration. **Built, in a PR (board → In Progress until merge).**
+- 🟡 `Explain each Co-Pilot question in plain words` — [Should] — [Epic #4] — a one-line
+  explanation under each of the 5 questions (e.g. what "social scoring" means), linked to its
+  checkbox via `aria-describedby`; copy in `copilot-questions.ts`, never changes scoring.
+  **Built, same PR.**
 
 ---
 
 ## Totals
 
-52 tickets — **41 built**, **1 in progress (manual)**, **6 specced**, **4 new/backlog**.
+**Board snapshot, 2026-11-19** (Notion `Release = 1b` is the source of truth; the per-chunk table
+that used to be here had drifted and was retired): **51 cards — 46 Done, 3 In Progress, 2 In
+Review.** In Progress = `Verify the 5-minute promise` (manual) + the two Co-Pilot clarity cards
+above (in a PR). In Review = `Build the minutes-to-value onboarding flow` (needs one live click-through)
+and `Download the policy as a readable document`.
 
-| Chunk | Tickets | Built | In progress | Specced | New |
-| --- | --- | --- | --- | --- | --- |
-| 1 — Doer core | 9 | 9 | 0 | 0 | 0 |
-| 2 — Safety net | 10 | 10 | 0 | 0 | 0 |
-| 3 — Registry view | 4 | 4 | 0 | 0 | 0 |
-| 4 — Living policy | 10 | 9 | 1 | 0 | 0 |
-| 5 — Coach / Report / Onboard | 15 | 9 | 0 | 6 | 0 |
-| (un-chunked) — Co-Pilot "Not sure" | 4 | 0 | 0 | 0 | 4 |
-| **Total** | **52** | **41** | **1** | **6** | **4** |
-
-**Lane C (Report / Epic #7):** all four cards built — cards 1–2 merged; cards 3 + 4 in one PR
-(branch `worktree-lane-c-summary-export`). Next: merge, then flip both cards to Done; manual
-print-to-PDF check by Val.
+**Lane C (Report / Epic #7):** complete — all four cards merged (PRs #85, #88, #90, #92, #93) and
+Done on the board.
 
 **ADRs added during Release 1b:**
 

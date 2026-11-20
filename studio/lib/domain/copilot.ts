@@ -95,6 +95,20 @@ export function resolveSignals(input: SignalInput): Signals {
   return out;
 }
 
+/**
+ * A blank form is never read as "safe" (card "Require a 'none of these apply' confirmation").
+ * When no risk signal is ticked, the Leader must explicitly confirm that none apply — otherwise an
+ * assessment of a skipped form would return "Go ahead". True when that confirmation is MISSING.
+ * `noneApplyConfirmed` is untrusted input: only a literal `true` counts.
+ */
+export function missingNoneApplyConfirmation(
+  signals: Partial<Record<SignalKey, SignalValue>>,
+  noneApplyConfirmed: unknown,
+): boolean {
+  const anyTicked = (Object.keys(SIGNAL_DEFS) as SignalKey[]).some((k) => signals[k] === true);
+  return !anyTicked && noneApplyConfirmed !== true;
+}
+
 /** Deterministic tier from signals — first match wins; none → minimal (design §3.5). */
 export function tierFromSignals(s: Signals): CopilotTier {
   for (const { key, tier } of TIER_ORDER) {
