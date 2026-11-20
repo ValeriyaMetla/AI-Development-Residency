@@ -272,6 +272,57 @@ export function recommendedSeedAnswers(accountableName: string): PolicySeedAnswe
   };
 }
 
+/** Lower-cased, trimmed, with surrounding quotes/punctuation removed — for matching filler answers. */
+function normalizeFreeText(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/^[\s"'“”‘’.,;:!-]+|[\s"'“”‘’.,;:!-]+$/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Filler a leader types into the optional "add your own limits" box (Q7) to mean "nothing to add".
+ * Kept deliberately short and exact-match, so a real limit is never dropped by accident.
+ */
+const PLACEHOLDER_ANSWERS = new Set([
+  'none',
+  'no',
+  'n/a',
+  'na',
+  'nil',
+  'nothing',
+  'nothing else',
+  'not applicable',
+  'no limits',
+  'no other limits',
+  'none for now',
+]);
+
+/** True when a Q7 entry is filler ("none", "n/a", …) rather than a real limit. */
+export function isPlaceholderAnswer(s: string): boolean {
+  const n = normalizeFreeText(s);
+  return n === '' || PLACEHOLDER_ANSWERS.has(n);
+}
+
+const SELF_REFERENCES = new Set([
+  'me',
+  'myself',
+  'i',
+  'self',
+  'same',
+  'same person',
+  'same as above',
+]);
+
+/**
+ * True when the Q6 reviewer answer means "the person I named first" ("me", "myself", …). Such an
+ * answer is replaced by the accountable person's name, so the rule never reads "myself reviews…".
+ */
+export function isSelfReference(s: string): boolean {
+  return SELF_REFERENCES.has(normalizeFreeText(s));
+}
+
 const TRISTATES: readonly string[] = ['yes', 'no', 'not_sure'];
 
 function isTriState(v: unknown): v is TriState {
@@ -281,7 +332,9 @@ function isTriState(v: unknown): v is TriState {
 /**
  * Validate + normalize untrusted intake answers at the Service boundary (secure-coding A04).
  * Required: Q1 (name + role), Q2 (>=1 purpose), Q3/Q4 (a valid tri-state). Optional fields,
- * when present, must be well-typed. Returns the normalized answers or a plain-language error.
+ * when present, must be well-typed. Optional free text is normalized: filler Q7 limits ("none",
+ * "n/a") are dropped and a "me"/"myself" Q6 reviewer falls back to the accountable person.
+ * Returns the normalized answers or a plain-language error.
  */
 export function validatePolicySeedAnswers(
   input: unknown,
@@ -338,8 +391,18 @@ export function validatePolicySeedAnswers(
       handlesSensitiveData: a.handlesSensitiveData,
       higherStakes: a.higherStakes,
       externalContent: a.externalContent as TriState | undefined,
-      reviewer: typeof a.reviewer === 'string' ? a.reviewer : undefined,
-      customProhibitedUses: a.customProhibitedUses as string[] | undefined,
+      // "me"/"myself" → fall back to the accountable person (the Q6 default) so the rule names them.
+      reviewer:
+        typeof a.reviewer === 'string' && a.reviewer.trim() && !isSelfReference(a.reviewer)
+          ? a.reviewer.trim()
+          : undefined,
+      // Drop filler like "none" / "n/a" so it never becomes a policy clause.
+      customProhibitedUses: (() => {
+        const kept = ((a.customProhibitedUses as string[] | undefined) ?? [])
+          .map((u) => u.trim())
+          .filter((u) => !isPlaceholderAnswer(u));
+        return kept.length ? kept : undefined;
+      })(),
     },
   };
 }

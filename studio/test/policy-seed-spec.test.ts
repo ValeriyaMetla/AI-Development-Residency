@@ -3,6 +3,7 @@ import {
   POLICY_SEED_SPEC,
   EXPECTED_STANDARD_CODES,
   type PolicySeedAnswers,
+  validatePolicySeedAnswers,
 } from '@/lib/domain/policy-seed-spec';
 
 const baseAnswers: PolicySeedAnswers = {
@@ -107,5 +108,17 @@ describe('text templates', () => {
     expect(override.text!({ ...baseAnswers, reviewer: '  ' })).toContain(
       'Jane Doe (Executive Director)',
     );
+  });
+});
+
+describe('"myself" reviewer end to end', () => {
+  it('names the accountable person in the review rule, never "myself"', () => {
+    const parsed = validatePolicySeedAnswers({ ...baseAnswers, reviewer: 'myself' });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const override = POLICY_SEED_SPEC.find((r) => r.id === 'q4-human-override')!;
+    const text = override.text!(parsed.answers);
+    expect(text).toContain('Jane Doe (Executive Director) reviews it');
+    expect(text).not.toMatch(/myself/i);
   });
 });
