@@ -3,7 +3,11 @@
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { runCopilotAssessment, type CopilotAssessmentResult } from '@/lib/domain/copilot-pipeline';
-import type { SignalInput, SignalKey } from '@/lib/domain/copilot';
+import {
+  missingNoneApplyConfirmation,
+  type SignalInput,
+  type SignalKey,
+} from '@/lib/domain/copilot';
 
 /**
  * Service layer (ADR-0003): the front door for the Governance Co-Pilot. Verifies the session + org
@@ -19,7 +23,12 @@ const SIGNAL_KEYS: SignalKey[] = [
   'outputLeavesOrg',
 ];
 
-export type AssessInput = { userInput: string; signals: Partial<Record<SignalKey, boolean>> };
+export type AssessInput = {
+  userInput: string;
+  signals: Partial<Record<SignalKey, boolean>>;
+  /** The Leader ticked "none of these apply" (required when no risk box is ticked). */
+  noneApply?: boolean;
+};
 
 /** Assess a described AI use. `input` is untrusted and fully validated here. */
 export async function assessUse(input: AssessInput): Promise<CopilotAssessmentResult> {
@@ -40,6 +49,14 @@ export async function assessUse(input: AssessInput): Promise<CopilotAssessmentRe
   const raw = input?.signals ?? {};
   const signals = {} as SignalInput;
   for (const key of SIGNAL_KEYS) signals[key] = raw[key] === true;
+
+  // Enforced here, not only in the form: a skipped form must never come back as "Go ahead".
+  if (missingNoneApplyConfirmation(signals, input?.noneApply)) {
+    return {
+      status: 'blocked',
+      message: 'Please tick any question that applies, or confirm that none of them apply.',
+    };
+  }
 
   return runCopilotAssessment({ userInput, signals, userId: user.id, orgId });
 }

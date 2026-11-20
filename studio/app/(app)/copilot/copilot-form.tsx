@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -17,31 +17,14 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import type { AlertColor } from '@mui/material/Alert';
 import { assessUse } from './actions';
-import { tierLabel, type CopilotVerdict, type SignalKey } from '@/lib/domain/copilot';
+import {
+  missingNoneApplyConfirmation,
+  tierLabel,
+  type CopilotVerdict,
+  type SignalKey,
+} from '@/lib/domain/copilot';
+import { COPILOT_QUESTIONS, NONE_APPLY_ERROR, NONE_APPLY_LABEL } from './copilot-questions';
 import type { CopilotAssessmentResult } from '@/lib/domain/copilot-pipeline';
-
-const QUESTIONS: { key: SignalKey; label: string }[] = [
-  { key: 'judgesPerson', label: 'Would AI judge, rank, score, or decide about a specific person?' },
-  {
-    key: 'highStakesDomain',
-    label:
-      'Is this a high-stakes area — health, legal, financial, housing/benefits, safety, or crisis?',
-  },
-  {
-    key: 'sensitiveData',
-    label:
-      'Does this involve sensitive personal data (health, financial, case details, or info about vulnerable people)?',
-  },
-  {
-    key: 'bannedPurpose',
-    label: 'Is the purpose manipulation, surveillance, social scoring, or anything illegal?',
-  },
-  {
-    key: 'outputLeavesOrg',
-    label:
-      'Will the output be sent outside your organization (to a client, funder, or the public)?',
-  },
-];
 
 const VERDICT: Record<CopilotVerdict, { title: string; severity: AlertColor }> = {
   use: { title: 'Go ahead', severity: 'success' },
@@ -55,16 +38,30 @@ export default function CopilotForm() {
   const [signals, setSignals] = useState<Partial<Record<SignalKey, boolean>>>({});
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CopilotAssessmentResult | null>(null);
+  const [noneApply, setNoneApply] = useState(false);
+  const [noneApplyError, setNoneApplyError] = useState(false);
+  const noneApplyRef = useRef<HTMLInputElement>(null);
 
-  const toggle = (key: SignalKey) => (_: unknown, checked: boolean) =>
+  const anyTicked = COPILOT_QUESTIONS.some((q) => signals[q.key] === true);
+
+  const toggle = (key: SignalKey) => (_: unknown, checked: boolean) => {
     setSignals((s) => ({ ...s, [key]: checked }));
+    setNoneApplyError(false);
+  };
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    // Same rule the server enforces; checked here too so the Leader gets help before a round trip.
+    if (missingNoneApplyConfirmation(signals, noneApply)) {
+      setNoneApplyError(true);
+      noneApplyRef.current?.focus();
+      return;
+    }
     setLoading(true);
     setResult(null);
     try {
-      setResult(await assessUse({ userInput, signals }));
+      // A ticked risk box makes the confirmation moot — never send a stale "none apply".
+      setResult(await assessUse({ userInput, signals, noneApply: !anyTicked && noneApply }));
     } finally {
       setLoading(false);
     }
@@ -92,13 +89,70 @@ export default function CopilotForm() {
           <Typography variant="subtitle2" gutterBottom>
             A few quick questions
           </Typography>
-          {QUESTIONS.map((q) => (
-            <FormControlLabel
-              key={q.key}
-              control={<Checkbox checked={signals[q.key] ?? false} onChange={toggle(q.key)} />}
-              label={q.label}
-            />
-          ))}
+          {COPILOT_QUESTIONS.map((q) => {
+            const hintId = `copilot-hint-${q.key}`;
+            return (
+              <Box key={q.key} sx={{ mb: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={signals[q.key] ?? false}
+                      onChange={toggle(q.key)}
+                      // The explanation is read with the checkbox, not hidden in a tooltip.
+                      slotProps={{ input: { 'aria-describedby': hintId } }}
+                    />
+                  }
+                  label={q.label}
+                />
+                <Typography
+                  id={hintId}
+                  variant="body2"
+                  color="text.secondary"
+                  // Indent to line up under the label text, past the checkbox.
+                  sx={{ pl: 4 }}
+                >
+                  {q.hint}
+                </Typography>
+              </Box>
+            );
+          })}
+
+          {/* Only when nothing is ticked: a blank form must be a deliberate "none apply". */}
+          {!anyTicked ? (
+            <Box sx={{ mt: 1, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={noneApply}
+                    onChange={(_, checked) => {
+                      setNoneApply(checked);
+                      if (checked) setNoneApplyError(false);
+                    }}
+                    slotProps={{
+                      input: {
+                        ref: noneApplyRef,
+                        'aria-invalid': noneApplyError,
+                        'aria-describedby': noneApplyError ? 'copilot-none-apply-error' : undefined,
+                      },
+                    }}
+                  />
+                }
+                label={NONE_APPLY_LABEL}
+              />
+              {noneApplyError ? (
+                // Words + role="alert" (announced), not color alone (WCAG 2.2 AA).
+                <Typography
+                  id="copilot-none-apply-error"
+                  role="alert"
+                  variant="body2"
+                  color="error"
+                  sx={{ pl: 4 }}
+                >
+                  {NONE_APPLY_ERROR}
+                </Typography>
+              ) : null}
+            </Box>
+          ) : null}
         </FormGroup>
 
         <Button type="submit" variant="contained" size="large" disabled={loading}>
