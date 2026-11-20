@@ -93,7 +93,12 @@ function withinDays(fromIso: string | null, toIso: string, days: number): boolea
 
 /**
  * Compose the honest summary from counts. The state decides the wording: `empty` (no activity),
- * `low` (few actions or only-recent use — adds the caveat, never a percentage), or `normal`.
+ * `low` (few actions or only-recent use — adds the early-use caveat), or `normal`.
+ *
+ * Percentages follow the floor alone, independent of the state (low-data card decision,
+ * 2026-11-19): shown only when the base is at least `PERCENT_FLOOR` actions. Below 5 actions a
+ * `low` summary therefore never has one; a `low` summary that is low only by recency (10+ actions,
+ * first use within 14 days) shows them, with the caveat beside them.
  */
 export function composeSummary(input: SummaryInput): GovernedAISummary {
   const total = Math.max(0, Math.trunc(input.safety.total));

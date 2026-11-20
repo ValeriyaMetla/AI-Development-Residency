@@ -78,6 +78,18 @@ describe('composeSummary — state selection', () => {
     expect(s.state).toBe('low');
   });
 
+  it('low by recency alone, base at the floor → percentages AND the caveat (approved rule)', () => {
+    const s = composeSummary(
+      input({
+        safety: safety({ cleared: 9, needsReview: 3, total: 12 }),
+        firstActivityAt: RECENT,
+      }),
+    );
+    expect(s.state).toBe('low');
+    expect(s.caveat).toMatch(/early use/i);
+    expect(s.stats.find((x) => x.label === 'Completed')?.percent).toBe(75);
+  });
+
   it('enough actions and established use → normal, no caveat', () => {
     const s = composeSummary(
       input({ safety: safety({ cleared: 10, needsReview: 2, total: 12 }), firstActivityAt: OLD }),
