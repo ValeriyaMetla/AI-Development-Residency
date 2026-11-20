@@ -135,3 +135,4 @@ Entry format:
   Release 1b: `main` is ahead of the Notion board and the build-outline doc (~19/48 built).
   In progress: none. Next buildable focus: finish Chunk 2's reviewer UI (human approval/review
   screen + provenance-updates-on-human-edit).
+- 2026-11-19 — [Claude Code · Week 6 security skills] — Did: `secure-coding` v2.0 (OWASP Top 10:2025, eval 28/28 vs 26 v1 / 25 none; `470b6dd`) + doc/neighbor sync incl. `responsible-ai` v1.1 (`90ca354`). In progress: none. Next: add the study guide to `docs/reference/`, then build `security-testing`, then the PenTest + research report. Full brief: [`week-6-security-handover.md`](week-6-security-handover.md).
