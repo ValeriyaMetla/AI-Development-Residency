@@ -8,7 +8,8 @@ import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import type { NewPolicyRule } from '@/lib/data/policy';
 import { confirmPolicy, discardDraftPolicy } from './actions';
-import PolicyRuleList from './policy-rule-list';
+import PolicyRuleList, { RuleTagKey } from './policy-rule-list';
+import { needsReviewCount } from '@/lib/domain/policy-review-labels';
 import PolicyActivated from './policy-activated';
 
 /**
@@ -38,7 +39,7 @@ export default function SavedDraftReview({
     if (confirmingStartOver) confirmRef.current?.focus();
   }, [confirmingStartOver]);
 
-  const needsReviewCount = rules.filter((r) => r.needsReview).length;
+  const reviewCount = needsReviewCount(rules);
 
   function handleActivate() {
     setError(null);
@@ -68,15 +69,17 @@ export default function SavedDraftReview({
         </Typography>
         <Typography variant="body2" color="text.secondary">
           You already drafted a starter policy with <strong>{rules.length}</strong> rules
-          {needsReviewCount > 0 ? (
+          {reviewCount > 0 ? (
             <>
               {' '}
-              — <strong>{needsReviewCount}</strong> flagged for your review
+              — <strong>{reviewCount}</strong> flagged for your review
             </>
           ) : null}
           . It isn&apos;t active yet. Read it over, then activate it for your organization.
         </Typography>
       </Box>
+
+      <RuleTagKey showNeedsReview={reviewCount > 0} />
 
       <PolicyRuleList rules={rules} />
 
