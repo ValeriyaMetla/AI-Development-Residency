@@ -391,10 +391,10 @@ structured logging, and never swallowing exceptions silently.
 ## 5. Security & Testing
 
 ### secure-coding ✅
-*Grounded in: OWASP Top 10 · [`SKILL.md`](../.claude/skills/secure-coding/SKILL.md)*
+*Grounded in: OWASP Top 10:2025 + OWASP Cheat Sheet Series (incl. LLM Prompt Injection Prevention) · [`SKILL.md`](../.claude/skills/secure-coding/SKILL.md)*
 
 
-OWASP Top 10 defenses — access control, injection prevention, safe secrets, input validation. Consulted on untrusted data.
+Secure coding against the OWASP Top 10:2025, built around "never trust the user": server-side access control + least privilege (RLS on every table); the injection family — XSS, prompt, command, SQL injection as one bug (untrusted input run as a command) stopped per layer, including query-builder filter strings; secrets and security logic kept out of the client; secure config, supply-chain hygiene, safe file/path handling, rate limiting; prompt injection treated as direct + indirect, with tool permissions enforced in code outside the model; fail safely and log without leaking; and each threat turned into a plain, testable requirement → acceptance criteria + BDD (attacker path) → a blocking CI check. Consulted on any untrusted data. Defers pentests/threat-model test plans to [[security-testing]], test coverage to [[testing-code-review]], AI ethics/disclosure to [[responsible-ai]]. *(v2.0 — rebuilt for Week 6 Information & Network Security.)*
 
 ### testing-code-review ✅
 *Grounded in: Testing Pyramid + Google review practices · [`SKILL.md`](../.claude/skills/testing-code-review/SKILL.md)*
