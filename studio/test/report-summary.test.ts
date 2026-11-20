@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { SafetyNetSummary } from '@/lib/domain/usage';
 import {
+  allTimePeriodLabel,
   composeSummary,
   PERCENT_FLOOR,
   type GovernedAISummary,
@@ -159,5 +161,81 @@ describe('composeSummary — robustness', () => {
     );
     expect(withPolicy.policy).toEqual({ name: 'Our AI Policy', activeSince: OLD });
     expect(composeSummary(input({ safety: safety({ cleared: 2, total: 2 }) })).policy).toBeNull();
+  });
+});
+
+describe('allTimePeriodLabel — the all-time period wording', () => {
+  it('anchors the period to the first recorded activity (UTC date)', () => {
+    expect(allTimePeriodLabel('2026-11-03T23:30:00.000Z')).toBe('the period since 3 Nov 2026');
+  });
+
+  it('never invents a start date when there is no activity or the date is unreadable', () => {
+    expect(allTimePeriodLabel(null)).toBe('the period to date');
+    expect(allTimePeriodLabel('not-a-date')).toBe('the period to date');
+  });
+
+  it('reads naturally inside the composed sample-size line', () => {
+    const s = composeSummary(
+      input({
+        safety: safety({ cleared: 12, total: 12 }),
+        periodLabel: allTimePeriodLabel(OLD),
+      }),
+    );
+    expect(s.sampleSize).toBe('Based on 12 governed actions over the period since 1 Jan 2026.');
+  });
+});
+
+describe('counter-metric — no content ever reaches the summary or its printout (export card)', () => {
+  // Columns that hold what a person typed or a model wrote — the summary must never read them.
+  const CONTENT_COLUMNS = ['input_summary', 'content', 'note', 'self_critique_result', '*'];
+
+  /** The `.select('…')` projections inside one function's source. */
+  function selectsIn(file: string, fnName: string): string[] {
+    const src = readFileSync(file, 'utf8');
+    const start = src.indexOf(`export async function ${fnName}`);
+    expect(start, `${fnName} not found in ${file}`).toBeGreaterThan(-1);
+    const next = src.indexOf('\nexport ', start + 1);
+    const body = src.slice(start, next === -1 ? undefined : next);
+    return [...body.matchAll(/\.select\(\s*'([^']*)'/g)].map((m) => m[1]);
+  }
+
+  it('the summary reads select only allow-listed, non-content columns', () => {
+    const projections = [
+      ...selectsIn('lib/data/report.ts', 'getSummaryInputs'),
+      // getSummaryInputs reuses the usage reader for the all-time run counts.
+      ...selectsIn('lib/data/usage.ts', 'getRunSummariesSince'),
+    ];
+    expect(projections.length).toBeGreaterThanOrEqual(3);
+    for (const projection of projections) {
+      const columns = projection.split(/[\s,():]+/).filter(Boolean);
+      for (const banned of CONTENT_COLUMNS) {
+        expect(columns, `summary read "${projection}" selects ${banned}`).not.toContain(banned);
+      }
+    }
+  });
+
+  it('the composed summary carries only its templated fields — no slot for run content', () => {
+    const s = composeSummary(
+      input({
+        safety: safety({ cleared: 12, total: 12 }),
+        humanReviewedCount: 3,
+        policy: { name: 'Our AI Policy', activeSince: OLD },
+      }),
+    );
+    expect(Object.keys(s).sort()).toEqual(
+      [
+        'caveat',
+        'generatedAt',
+        'headline',
+        'humanReviewed',
+        'orgName',
+        'periodLabel',
+        'policy',
+        'protection',
+        'sampleSize',
+        'state',
+        'stats',
+      ].sort(),
+    );
   });
 });
