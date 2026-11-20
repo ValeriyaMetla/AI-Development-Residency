@@ -168,11 +168,28 @@ is closed instead by two smaller cards, built together in one PR (branch
 
 ---
 
+## New — Policy review screen clarity (Epic #1, un-chunked)
+
+Found in Val's onboarding test (2026-11-19): the starter-policy review screen is read-only, yet it
+showed "Needs review" on locked rules (a flag that can never clear) and promised "relax or edit any
+rule afterwards" when 10 of 12 rules are locked (ADR-0024).
+
+- 🟡 `Make the policy review screen honest about what can change` — [Should] — [Epic #1] — locked
+  rules now read "🔒 Safety floor — always on" (review screen + rule editor); "Needs review" shows
+  only on rules the Leader can edit after activating (Domain `showsNeedsReview`, so the "N flagged"
+  count matches); a short tag key above the list; the note now says only non-floor rules can be
+  edited, under Your rules. Display only — nothing about what is locked, saved or audited changes.
+  **Built, in a PR (branch `worktree-policy-review-honest`).** Out of scope (possible MMP cards):
+  editing / marking rules reviewed before activation; letting a Leader turn floor rules off (would
+  reopen ADR-0024).
+
+---
+
 ## Totals
 
 **Board snapshot, 2026-11-19** (Notion `Release = 1b` is the source of truth; the per-chunk table
 that used to be here had drifted and was retired): **51 cards — 46 Done, 3 In Progress, 2 In
-Review.** In Progress = `Verify the 5-minute promise` (manual) + the two Co-Pilot clarity cards
+Review.** *(Superseded later the same day: see the handover log.)* In Progress = `Verify the 5-minute promise` (manual) + the two Co-Pilot clarity cards
 above (in a PR). In Review = `Build the minutes-to-value onboarding flow` (needs one live click-through)
 and `Download the policy as a readable document`.
 

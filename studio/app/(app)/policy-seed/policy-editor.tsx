@@ -12,6 +12,7 @@ import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import { publishRuleEdits } from './actions';
 import { MAX_RULE_TEXT } from '@/lib/domain/policy-edit';
+import { SAFETY_FLOOR_LABEL } from './policy-rule-list';
 
 /**
  * Rule editor (Presentation layer, ADR-0003 / ADR-0024). The leader edits/retires non-baseline
@@ -94,7 +95,7 @@ export default function PolicyEditor({ rules }: { rules: EditorRule[] }) {
           {baseline.map((r) => (
             <Paper key={r.id} variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
               <Typography variant="body1">{r.ruleText}</Typography>
-              <Chip size="small" label="🔒 Locked — can't be turned off" sx={{ mt: 1 }} />
+              <Chip size="small" label={SAFETY_FLOOR_LABEL} sx={{ mt: 1 }} />
             </Paper>
           ))}
         </Box>

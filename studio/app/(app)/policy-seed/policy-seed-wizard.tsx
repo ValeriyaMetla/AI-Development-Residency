@@ -22,7 +22,8 @@ import {
   type PolicySeedAnswers,
   type TriState,
 } from '@/lib/domain/policy-seed-spec';
-import PolicyRuleList from './policy-rule-list';
+import PolicyRuleList, { RuleTagKey } from './policy-rule-list';
+import { needsReviewCount } from '@/lib/domain/policy-review-labels';
 import PolicyActivated from './policy-activated';
 
 /**
@@ -214,6 +215,7 @@ export default function PolicySeedWizard({
   // Draft produced — show the rules for review, then let the leader activate it.
   if (result?.status === 'created') {
     if (activated) return <PolicyActivated />;
+    const reviewCount = needsReviewCount(result.rules);
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box>
@@ -222,10 +224,10 @@ export default function PolicySeedWizard({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             We drafted <strong>{result.ruleCount}</strong> rules from your answers
-            {result.needsReviewCount > 0 ? (
+            {reviewCount > 0 ? (
               <>
                 {' '}
-                — <strong>{result.needsReviewCount}</strong> flagged for your review
+                — <strong>{reviewCount}</strong> flagged for your review
               </>
             ) : null}
             . Read them over, then activate the policy for your organization.
@@ -235,9 +237,12 @@ export default function PolicySeedWizard({
         {usedRecommended ? (
           <Alert severity="info">
             You used the recommended answers, so every safety rule is on. Nothing is active until
-            you click Activate, and you can relax or edit any rule afterwards.
+            you click Activate. Afterwards, you can edit the rules that aren&apos;t part of your
+            safety floor, under Your rules.
           </Alert>
         ) : null}
+
+        <RuleTagKey showNeedsReview={reviewCount > 0} />
 
         <PolicyRuleList rules={result.rules} />
 
