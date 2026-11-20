@@ -15,7 +15,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
-import NextLink from 'next/link';
 import { runPolicySeed, confirmPolicy, type RunPolicySeedResult } from './actions';
 import {
   PURPOSE_OPTIONS,
@@ -24,6 +23,7 @@ import {
   type TriState,
 } from '@/lib/domain/policy-seed-spec';
 import PolicyRuleList from './policy-rule-list';
+import PolicyActivated from './policy-activated';
 
 /**
  * Policy-seed intake wizard (Presentation layer, ADR-0003). A guided, one-question-per-step
@@ -213,26 +213,7 @@ export default function PolicySeedWizard({
 
   // Draft produced — show the rules for review, then let the leader activate it.
   if (result?.status === 'created') {
-    if (activated) {
-      return (
-        <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <Typography variant="h6" component="h2">
-            Your AI policy is active
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            It now applies to your organization&apos;s AI use. You can revisit and refine it any
-            time.
-          </Typography>
-          {/* Minutes-to-value: bridge the leader straight from an active policy to their first
-              governed run, instead of a dead-end "it's active" screen (Epic 8, Lane D). */}
-          <Box>
-            <Button variant="contained" component={NextLink} href="/skills">
-              Run your first Skill →
-            </Button>
-          </Box>
-        </Paper>
-      );
-    }
+    if (activated) return <PolicyActivated />;
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box>

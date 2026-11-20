@@ -141,6 +141,28 @@ export async function getActivePolicy(orgId: string): Promise<Policy | null> {
 }
 
 /**
+ * The org's most recent draft policy, or null (none, signed out, or error). Lets a leader who
+ * generated a starter policy but never activated it resume at the review screen on any device,
+ * instead of an empty wizard (Epic 8 resume-after-interruption). Older drafts are ignored here.
+ */
+export async function getLatestDraftPolicy(orgId: string): Promise<Policy | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('policy')
+    .select(POLICY_COLUMNS)
+    .eq('org_id', orgId)
+    .eq('status', 'draft')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error('getLatestDraftPolicy failed:', error.message);
+    return null;
+  }
+  return data ? mapPolicyRow(data as PolicyRow) : null;
+}
+
+/**
  * A policy's rules, ordered by creation — or `null` if they could not be read. Use this where
  * "couldn't load" must not be mistaken for "no rules" (showing the rule editor, publishing a version).
  */
@@ -277,6 +299,26 @@ export async function activatePolicy(params: {
     .eq('id', params.policyId);
   if (activateError) {
     console.error('activatePolicy (activate) failed:', activateError.message);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Discard ("start over") every draft policy for an org by archiving it. Policies are never
+ * deleted (append-only record, policy-seed migration), so a discarded draft is kept as
+ * `archived`. All drafts are archived — not just the newest — so an older one doesn't resurface.
+ * Returns true on success, false on error.
+ */
+export async function archiveDraftPolicies(orgId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('policy')
+    .update({ status: 'archived' })
+    .eq('org_id', orgId)
+    .eq('status', 'draft');
+  if (error) {
+    console.error('archiveDraftPolicies failed:', error.message);
     return false;
   }
   return true;

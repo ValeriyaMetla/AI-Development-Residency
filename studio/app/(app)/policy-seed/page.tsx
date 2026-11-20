@@ -3,8 +3,9 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getMyProfile } from '@/lib/data/profile';
-import { getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
+import { getActivePolicy, getLatestDraftPolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
 import PolicySeedWizard from './policy-seed-wizard';
+import SavedDraftReview from './saved-draft-review';
 import PolicyRuleList from './policy-rule-list';
 import PolicyEditor from './policy-editor';
 import RuleSuggestions from './rule-suggestions';
@@ -14,7 +15,8 @@ import { getRuleSuggestions } from '@/lib/domain/rule-suggestion-service';
 /**
  * "Your rules" route (Presentation layer). Branches on whether the org has an active policy
  * (ADR-0024): with one, it shows the rule editor to an Accountable Leader and a read-only view to
- * anyone else (transparency); with none, it shows the ~5-min seed wizard. The session guard,
+ * anyone else (transparency); with none, it resumes an unactivated draft if there is one, else
+ * shows the ~5-min seed wizard. The session guard,
  * <main> landmark, and nav come from the shared app shell. Data access stays in lib/data accessors.
  */
 export default async function PolicySeedPage() {
@@ -23,8 +25,42 @@ export default async function PolicySeedPage() {
 
   // No active policy yet → the guided seed wizard (first-time setup).
   if (!activePolicy) {
-    // Pre-fills the accountable person for the "use recommended answers" fast path.
     const profile = await getMyProfile();
+
+    // Setup is Leader-only (the seed actions enforce it server-side); a Doer gets a plain
+    // explanation instead of a wizard whose buttons would be refused.
+    if (profile?.role !== 'accountable_leader') {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Typography variant="h4" component="h1">
+            Your AI rules
+          </Typography>
+          <Alert severity="info">
+            Your organization hasn&apos;t set its AI rules yet. Your Accountable Leader sets them up
+            here — until then, the built-in safety baseline still protects every governed task.
+          </Alert>
+        </Box>
+      );
+    }
+
+    // A draft generated but never activated → resume at its review screen, on any device
+    // (Epic 8 resume). If its rules can't be read, fall back to the wizard (graceful degradation).
+    const draft = orgId ? await getLatestDraftPolicy(orgId) : null;
+    const draftRules = draft ? await getPolicyRulesOrNull(draft.id) : null;
+    if (draft && draftRules && draftRules.length > 0) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box>
+            <Typography variant="h4" component="h1" gutterBottom>
+              Set your AI rules
+            </Typography>
+          </Box>
+          <SavedDraftReview policyId={draft.id} rules={draftRules} />
+        </Box>
+      );
+    }
+
+    // The leader's name pre-fills the accountable person on the "use recommended answers" path.
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box>

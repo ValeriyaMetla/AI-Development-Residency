@@ -3,13 +3,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/data/supabase/server', () => ({ getCurrentUser: vi.fn() }));
 vi.mock('@/lib/data/runs', () => ({ getMyOrgId: vi.fn() }));
 vi.mock('@/lib/domain/policy-seed', () => ({ seedPolicyFromAnswers: vi.fn() }));
-vi.mock('@/lib/data/policy', () => ({ activatePolicy: vi.fn() }));
+vi.mock('@/lib/data/policy', () => ({ activatePolicy: vi.fn(), archiveDraftPolicies: vi.fn() }));
+vi.mock('@/lib/data/profile', () => ({ getMyProfile: vi.fn() }));
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { seedPolicyFromAnswers } from '@/lib/domain/policy-seed';
-import { activatePolicy } from '@/lib/data/policy';
-import { runPolicySeed, confirmPolicy } from '@/app/(app)/policy-seed/actions';
+import { activatePolicy, archiveDraftPolicies } from '@/lib/data/policy';
+import { getMyProfile } from '@/lib/data/profile';
+import { runPolicySeed, confirmPolicy, discardDraftPolicy } from '@/app/(app)/policy-seed/actions';
 
 const validAnswers = {
   accountablePerson: { name: 'Jane', role: 'ED' },
@@ -18,9 +21,10 @@ const validAnswers = {
   higherStakes: 'yes',
 };
 
-function signedIn() {
+function signedIn(role: 'accountable_leader' | 'frontline_doer' = 'accountable_leader') {
   vi.mocked(getCurrentUser).mockResolvedValue({ id: 'user1' } as never);
   vi.mocked(getMyOrgId).mockResolvedValue('org1');
+  vi.mocked(getMyProfile).mockResolvedValue({ display_name: 'Jane', role, org: null } as never);
 }
 
 beforeEach(() => {
@@ -28,6 +32,8 @@ beforeEach(() => {
   vi.mocked(getMyOrgId).mockReset();
   vi.mocked(seedPolicyFromAnswers).mockReset();
   vi.mocked(activatePolicy).mockReset();
+  vi.mocked(archiveDraftPolicies).mockReset();
+  vi.mocked(getMyProfile).mockReset();
 });
 
 describe('runPolicySeed', () => {
@@ -38,7 +44,7 @@ describe('runPolicySeed', () => {
   });
 
   it('blocks when there is no org', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: 'user1' } as never);
+    signedIn();
     vi.mocked(getMyOrgId).mockResolvedValue(null);
     expect((await runPolicySeed(validAnswers)).status).toBe('blocked');
   });
@@ -91,5 +97,55 @@ describe('confirmPolicy', () => {
     signedIn();
     vi.mocked(activatePolicy).mockResolvedValue(false);
     expect((await confirmPolicy('p1')).status).toBe('failed');
+  });
+});
+
+// Setting up the policy is Leader-only (secure-coding A01), enforced server-side on every action.
+describe('seed actions are Leader-only', () => {
+  it('blocks a Frontline Doer from generating a policy', async () => {
+    signedIn('frontline_doer');
+    const res = await runPolicySeed(validAnswers);
+    expect(res).toMatchObject({ status: 'blocked' });
+    expect(seedPolicyFromAnswers).not.toHaveBeenCalled();
+  });
+
+  it('blocks a Frontline Doer from activating a policy', async () => {
+    signedIn('frontline_doer');
+    expect((await confirmPolicy('p1')).status).toBe('blocked');
+    expect(activatePolicy).not.toHaveBeenCalled();
+  });
+
+  it('blocks a Frontline Doer from discarding a draft', async () => {
+    signedIn('frontline_doer');
+    expect((await discardDraftPolicy()).status).toBe('blocked');
+    expect(archiveDraftPolicies).not.toHaveBeenCalled();
+  });
+
+  it('blocks when the profile cannot be read (fails closed)', async () => {
+    signedIn();
+    vi.mocked(getMyProfile).mockResolvedValue(null);
+    expect((await confirmPolicy('p1')).status).toBe('blocked');
+    expect(activatePolicy).not.toHaveBeenCalled();
+  });
+});
+
+describe('discardDraftPolicy ("Start over")', () => {
+  it('blocks when signed out', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null as never);
+    expect((await discardDraftPolicy()).status).toBe('blocked');
+    expect(archiveDraftPolicies).not.toHaveBeenCalled();
+  });
+
+  it("archives the leader's own org drafts and reports success", async () => {
+    signedIn();
+    vi.mocked(archiveDraftPolicies).mockResolvedValue(true);
+    expect(await discardDraftPolicy()).toEqual({ status: 'discarded' });
+    expect(archiveDraftPolicies).toHaveBeenCalledWith('org1');
+  });
+
+  it('reports failure when archiving fails', async () => {
+    signedIn();
+    vi.mocked(archiveDraftPolicies).mockResolvedValue(false);
+    expect((await discardDraftPolicy()).status).toBe('failed');
   });
 });
