@@ -176,8 +176,14 @@ export type RunForGap = {
   status: 'running' | 'blocked' | 'needs_review' | 'approved' | 'rejected' | 'completed';
 };
 
-/** The events that record a run reaching a terminal state ("finished" or "stopped"). */
-const TERMINAL_EVENT_TYPES: ReadonlySet<string> = new Set(['task_completed', 'task_blocked']);
+/**
+ * The audit events that record a run reaching a terminal state ("finished" or "stopped"). A Co-Pilot
+ * assessment is terminal too: the Co-Pilot pipeline writes `copilot_assessed` and never
+ * `task_completed`, so without it every Co-Pilot run would be flagged as a missing record (US5).
+ * Exported as the single source of truth so the Data-layer gap query can't drift from this set.
+ */
+export const TERMINAL_EVENT_TYPES = ['task_completed', 'task_blocked', 'copilot_assessed'] as const;
+const TERMINAL_EVENT_SET: ReadonlySet<string> = new Set(TERMINAL_EVENT_TYPES);
 
 /**
  * Run ids whose record has a detectable gap (US5): the run reached a final outcome (any status but
@@ -190,7 +196,7 @@ export function detectRunGaps(
 ): Set<string> {
   const runsWithTerminalEvent = new Set<string>();
   for (const e of events) {
-    if (e.taskRunId && TERMINAL_EVENT_TYPES.has(e.type)) runsWithTerminalEvent.add(e.taskRunId);
+    if (e.taskRunId && TERMINAL_EVENT_SET.has(e.type)) runsWithTerminalEvent.add(e.taskRunId);
   }
   const gapped = new Set<string>();
   for (const run of runs) {

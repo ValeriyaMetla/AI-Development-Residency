@@ -5,6 +5,7 @@ import {
   detectRunGaps,
   extractDetail,
   isActorMe,
+  TERMINAL_EVENT_TYPES,
   type AuditRecord,
   type RunForGap,
   type TrailActor,
@@ -160,7 +161,7 @@ async function detectGapsForWindow(
     .from('audit_event')
     .select('task_run_id, event_type')
     .in('task_run_id', [...seen])
-    .in('event_type', ['task_completed', 'task_blocked']);
+    .in('event_type', [...TERMINAL_EVENT_TYPES]);
 
   if (error) {
     // Don't invent gaps on a failed check — report none rather than a false "missing" (US5 spirit).
