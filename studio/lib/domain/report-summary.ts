@@ -59,6 +59,20 @@ export type SummaryInput = {
   policy: { name: string; activeSince: string } | null;
 };
 
+/**
+ * The period wording for an ALL-TIME summary (export card decision, 2026-11-19), anchored to the
+ * first recorded activity so the reader knows how long the record spans:
+ * "the period since 3 Nov 2026". With no activity (or an unreadable date) it says "the period to
+ * date" — never an invented start date. Dates are UTC, matching the trail's timestamps.
+ */
+export function allTimePeriodLabel(firstActivityAt: string | null): string {
+  if (!firstActivityAt) return 'the period to date';
+  const d = new Date(firstActivityAt);
+  if (Number.isNaN(d.getTime())) return 'the period to date';
+  const date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'UTC' }).format(d);
+  return `the period since ${date}`;
+}
+
 function plural(n: number, word: string): string {
   return `${n} ${n === 1 ? word : `${word}s`}`;
 }

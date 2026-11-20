@@ -9,12 +9,16 @@ import NextLink from 'next/link';
 import { getMyProfile } from '@/lib/data/profile';
 import {
   getAuditTrail,
+  getSummaryInputs,
   TRAIL_PAGE_SIZE,
   type TrailEntry,
+  type TrailPage,
   type TrailRunContext,
 } from '@/lib/data/report';
 import { actorLabel, eventWording, RUN_GAP_MARKER } from '@/lib/domain/report';
 import { AUDIT_PROTECTION_STATEMENT } from '@/lib/domain/audit-events';
+import { allTimePeriodLabel, composeSummary } from '@/lib/domain/report-summary';
+import { GovernedSummary } from './governed-summary';
 
 /**
  * Audit trail (`/report`) — Presentation layer (ADR-0003), card "Build the audit trail from registry
@@ -25,6 +29,11 @@ import { AUDIT_PROTECTION_STATEMENT } from '@/lib/domain/audit-events';
  * signed-out visitor never has the org's records sent to their browser. All data comes from the
  * read-only `lib/data/report.ts`; all wording/gap logic is the pure Domain layer. The Leak Test holds
  * (no Supabase/SDK, no business logic in this file). Counts/facts only — never run content.
+ *
+ * Above the trail sits the Governed AI Summary (card "Build one-click responsible-AI summary
+ * export"): templated by the pure `composeSummary` from `getSummaryInputs`, and exported with the
+ * browser's own Print / Save as PDF. Summary and trail each own their error / empty states — they
+ * count different things (governed runs vs audit events), so one can be empty while the other isn't.
  */
 
 function PageShell({ children }: { children: ReactNode }) {
@@ -49,7 +58,8 @@ export default async function ReportPage({
 }: {
   searchParams: Promise<{ show?: string }>;
 }) {
-  // US3 — Leader-only, enforced on the server. A Doer gets a way forward, not the org's records.
+  // US3 — Leader-only, enforced on the server, before any record is read. A Doer gets a way
+  // forward, not the org's records (applies to the summary and the export too).
   const profile = await getMyProfile();
   if (profile?.role !== 'accountable_leader') {
     return (
@@ -69,32 +79,59 @@ export default async function ReportPage({
   const requested = Number.parseInt(show ?? '', 10);
   const limit = Number.isFinite(requested) && requested > 0 ? requested : TRAIL_PAGE_SIZE;
 
-  const trail = await getAuditTrail(limit);
+  const [trail, inputs] = await Promise.all([getAuditTrail(limit), getSummaryInputs()]);
 
-  // US4 — a load failure must never read as "no activity".
-  if (trail === null) {
-    return (
-      <PageShell>
+  // Export card US4 — the export is offered only when everything it would print loaded. A printout
+  // with a "couldn't load" gap must never pass as a complete report.
+  const canExport = trail !== null && inputs !== null;
+
+  return (
+    <PageShell>
+      {inputs === null ? (
+        // A load failure must never read as "no activity" — and never prints as a summary.
         <StateCard
-          title="We couldn't load your audit trail"
+          title="We couldn't load your summary"
           body="Please try again in a moment. If it keeps happening, let your administrator know."
           cta={{ label: 'Try again', href: '/report' }}
         />
-      </PageShell>
+      ) : (
+        <GovernedSummary
+          canExport={canExport}
+          summary={composeSummary({
+            orgName: profile.org?.name ?? null,
+            generatedAt: new Date().toISOString(),
+            periodLabel: allTimePeriodLabel(inputs.firstActivityAt),
+            ...inputs,
+          })}
+        />
+      )}
+
+      <TrailSection trail={trail} />
+    </PageShell>
+  );
+}
+
+/** The event-by-event record below the summary, with its own error / empty states (trail US4). */
+function TrailSection({ trail }: { trail: TrailPage | null }) {
+  if (trail === null) {
+    return (
+      <StateCard
+        title="We couldn't load your audit trail"
+        body="Please try again in a moment. If it keeps happening, let your administrator know."
+        cta={{ label: 'Try again', href: '/report' }}
+      />
     );
   }
 
-  // US4 — first-run empty state (distinct from the error state above).
+  // First-run empty state (distinct from the error state above).
   if (trail.total === 0) {
     return (
-      <PageShell>
-        <StateCard
-          title="No governed activity yet"
-          body="Once your team runs a governed task or you set up your AI policy, every action will appear here in time order. Nothing is recorded until then."
-          cta={{ label: 'Run a Skill', href: '/skills' }}
-          secondaryCta={{ label: 'Set up your policy', href: '/policy-seed' }}
-        />
-      </PageShell>
+      <StateCard
+        title="No governed activity yet"
+        body="Once your team runs a governed task or you set up your AI policy, every action will appear here in time order. Nothing is recorded until then."
+        cta={{ label: 'Run a Skill', href: '/skills' }}
+        secondaryCta={{ label: 'Set up your policy', href: '/policy-seed' }}
+      />
     );
   }
 
@@ -103,8 +140,17 @@ export default async function ReportPage({
   const hasMore = shown < trail.total;
 
   return (
-    <PageShell>
-      <Alert severity="info" sx={{ '& a': { color: 'inherit' } }}>
+    <Box
+      component="section"
+      aria-labelledby="trail-heading"
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
+      <Typography variant="h5" component="h2" id="trail-heading">
+        Activity record
+      </Typography>
+
+      {/* The summary already carries the protection statement in print; on screen it stays here. */}
+      <Alert severity="info" sx={{ '& a': { color: 'inherit' }, displayPrint: 'none' }}>
         {AUDIT_PROTECTION_STATEMENT}
       </Alert>
 
@@ -127,7 +173,7 @@ export default async function ReportPage({
       </Box>
 
       {hasMore ? (
-        <Box>
+        <Box sx={{ displayPrint: 'none' }}>
           <Button
             variant="outlined"
             component={NextLink}
@@ -137,7 +183,7 @@ export default async function ReportPage({
           </Button>
         </Box>
       ) : null}
-    </PageShell>
+    </Box>
   );
 }
 
@@ -147,7 +193,7 @@ function TrailRow({ entry, gapped }: { entry: TrailEntry; gapped: boolean }) {
     <Paper
       component="li"
       variant="outlined"
-      sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 0.5 }}
+      sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 0.5, breakInside: 'avoid' }}
     >
       <Typography variant="body2" color="text.secondary">
         <time dateTime={entry.at}>{formatDateTime(entry.at)}</time>
@@ -200,7 +246,7 @@ function StateCard({
         {body}
       </Typography>
       {cta || secondaryCta ? (
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', displayPrint: 'none' }}>
           {cta ? (
             <Button variant="contained" component={NextLink} href={cta.href}>
               {cta.label}
