@@ -52,9 +52,10 @@ export type RuleSpec = {
   /** Decide inclusion for these answers (include + whether a safe default applied). */
   gate: (answers: PolicySeedAnswers) => RuleGateResult;
   /**
-   * Optional plain-language text for the rule. When omitted, the generator uses the
-   * source `standard_rule`'s own rule_text (already plain-language). Provided here only
-   * where the rule is templated from an answer (Q1/Q2/Q6) or is a fixed baseline (Q7).
+   * The rule's wording in the org's policy. Every seed rule sets it, so the policy reads in one
+   * consistent "we" voice (Val, 2026-11-19); the standards library keeps the standard's own
+   * wording for citations and the Co-Pilot. If omitted, the generator falls back to the source
+   * `standard_rule`'s rule_text. Changing this wording affects newly generated policies only.
    */
   text?: (answers: PolicySeedAnswers) => string;
 };
@@ -95,7 +96,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     sourceQuestion: 'Q1',
     gate: always,
     text: (a) =>
-      `${a.accountablePerson.name}, ${a.accountablePerson.role}, is accountable for the organization's AI use and has the final say - AI assists, people decide.`,
+      `${accountablePersonLabel(a)} is accountable for our use of AI and has the final say: AI assists, people decide.`,
   },
   // Q2 - recorded purpose (always).
   {
@@ -106,7 +107,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     sourceQuestion: 'Q2',
     gate: always,
     text: (a) =>
-      `We record what we use AI for (${a.purposes.join(', ')}), its context, and who is responsible, before relying on it.`,
+      `We use AI for: ${a.purposes.join('; ')}. Before relying on AI for a task, we record what it is for, its context, and who is responsible.`,
   },
   // Q3 - data governance (if sensitive data; default yes).
   {
@@ -116,6 +117,8 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: 'Q3',
     gate: includeUnlessNo((a) => a.handlesSensitiveData),
+    text: () =>
+      'We put only the information a task needs into AI, check that it is accurate, and protect personal and sensitive information.',
   },
   // Q4 - check output (if higher-stakes; default yes).
   {
@@ -125,6 +128,8 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: 'Q4',
     gate: includeUnlessNo((a) => a.higherStakes),
+    text: () =>
+      'We check AI output for errors, bias, or harm before acting on it, and take more care the higher the stakes.',
   },
   // Q4 - match safeguards to risk (if higher-stakes; default yes).
   {
@@ -134,6 +139,8 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: 'Q4',
     gate: includeUnlessNo((a) => a.higherStakes),
+    text: () =>
+      'We match our safeguards to the level of risk: the higher the stakes, the stronger the checks.',
   },
   // Q4 + Q6 - human review/override, naming the reviewer (if higher-stakes; default yes).
   {
@@ -145,7 +152,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     gate: includeUnlessNo((a) => a.higherStakes),
     text: (a) => {
       const reviewer = a.reviewer?.trim() ? a.reviewer.trim() : accountablePersonLabel(a);
-      return `Before higher-stakes AI output is used or sent, ${reviewer} reviews and approves it.`;
+      return `Before higher-stakes AI output is used or sent, ${reviewer} reviews it and can approve, change, or stop it.`;
     },
   },
   // Q5 - disclose AI to outsiders (default yes when skipped/not sure).
@@ -156,6 +163,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: false,
     sourceQuestion: 'Q5',
     gate: includeUnlessNo((a) => a.externalContent),
+    text: () => 'We tell people when they are dealing with AI, and we label AI-generated content.',
   },
   // Auto-seeded baselines (no question; always on; non-overridable).
   {
@@ -165,6 +173,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: null,
     gate: always,
+    text: () => 'We log how AI is used and review that use regularly.',
   },
   {
     id: 'baseline-records',
@@ -173,6 +182,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: null,
     gate: always,
+    text: () => 'We keep records that show how AI-assisted work was produced and who checked it.',
   },
   // Q7 - locked prohibited uses (always on; non-overridable).
   {

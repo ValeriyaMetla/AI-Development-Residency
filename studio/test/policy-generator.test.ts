@@ -45,14 +45,20 @@ describe('generatePolicyRules — happy path (all yes)', () => {
     expect(rules.every((r) => r.needsReview === false)).toBe(true);
   });
 
-  it('templated rules override the standard text; untemplated inherit it', () => {
+  it("seed rules use the spec's own wording, not the standard's, and keep their provenance", () => {
     const rules = generatePolicyRules(fullYes, makeStandards());
     const accountable = rules.find((r) => r.sourceQuestion === 'Q1');
-    expect(accountable?.ruleText).toContain('Jane Doe, Executive Director');
-    const logging = rules.find((r) => r.ruleText === 'Standard text for iso42001-managed-logging');
+    expect(accountable?.ruleText).toContain('Jane Doe (Executive Director)');
+    // Every seed rule now has its own "we"-voice text (Val, 2026-11-19); none falls back to the
+    // standards library's wording, but each still cites its standard.
+    expect(rules.some((r) => r.ruleText.startsWith('Standard text for'))).toBe(false);
+    const logging = rules.find(
+      (r) => r.ruleText === 'We log how AI is used and review that use regularly.',
+    );
     expect(logging).toBeDefined();
     expect(logging?.origin).toBe('baseline');
     expect(logging?.isBaselineSafety).toBe(true);
+    expect(logging?.standardRuleId).toBeTruthy();
   });
 });
 

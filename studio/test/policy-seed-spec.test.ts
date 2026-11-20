@@ -80,13 +80,22 @@ describe('gates', () => {
 describe('text templates', () => {
   it('Q1 names the accountable person', () => {
     const q1 = POLICY_SEED_SPEC.find((r) => r.id === 'q1-accountable-person')!;
-    expect(q1.text!(baseAnswers)).toContain('Jane Doe, Executive Director');
+    expect(q1.text!(baseAnswers)).toBe(
+      'Jane Doe (Executive Director) is accountable for our use of AI and has the final say: AI assists, people decide.',
+    );
+  });
+
+  it('every seed rule has its own wording (one consistent policy voice)', () => {
+    for (const rule of POLICY_SEED_SPEC) {
+      expect(rule.text, `${rule.id} has no wording`).toBeDefined();
+      expect(rule.text!(baseAnswers).trim()).not.toBe('');
+    }
   });
 
   it('Q2 lists the selected purposes', () => {
     const q2 = POLICY_SEED_SPEC.find((r) => r.id === 'q2-purpose')!;
-    expect(q2.text!({ ...baseAnswers, purposes: ['Summarizing', 'Research'] })).toContain(
-      'Summarizing, Research',
+    expect(q2.text!({ ...baseAnswers, purposes: ['Summarizing', 'Research'] })).toBe(
+      'We use AI for: Summarizing; Research. Before relying on AI for a task, we record what it is for, its context, and who is responsible.',
     );
   });
 
