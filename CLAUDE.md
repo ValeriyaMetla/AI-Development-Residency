@@ -57,6 +57,11 @@ working, not optional suggestions.
   access control, queries, file uploads, AI/LLM prompts or tool calls, or any untrusted data,
   and when writing security requirements or security acceptance criteria. (OWASP Top 10:2025
   + OWASP Cheat Sheets incl. LLM Prompt Injection Prevention)
+- **security-testing** — Apply when finding vulnerabilities in a codebase, threat modeling,
+  planning or running a pentest or security test plan, building a PenTest Audit/Findings table,
+  or writing a security test report. Finds vulnerabilities and runs the test; the defenses it
+  checks for are owned by `secure-coding`. (OWASP Web Security Testing Guide + Security Testing
+  Framework + OWASP Top 10:2025)
 - **ux-usability** — Apply when designing or building any user-facing interface,
   screen, form, or flow. (Nielsen's heuristics + enterprise UX)
 - **accessibility** — Apply when building or reviewing any UI, HTML, component,

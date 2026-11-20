@@ -205,10 +205,10 @@ flowchart TD
 | 2. AI Development | skill-authoring ✅ · skill-evaluation ✅ · responsible-ai ✅ · ai-evaluation ✅ · prompt-engineering ⬜ · agentic-workflow-design ⬜ · rag-retrieval ⬜ | 4 / 7 |
 | 3. Design & Experience | ux-usability ✅ · accessibility ✅ | 2 / 2 |
 | 4. Code Craft | documentation ✅ · judge-arch ✅ · clean-code ⬜ · error-handling-logging ⬜ | 2 / 4 |
-| 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · ci-cd-pipeline ✅ · security-testing ⬜ | 3 / 4 |
+| 5. Security & Testing | secure-coding ✅ · testing-code-review ✅ · ci-cd-pipeline ✅ · security-testing ✅ | 4 / 4 |
 | 6. Delivery & Integration | deployment ⬜ · git-workflow ⬜ · api-integration ⬜ · seo-aeo ⬜ | 0 / 4 |
 
-**Total: 22 built · 10 planned**
+**Total: 23 built · 9 planned**
 
 ---
 
@@ -220,7 +220,7 @@ flowchart TD
 | W2 | Oct 26 | Product Specifications | `problem-framing` ✅ · `mvp-scoping` ✅ · `product-specs` ✅ · `technical-planning` ✅ · `backlog-decomposition` ✅ · `audience-segmentation` ✅ · `market-analysis` ✅ · `competitive-analysis` ✅ · `positioning` ✅ · `pitch-deck` ✅ |
 | W3 | Nov 2 | Host a Web App | `rapid-prototyping` ✅ · `deployment` ⬜ · `git-workflow` ⬜ |
 | W4 | Nov 9 | AI Chatbot (career coach) | `prompt-engineering` ⬜ · `agentic-workflow-design` ⬜ · `ai-evaluation` ✅ · `responsible-ai` ✅ |
-| W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ⬜ |
+| W5 | Nov 16 | PenTest a Codebase | `secure-coding` ✅ · `security-testing` ✅ |
 | W6 | Nov 30 | PWA + Microservices | `technical-planning` ✅ · `clean-code` ⬜ · `error-handling-logging` ⬜ |
 | W7 | Dec 14 | Integrate Apps | `api-integration` ⬜ |
 | W8 | Dec 21 | SEO / AEO Strategy | `seo-aeo` ⬜ |
@@ -408,12 +408,11 @@ Meaningful tests (the pyramid) + rigorous review (Google priorities). The final 
 
 Automated CI/CD gate on GitHub Actions — required checks on every push, kept fast and deterministic; script-judgeable checks (architecture, tests, regressions, security/dependency scans, a11y) in CI and human/real-env concerns out; each check traced to the requirement it protects; proven by a red-to-green run.
 
-### security-testing ⬜ *(planned — Week 5, due Nov 16)*
-Intended scope: finding vulnerabilities in a codebase — threat modeling, testing against
-the OWASP Top 10, dependency/secret scanning, and safe, authorized pentesting practice.
-Boundary: this skill *finds* vulnerabilities and plans the test; the defenses it checks for
-are owned by [[secure-coding]] (which already routes pentests and threat-model test plans here).
-*Likely grounded in: OWASP Testing Guide + OWASP Top 10.*
+### security-testing ✅
+*Grounded in: OWASP Web Security Testing Guide + OWASP Security Testing Framework + OWASP Top 10:2025 · [`SKILL.md`](../.claude/skills/security-testing/SKILL.md)*
+
+
+Plans and runs a disciplined security test of an existing codebase: get written authorization and scope *before* testing (the line between a pentest and an attack); test at every phase, not one pass at the end; threat-model in six steps (draw it + mark layer-crossings → assets tied to C/I/A → what could go wrong per layer → rank by likelihood × damage → fix/remove/transfer/accept → re-check); test every software layer × network tier from a per-layer grid with OWASP Testing Guide refs; hunt injection as one family (XSS, SQL, command, prompt injection) typed *and* hidden; fill the audit table before testing then skeptically audit it; record findings by P0–P3 severity → recommendation → BDD (attacker path) → a blocking CI check. This skill *finds* vulnerabilities and runs the test; the defenses it checks for are owned by [[secure-coding]] (which routes pentests and threat-model test plans here). Composes with [[testing-code-review]] and [[ci-cd-pipeline]] (where the blocking checks live).
 
 ---
 
