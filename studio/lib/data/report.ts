@@ -1,4 +1,6 @@
 import { createClient, getCurrentUser } from '@/lib/data/supabase/server';
+import { getRunSummariesSince } from '@/lib/data/usage';
+import { safetyNetSummary, type SafetyNetSummary } from '@/lib/domain/usage';
 import {
   detectRunGaps,
   extractDetail,
@@ -171,4 +173,78 @@ async function detectGapsForWindow(
     taskRunId: (e as { task_run_id: string | null }).task_run_id,
   }));
   return [...detectRunGaps(runs, terminalEvents)];
+}
+
+// --- Summary inputs (card "Build one-click responsible-AI summary export") ----------------------
+
+/**
+ * The org-wide facts the Governed AI Summary is composed from (`composeSummary`, Domain). Counts and
+ * names only — never run content. The org name, generation time and period label are supplied by
+ * the caller (the page already holds the profile; the label is Domain wording).
+ */
+export type SummaryInputs = {
+  /** All-time outcome counts, from the same derivation the usage dashboard uses. */
+  safety: SafetyNetSummary;
+  /** ISO of the org's earliest governed run, or null when there are none. */
+  firstActivityAt: string | null;
+  /** How many distinct runs a person decided on (approved or rejected) — ADR-0020. */
+  humanReviewedCount: number;
+  /** The policy in force (name + when it took effect); null → genuinely no active policy. */
+  policy: { name: string; activeSince: string } | null;
+};
+
+/** The earliest instant — "since the beginning" for an all-time read. */
+const ALL_TIME = new Date(0).toISOString();
+
+/**
+ * Everything the summary needs, or `null` if ANY part fails to load.
+ *
+ * All-or-nothing on purpose: this feeds a document a Leader hands to a funder, so a partial failure
+ * must never print as a fact. In particular a failed policy read is NOT reported as "no active
+ * policy" (the trap `getActivePolicy` has, which returns null for both — same reasoning as
+ * ADR-0027 / `f6e92dd`). Org isolation is RLS (ADR-0013): `policy` and `approval` are both
+ * org-scoped on select, and one active policy per org is a unique index, so no org id is passed.
+ *
+ * Scale note (YAGNI): the all-time run read pulls status + timestamp per run. Fine at pilot volume;
+ * swap for per-status head counts if an org's run count grows large.
+ */
+export async function getSummaryInputs(): Promise<SummaryInputs | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  const [runs, reviews, policy] = await Promise.all([
+    getRunSummariesSince(ALL_TIME),
+    // Only the run id — never `note` (free text a reviewer typed; ADR-6 "no content").
+    supabase.from('approval').select('task_run_id'),
+    supabase.from('policy').select('name, created_at').eq('status', 'active').maybeSingle(),
+  ]);
+
+  if (runs === null) return null;
+  if (reviews.error) {
+    console.error('getSummaryInputs (approvals) failed:', reviews.error.message);
+    return null;
+  }
+  if (policy.error) {
+    console.error('getSummaryInputs (policy) failed:', policy.error.message);
+    return null;
+  }
+
+  // Runs come back newest first; the last one is the earliest activity.
+  const firstActivityAt = runs.length > 0 ? runs[runs.length - 1].createdAt : null;
+
+  // Distinct runs, so a run with more than one decision row is never double-counted (and the
+  // "reviewed" figure can't exceed the number of runs it's a share of).
+  const reviewedRuns = new Set(
+    (reviews.data ?? []).map((r) => (r as { task_run_id: string }).task_run_id),
+  );
+
+  const active = policy.data as { name: string; created_at: string } | null;
+
+  return {
+    safety: safetyNetSummary(runs),
+    firstActivityAt,
+    humanReviewedCount: reviewedRuns.size,
+    policy: active ? { name: active.name, activeSince: active.created_at } : null,
+  };
 }

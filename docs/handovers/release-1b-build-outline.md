@@ -122,10 +122,10 @@ guardrails never read entitlement.
 
 **Report (Epic #7):**
 
-1. ⬜ `Build the audit trail from registry data` — [Must] — spec in the card; **not built** (no `/report` route yet). **← Lane C next:** read-only `lib/data` reader + pure `lib/domain` helpers + `/report` page (Leader-only), reusing `AUDIT_EVENT_TYPES`/`isAuditEventType` and showing `AUDIT_PROTECTION_STATEMENT`.
+1. ✅ `Build the audit trail from registry data` — [Must] — read-only `getAuditTrail` + pure wording/gap helpers + Leader-only `/report`, zero-content counter-test (`25c32da`/PR #88, `f078a55`/PR #90)
 2. ✅ `Ensure audit entries can't be silently altered` — [Must] — DB stamps each audit entry's time + identity; app users may insert only known event kinds, as themselves, about their own org; TRUNCATE revoked from app roles (ADR-0026, `06b818b`/PR #85; `4f26171`/PR #83)
-3. ⬜ `Build one-click responsible-AI summary export` — [Must] — spec blank. Approved: printable `/report` + browser **Print / Save as PDF** (no PDF library); Leader-only, checked server-side; CSV a later Could.
-4. ⬜ `Handle low-data honestly in the summary` — [Must] — spec blank. Approved: summary **templated from data** (not model-written); empty/low-data are first-class states, never overstated.
+3. ✅ `Build one-click responsible-AI summary export` — [Must] — **built, in a PR (board → In Review)**: Governed AI Summary above the trail on `/report` + **Print / Save as PDF** (browser print, no PDF library; print CSS drops app chrome). All-or-nothing `getSummaryInputs` (a failed policy read never prints as "no policy"; export hidden when anything failed to load); "Reviewed by a person" = distinct runs with an approve/reject decision. Tests: `report-summary-inputs.test.ts` + no-content select allow-list (red-green checked). No migration, no ADR.
+4. ✅ `Handle low-data honestly in the summary` — [Must] — **built, same PR (board → In Review)**: pure `composeSummary` — sample size + period always stated, empty/low/normal states, early-use caveat (<5 actions or first use ≤14 days), no % below a 10-action base, banned-overstatement counter-test; `allTimePeriodLabel` ("the period since …").
 
 **Coach (Epic #6):**
 
@@ -173,9 +173,9 @@ answered (choice 1 decided); choices 2–3 open. (⬛ = new card, not yet specce
 | (un-chunked) — Co-Pilot "Not sure" | 4 | 0 | 0 | 0 | 4 |
 | **Total** | **52** | **41** | **1** | **6** | **4** |
 
-**Next in Lane C (Report / Epic #7):** apply the ADR-0026 migration in Supabase + run the check
-(Val), then **build card 1** (`/report` audit trail), then spec + build cards 3 (export) and 4
-(low-data honesty) together.
+**Lane C (Report / Epic #7):** all four cards built — cards 1–2 merged; cards 3 + 4 in one PR
+(branch `worktree-lane-c-summary-export`). Next: merge, then flip both cards to Done; manual
+print-to-PDF check by Val.
 
 **ADRs added during Release 1b:**
 

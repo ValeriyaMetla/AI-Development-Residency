@@ -66,6 +66,7 @@ export default function AppShell({
           boxShadow: 3,
           transition: 'top 120ms ease',
           '&:focus': { top: 8 },
+          displayPrint: 'none',
         }}
       >
         Skip to content
@@ -75,7 +76,13 @@ export default function AppShell({
         position="sticky"
         color="default"
         elevation={0}
-        sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}
+        // Printouts (e.g. the /report export) are documents, not screens: no app chrome.
+        sx={{
+          bgcolor: 'background.paper',
+          borderBottom: 1,
+          borderColor: 'divider',
+          displayPrint: 'none',
+        }}
       >
         <Toolbar sx={{ gap: 1 }}>
           <Typography
@@ -172,7 +179,12 @@ export default function AppShell({
         </Toolbar>
       </AppBar>
 
-      <Container component="main" id="main-content" maxWidth="md" sx={{ py: 4 }}>
+      <Container
+        component="main"
+        id="main-content"
+        maxWidth="md"
+        sx={{ py: 4, '@media print': { py: 0, maxWidth: 'none' } }}
+      >
         {children}
       </Container>
     </>
