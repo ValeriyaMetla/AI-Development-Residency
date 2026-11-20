@@ -129,6 +129,15 @@ describe('detectRunGaps — gaps are visible, not invented (US5)', () => {
     expect(detectRunGaps([{ id: 'r', status: 'running' }], []).size).toBe(0);
   });
 
+  it('a Co-Pilot assessment counts as terminal — never a false gap', () => {
+    // A Co-Pilot run finishes with copilot_assessed, never task_completed. It must NOT be flagged.
+    const gaps = detectRunGaps(
+      [{ id: 'r-copilot', status: 'needs_review' }],
+      [{ type: 'copilot_assessed', taskRunId: 'r-copilot' }],
+    );
+    expect(gaps.has('r-copilot')).toBe(false);
+  });
+
   it('ignores terminal events with no run id', () => {
     const gaps = detectRunGaps(
       [{ id: 'r-missing', status: 'completed' }],
