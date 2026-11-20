@@ -138,8 +138,8 @@ guardrails never read entitlement.
 **Onboard + free tier (Epic #8):**
 
 10. ✅ `Build self-serve setup (no consultant)` — [Must] — `/setup` self-serve setup hub; Home routes an unfinished leader there (`1d27592`, `13ccbce`, PR #84)
-11. ⬜ `Build the minutes-to-value onboarding flow` — [Must] — *(the /setup hub may partly cover this — confirm with Lane D)*
-12. ⬜ `Add resume-after-interruption to onboarding` — [Must] — *(confirm with Lane D)*
+11. 🟡 `Build the minutes-to-value onboarding flow` — [Must] — Lane D: time-to-first-run measurement (`a0148a8`). Lane A (2026-11-19, **uncommitted — code PR**): "Run your first Skill →" on the activated screen + a **"Use recommended answers"** fast path on the seed wizard (protective defaults: all 3 risk questions `not_sure` → every safety rule on; lands on the normal review screen — leader still clicks Activate, per Val). Tests `policy-seed-recommended.test.ts` (6). Flip to ✅ on merge.
+12. 🟡 `Add resume-after-interruption to onboarding` — [Must] — step-level resume on `/setup` built by Lane D (`a0148a8`). AC 2 (half-finished wizard answers saved server-side, cross-device) **deferred** — Val, 2026-11-18; Lane A follow-up / MMP candidate, needs a migration + ADR. Same-device resume already works via `localStorage`.
 13. ✅ `Define & gate the free baseline-safety tier` — [Must] — capability matrix (safety + oversight free, only capacity premium) + server-side capacity gate before the pipeline; free monthly run cap is a **placeholder** to tune later; billing out of scope (ADR-0023, `638d358`, `bb221a1`)
 14. ✅ `Keep free safety active behind the paywall` — [Must] — regression test: safety net holds on free / capped / lapsed / paid; lapsed premium falls back to the free cap (`org.premium_until`) (`bb221a1`)
 15. ⬜ `Add in-product unblock guidance` — [Must] — Feature: Self-serve setup; the board describes it as helping a stuck leader in-product without a support ticket. Not started. (The free-tier gate's "you've reached this month's free run limit" message is part of card 13, not this card.)

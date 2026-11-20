@@ -19,6 +19,7 @@ Entry format:
 `- YYYY-MM-DD — [account · surface/chat · branch/worktree if Code] — did / in progress / next`
 
 ## Log (newest first)
+- 2026-11-19 — [Claude Code · Lane A spine (picked up in 2nd account) · main] — **Lane D's 3 Lane-A-coupled onboarding pieces: #1 + #2 built, #3 deferred.** #1: "Run your first Skill →" on the policy-active screen. #2: "Use recommended answers" fast path on `/policy-seed` — `recommendedSeedAnswers()` (protective: risk questions `not_sure` = every safety rule on; leader's display name pre-filled; 3 everyday purposes) → generates → **normal review screen, leader still clicks Activate** (Val chose to keep the review step over auto-activate). `PURPOSE_OPTIONS` moved into `policy-seed-spec.ts` (one list for wizard + defaults). Tests `policy-seed-recommended.test.ts` (6); `npm run verify` green (407 tests, build), arch-gate `--all` PASS. **Uncommitted — code via PR** (4 code files). Not clicked through in a browser (needs a signed-in leader with no policy). #3 (server-side partial answers) stays deferred per Val's 2026-11-18 call. Next: Val opens the PR; tell Lane D #1 + #2 landed; flip cards 11 on merge.
 - 2026-11-19 — [Claude Code · Lane A spine · main] — **Export + re-import policy built (Epic 1, the
   last Lane A card).** Did: pure `lib/domain/policy-export.ts` (`serializePolicy` → portable JSON with
   no org/row ids; `parsePolicyImport` validates untrusted input, rejects malformed cleanly, preserves

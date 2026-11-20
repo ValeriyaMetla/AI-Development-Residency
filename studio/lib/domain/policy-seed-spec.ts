@@ -220,6 +220,48 @@ export const EXPECTED_STANDARD_CODES = [
   'iso42001-records',
 ] as const;
 
+/**
+ * The purposes the seed wizard offers at Q2. Lives here (not in the wizard) so the recommended
+ * defaults below are drawn from the same list the leader sees — one source of truth.
+ */
+export const PURPOSE_OPTIONS = [
+  'Drafting emails, letters, or communications',
+  'Summarizing documents or notes',
+  'Research and finding information',
+  'Writing or editing content (reports, grants, posts)',
+  'Administrative help (scheduling, lists, cleanup)',
+] as const;
+
+/**
+ * The recommended default purposes for the one-click "accept defaults" fast path (Epic 8
+ * minutes-to-value) — the everyday, low-risk uses. Each must be one of PURPOSE_OPTIONS (tested).
+ */
+export const RECOMMENDED_PURPOSES = [
+  'Drafting emails, letters, or communications',
+  'Summarizing documents or notes',
+  'Administrative help (scheduling, lists, cleanup)',
+] as const;
+
+/**
+ * Sensible default seed answers for the fast "use recommended answers" path. Deliberately
+ * PROTECTIVE (responsible-AI, Val-approved 2026-11-19): the three risk questions default to
+ * 'not_sure', which KEEPS every safety rule on (only an explicit 'no' drops one — see
+ * includeUnlessNo). The leader still reviews the drafted rules and must click Activate before
+ * the policy takes effect (Val, 2026-11-19: keep the review step), and can relax any rule
+ * later. The policy is generated
+ * deterministically from these answers + the standards library — no model writes it.
+ */
+export function recommendedSeedAnswers(accountableName: string): PolicySeedAnswers {
+  const name = accountableName.trim() || 'Your organization’s lead';
+  return {
+    accountablePerson: { name, role: 'Accountable Leader' },
+    purposes: [...RECOMMENDED_PURPOSES],
+    handlesSensitiveData: 'not_sure',
+    higherStakes: 'not_sure',
+    externalContent: 'not_sure',
+  };
+}
+
 const TRISTATES: readonly string[] = ['yes', 'no', 'not_sure'];
 
 function isTriState(v: unknown): v is TriState {

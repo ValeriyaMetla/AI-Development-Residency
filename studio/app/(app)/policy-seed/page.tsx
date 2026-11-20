@@ -23,6 +23,8 @@ export default async function PolicySeedPage() {
 
   // No active policy yet → the guided seed wizard (first-time setup).
   if (!activePolicy) {
+    // Pre-fills the accountable person for the "use recommended answers" fast path.
+    const profile = await getMyProfile();
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box>
@@ -34,7 +36,7 @@ export default async function PolicySeedPage() {
             organization — grounded in recognized standards. Takes about five minutes.
           </Typography>
         </Box>
-        <PolicySeedWizard />
+        <PolicySeedWizard defaultLeaderName={profile?.display_name ?? ''} />
       </Box>
     );
   }

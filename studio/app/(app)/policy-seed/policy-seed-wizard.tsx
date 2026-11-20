@@ -15,8 +15,14 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
+import NextLink from 'next/link';
 import { runPolicySeed, confirmPolicy, type RunPolicySeedResult } from './actions';
-import type { PolicySeedAnswers, TriState } from '@/lib/domain/policy-seed-spec';
+import {
+  PURPOSE_OPTIONS,
+  recommendedSeedAnswers,
+  type PolicySeedAnswers,
+  type TriState,
+} from '@/lib/domain/policy-seed-spec';
 import PolicyRuleList from './policy-rule-list';
 
 /**
@@ -30,14 +36,6 @@ import PolicyRuleList from './policy-rule-list';
  */
 
 const STORAGE_KEY = 'policy-seed-draft-v1';
-
-const PURPOSE_OPTIONS = [
-  'Drafting emails, letters, or communications',
-  'Summarizing documents or notes',
-  'Research and finding information',
-  'Writing or editing content (reports, grants, posts)',
-  'Administrative help (scheduling, lists, cleanup)',
-];
 
 const LOCKED_PROHIBITIONS = [
   "We won't use AI to manipulate or deceive people.",
@@ -105,8 +103,14 @@ function toAnswers(f: FormState): PolicySeedAnswers {
   };
 }
 
-export default function PolicySeedWizard() {
+export default function PolicySeedWizard({
+  defaultLeaderName = '',
+}: {
+  /** The signed-in leader's display name, pre-filled as the accountable person on the fast path. */
+  defaultLeaderName?: string;
+}) {
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [usedRecommended, setUsedRecommended] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [result, setResult] = useState<RunPolicySeedResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -170,11 +174,12 @@ export default function PolicySeedWizard() {
     }
   })();
 
-  function handleFinish() {
+  function generate(answers: PolicySeedAnswers, recommended: boolean) {
     startTransition(async () => {
-      const res = await runPolicySeed(toAnswers(form));
+      const res = await runPolicySeed(answers);
       setResult(res);
       if (res.status === 'created') {
+        setUsedRecommended(recommended);
         try {
           localStorage.removeItem(STORAGE_KEY);
         } catch {
@@ -182,6 +187,16 @@ export default function PolicySeedWizard() {
         }
       }
     });
+  }
+
+  function handleFinish() {
+    generate(toAnswers(form), false);
+  }
+
+  // Minutes-to-value fast path (Epic 8): generate from the protective recommended answers, then
+  // land on the same review screen — the leader still reads the rules and clicks Activate.
+  function handleUseRecommended() {
+    generate(recommendedSeedAnswers(form.name.trim() || defaultLeaderName), true);
   }
 
   function handleActivate(policyId: string) {
@@ -200,7 +215,7 @@ export default function PolicySeedWizard() {
   if (result?.status === 'created') {
     if (activated) {
       return (
-        <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Typography variant="h6" component="h2">
             Your AI policy is active
           </Typography>
@@ -208,6 +223,13 @@ export default function PolicySeedWizard() {
             It now applies to your organization&apos;s AI use. You can revisit and refine it any
             time.
           </Typography>
+          {/* Minutes-to-value: bridge the leader straight from an active policy to their first
+              governed run, instead of a dead-end "it's active" screen (Epic 8, Lane D). */}
+          <Box>
+            <Button variant="contained" component={NextLink} href="/skills">
+              Run your first Skill →
+            </Button>
+          </Box>
         </Paper>
       );
     }
@@ -229,6 +251,13 @@ export default function PolicySeedWizard() {
           </Typography>
         </Box>
 
+        {usedRecommended ? (
+          <Alert severity="info">
+            You used the recommended answers, so every safety rule is on. Nothing is active until
+            you click Activate, and you can relax or edit any rule afterwards.
+          </Alert>
+        ) : null}
+
         <PolicyRuleList rules={result.rules} />
 
         {activateError ? <Alert severity="warning">{activateError}</Alert> : null}
@@ -249,6 +278,28 @@ export default function PolicySeedWizard() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {stepIndex === 0 ? (
+        <Paper
+          variant="outlined"
+          component="section"
+          aria-labelledby="recommended-heading"
+          sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
+        >
+          <Typography id="recommended-heading" variant="subtitle1" component="h2">
+            Short on time?
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Use recommended answers — we&apos;ll build a starter policy from recognized standards
+            (not written by AI), which you review before it takes effect and can edit any time.
+          </Typography>
+          <Box>
+            <Button variant="outlined" onClick={handleUseRecommended} disabled={pending}>
+              {pending ? 'Generating…' : 'Use recommended answers'}
+            </Button>
+          </Box>
+        </Paper>
+      ) : null}
+
       <Box>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Step {stepIndex + 1} of {steps.length}
