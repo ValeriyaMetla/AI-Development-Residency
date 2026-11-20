@@ -5,7 +5,12 @@ import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
 import { getMyProfile } from '@/lib/data/profile';
 import { seedPolicyFromAnswers, type SeedPolicyResult } from '@/lib/domain/policy-seed';
-import { activatePolicy, getActivePolicy, getPolicyRulesOrNull } from '@/lib/data/policy';
+import {
+  activatePolicy,
+  archiveDraftPolicies,
+  getActivePolicy,
+  getPolicyRulesOrNull,
+} from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
 import { publishEditedPolicy, publishImportedPolicy } from '@/lib/domain/policy-publish';
@@ -17,8 +22,15 @@ import { serializePolicy, parsePolicyImport } from '@/lib/domain/policy-export';
  * Domain orchestration / Data-Source. No business logic lives here.
  *
  * Human-in-the-loop (responsible-AI): `runPolicySeed` creates a DRAFT; `confirmPolicy`
- * activates it only on the leader's explicit confirmation.
+ * activates it only on the leader's explicit confirmation. All three seed actions are Leader-only.
  */
+
+/**
+ * Setting up the policy (generate, activate, start over) is a Leader action — access control,
+ * secure-coding A01 — enforced server-side here, not just hidden in the UI. Signup makes the
+ * org's first user an Accountable Leader, so self-serve setup is unaffected.
+ */
+const SETUP_LEADER_ONLY = 'Only an Accountable Leader can set up the AI policy.';
 
 export type RunPolicySeedResult = SeedPolicyResult | { status: 'blocked'; message: string };
 
@@ -26,6 +38,11 @@ export type RunPolicySeedResult = SeedPolicyResult | { status: 'blocked'; messag
 export async function runPolicySeed(input: unknown): Promise<RunPolicySeedResult> {
   const user = await getCurrentUser();
   if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: SETUP_LEADER_ONLY };
+  }
 
   const orgId = await getMyOrgId();
   if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
@@ -46,6 +63,11 @@ export async function confirmPolicy(policyId: string): Promise<ConfirmPolicyResu
   const user = await getCurrentUser();
   if (!user) return { status: 'blocked', message: 'You must be signed in.' };
 
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: SETUP_LEADER_ONLY };
+  }
+
   const orgId = await getMyOrgId();
   if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
 
@@ -57,6 +79,35 @@ export async function confirmPolicy(policyId: string): Promise<ConfirmPolicyResu
   return ok
     ? { status: 'activated', policyId }
     : { status: 'failed', message: 'Could not activate the policy. Please try again.' };
+}
+
+export type DiscardDraftResult =
+  | { status: 'discarded' }
+  | { status: 'blocked'; message: string }
+  | { status: 'failed'; message: string };
+
+/**
+ * "Start over": discard the org's unactivated draft policy so the leader can re-run the seed
+ * wizard. Drafts are archived, never deleted (append-only record). A discarded draft never took
+ * effect, so — like generating one — it writes no audit event.
+ */
+export async function discardDraftPolicy(): Promise<DiscardDraftResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: SETUP_LEADER_ONLY };
+  }
+
+  const orgId = await getMyOrgId();
+  if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
+
+  const ok = await archiveDraftPolicies(orgId);
+  if (!ok) return { status: 'failed', message: 'Could not start over. Please try again.' };
+
+  revalidatePath('/policy-seed');
+  return { status: 'discarded' };
 }
 
 export type PublishEditsResult =

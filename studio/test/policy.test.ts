@@ -6,11 +6,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockResult = vi.fn();
 // Records the rows passed to .insert(), so a test can check exactly what is written.
 const inserted: unknown[] = [];
+// Records every builder call ([method, args]) so a test can check filters and updates.
+const calls: [string, unknown[]][] = [];
 
 vi.mock('@/lib/data/supabase/server', () => {
   const builder: Record<string, unknown> = {};
-  for (const m of ['select', 'insert', 'update', 'eq', 'order', 'maybeSingle', 'single']) {
+  for (const m of ['select', 'insert', 'update', 'eq', 'order', 'limit', 'maybeSingle', 'single']) {
     builder[m] = (...args: unknown[]) => {
+      calls.push([m, args]);
       if (m === 'insert') inserted.push(args[0]);
       return builder;
     };
@@ -32,6 +35,8 @@ import {
   insertPolicyRules,
   savePolicySeedResponse,
   activatePolicy,
+  getLatestDraftPolicy,
+  archiveDraftPolicies,
 } from '@/lib/data/policy';
 
 const policyRow = {
@@ -254,5 +259,53 @@ describe('activatePolicy', () => {
       .mockResolvedValueOnce({ error: null })
       .mockResolvedValueOnce({ error: { message: 'boom' } });
     expect(await activatePolicy({ orgId: 'org1', policyId: 'p1' })).toBe(false);
+  });
+});
+
+// --- Saved-draft resume + start over (Epic 8 resume-after-interruption) -------------------
+
+describe('getLatestDraftPolicy', () => {
+  beforeEach(() => {
+    calls.length = 0;
+  });
+
+  it('returns the newest draft for the org', async () => {
+    mockResult.mockReturnValue({ data: { ...policyRow, status: 'draft' }, error: null });
+    const draft = await getLatestDraftPolicy('org1');
+    expect(draft).toMatchObject({ id: 'p1', orgId: 'org1', status: 'draft' });
+    expect(calls).toContainEqual(['eq', ['org_id', 'org1']]);
+    expect(calls).toContainEqual(['eq', ['status', 'draft']]);
+    expect(calls).toContainEqual(['order', ['created_at', { ascending: false }]]);
+    expect(calls).toContainEqual(['limit', [1]]);
+  });
+
+  it('returns null when the org has no draft', async () => {
+    mockResult.mockReturnValue({ data: null, error: null });
+    expect(await getLatestDraftPolicy('org1')).toBeNull();
+  });
+
+  it('degrades to null on a read error (page falls back to the wizard)', async () => {
+    mockResult.mockReturnValue({ data: null, error: { message: 'boom' } });
+    expect(await getLatestDraftPolicy('org1')).toBeNull();
+  });
+});
+
+describe('archiveDraftPolicies', () => {
+  beforeEach(() => {
+    calls.length = 0;
+  });
+
+  it("archives (never deletes) only this org's drafts", async () => {
+    mockResult.mockReturnValue({ error: null });
+    expect(await archiveDraftPolicies('org1')).toBe(true);
+    expect(calls).toContainEqual(['update', [{ status: 'archived' }]]);
+    expect(calls).toContainEqual(['eq', ['org_id', 'org1']]);
+    expect(calls).toContainEqual(['eq', ['status', 'draft']]);
+    expect(calls.some(([m]) => m === 'delete')).toBe(false);
+  });
+
+  it('returns false on a write error', async () => {
+    mockResult.mockReturnValue({ error: { message: 'boom' } });
+    expect(await archiveDraftPolicies('org1')).toBe(false);
   });
 });
