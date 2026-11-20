@@ -125,8 +125,8 @@ for a concern; others are *consulted* and contribute their slice.
   `competitive-analysis` → `positioning` — all feed `product-specs`.
 - **Build quality** — `ux-usability`, `accessibility`, `documentation`: consulted on any UI
   or writing.
-- **Gate** — `secure-coding` (consulted on untrusted data) → `testing-code-review` (the
-  final gate before "done").
+- **Gate** — `secure-coding` (consulted on untrusted data, incl. AI/LLM input and output, and
+  on any security requirement) → `testing-code-review` (the final gate before "done").
 - **Oversight** — `skill-evaluation` audits whether each skill still earns its seat.
 
 Rules of thumb: one accountable owner per responsibility; skills compose on a task; beware
@@ -169,7 +169,7 @@ flowchart TD
       UX["ux-usability · ③"] -. consults .- A11Y["accessibility · ③<br/>WCAG 2.2 AA"]
       DOC["documentation · ④"]
       JA["judge-arch · ④<br/>architecture review"]
-      SEC["secure-coding · ⑤<br/>untrusted data"] -. flags .-> TCR["testing-code-review · ⑤<br/>final gate"]
+      SEC["secure-coding · ⑤<br/>untrusted data · OWASP 2025"] -. flags .-> TCR["testing-code-review · ⑤<br/>final gate"]
       RAI["responsible-ai · ② AI Dev<br/>any AI feature ✅"]
     end
 
@@ -342,7 +342,7 @@ Measures whether an LLM's/agent's **outputs** are good (the non-deterministic co
 *Grounded in: NIST AI RMF (+ GenAI Profile) · OECD AI Principles · UNESCO Ethics of AI · EU AI Act · ISO/IEC 42001/23894 · Fairness and ML · Microsoft HAX / Google PAIR · [`SKILL.md`](../.claude/skills/responsible-ai/SKILL.md)*
 
 
-The responsible-AI gate for any AI-powered feature, organized by NIST's Govern/Map/Measure/Manage: name an accountable human + record costly choices as ADRs; map stakes + prohibited uses (**no scoring/ranking people**); disclose AI involvement; design against fabrication; check bias on real/edge inputs; govern the data sent to a model; keep a **human in the loop** for consequential decisions; log + monitor with an off switch. The accountable owner of the "provenance / trust / guardrails" concern other skills only *name*. Consults [[secure-coding]] (data protection), [[ai-evaluation]] (output measurement), [[judge-arch]] (guardrail placement), [[accessibility]] (UI access), and [[technical-planning]] (requirements → NFRs/ADRs).
+The responsible-AI gate for any AI-powered feature, organized by NIST's Govern/Map/Measure/Manage: name an accountable human + record costly choices as ADRs; map stakes + prohibited uses (**no scoring/ranking people**); disclose AI involvement; design against fabrication; check bias on real/edge inputs; govern the data sent to a model; keep a **human in the loop** for consequential decisions; log + monitor with an off switch. The accountable owner of the "provenance / trust / guardrails" concern other skills only *name*. Consults [[secure-coding]] (data protection + prompt-injection defenses), [[ai-evaluation]] (output measurement), [[judge-arch]] (guardrail placement), [[accessibility]] (UI access), and [[technical-planning]] (requirements → NFRs/ADRs).
 
 ---
 
@@ -411,6 +411,8 @@ Automated CI/CD gate on GitHub Actions — required checks on every push, kept f
 ### security-testing ⬜ *(planned — Week 5, due Nov 16)*
 Intended scope: finding vulnerabilities in a codebase — threat modeling, testing against
 the OWASP Top 10, dependency/secret scanning, and safe, authorized pentesting practice.
+Boundary: this skill *finds* vulnerabilities and plans the test; the defenses it checks for
+are owned by [[secure-coding]] (which already routes pentests and threat-model test plans here).
 *Likely grounded in: OWASP Testing Guide + OWASP Top 10.*
 
 ---

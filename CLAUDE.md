@@ -30,7 +30,8 @@ do not rely on a skill triggering on its own (Claude tends to under-trigger):
    the matched category/categories against the request — including each skill's "Use when…"
    phrases *and* its "Do NOT use (use X)" boundaries, which also point to skills in *other*
    categories. Then, **regardless of category, always check the cross-cutting standards**
-   against what you're producing: `secure-coding` (any untrusted data), `testing-code-review`
+   against what you're producing: `secure-coding` (any untrusted data, incl. AI/LLM input and
+   output, and any security requirement), `testing-code-review`
    (before "done"), `accessibility` + `ux-usability` (any UI), `documentation` (any README /
    API / comment), `judge-arch` (any change to app code — layering, data ownership,
    dependencies, resilience, before done/PR), and `responsible-ai` (any AI-powered feature —

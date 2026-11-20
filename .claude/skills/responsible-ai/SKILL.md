@@ -1,8 +1,8 @@
 ---
 name: responsible-ai
-description: Enforces responsible-AI practices on any AI-powered feature — map the stakes and prohibited uses before building, keep a named human accountable for consequential decisions, disclose AI involvement, ground outputs against fabrication, check for bias and unfair harm, govern the data sent to a model, and log and monitor AI use. Use when building, reviewing, or shipping anything that uses an AI model or agent — a prompt, chatbot, agentic workflow, generated content, a recommendation, or an automated decision that affects a person. Grounded in the NIST AI Risk Management Framework. Do NOT use for the technical mechanics of protecting data (use secure-coding), for systematically measuring output quality (use ai-evaluation), or for where guardrails sit in the architecture (use judge-arch).
+description: Enforces responsible-AI practices on any AI-powered feature — map the stakes and prohibited uses before building, keep a named human accountable for consequential decisions, disclose AI involvement, ground outputs against fabrication, check for bias and unfair harm, govern the data sent to a model, and log and monitor AI use. Use when building, reviewing, or shipping anything that uses an AI model or agent — a prompt, chatbot, agentic workflow, generated content, a recommendation, or an automated decision that affects a person. Grounded in the NIST AI Risk Management Framework. Do NOT use for the technical mechanics of protecting data or defending against prompt injection (use secure-coding), for systematically measuring output quality (use ai-evaluation), or for where guardrails sit in the architecture (use judge-arch).
 metadata:
-  version: 1.0
+  version: 1.1
 ---
 
 # Responsible AI
