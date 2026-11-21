@@ -33,7 +33,7 @@ export default async function PolicySeedPage() {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Typography variant="h4" component="h1">
-            Your AI rules
+            AI Policy
           </Typography>
           <Alert severity="info">
             Your organization hasn&apos;t set its AI rules yet. Your Accountable Leader sets them up
@@ -89,7 +89,7 @@ export default async function PolicySeedPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Your AI rules
+          AI Policy
         </Typography>
         <Typography variant="body1" color="text.secondary">
           {canEdit

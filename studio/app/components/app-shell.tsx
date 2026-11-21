@@ -14,19 +14,109 @@ import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
-import { navItemsFor, type UserRole } from './nav';
+import { navItemsFor, navModelFor, type NavItem, type UserRole } from './nav';
 
 /**
- * Shared application shell (Presentation layer, ADR-0003). The one chrome every
- * authenticated screen inherits via the app/(app) route-group layout: brand,
- * primary navigation, and an account menu. Accessibility backbone lives here —
- * a skip link, semantic <nav>/<main> landmarks, aria-current on the active tab,
- * and a keyboard-operable account menu (MUI manages focus) — so each feature
- * screen gets it for free.
+ * Shared application shell (Presentation layer, ADR-0003). The one chrome every authenticated
+ * screen inherits via the app/(app) route-group layout: brand, primary navigation, and an account
+ * menu. Accessibility backbone lives here — a skip link, semantic <nav>/<main> landmarks,
+ * aria-current on the active tab, and keyboard-operable menus (MUI manages focus) — so each
+ * feature screen gets it for free.
+ *
+ * Primary nav is grouped (nav.ts): Home, a "Your AI Governance" dropdown holding the governance
+ * lifecycle (Co-Pilot → AI Policy → Human Review → Monitoring → Audit Trail), then Skills. On
+ * small screens the whole thing collapses into the account menu as a flat list.
  */
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function ChevronDownIcon() {
+  return (
+    <Box
+      component="svg"
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 24 24"
+      sx={{ width: 18, height: 18 }}
+    >
+      <path fill="currentColor" d="M7 10l5 5 5-5z" />
+    </Box>
+  );
+}
+
+/**
+ * The "Your AI Governance" dropdown (desktop). Owns its own open state; MUI's Menu handles focus
+ * trapping, Escape-to-close, and arrow-key navigation, so it is fully keyboard-operable. The
+ * trigger reflects the open state (aria-expanded/aria-controls) and shows active when any item
+ * inside is the current page.
+ */
+function GovernanceNav({
+  label,
+  items,
+  pathname,
+}: {
+  label: string;
+  items: NavItem[];
+  pathname: string;
+}) {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const groupActive = items.some((item) => isActive(pathname, item.href));
+  const menuId = 'governance-menu';
+
+  if (items.length === 0) return null;
+
+  return (
+    <>
+      <Button
+        onClick={(e) => setAnchorEl(e.currentTarget)}
+        aria-haspopup="true"
+        aria-controls={open ? menuId : undefined}
+        aria-expanded={open ? 'true' : undefined}
+        endIcon={<ChevronDownIcon />}
+        sx={{
+          color: groupActive ? 'primary.main' : 'text.primary',
+          fontWeight: groupActive ? 700 : 500,
+          bgcolor: groupActive ? 'action.selected' : 'transparent',
+        }}
+      >
+        {label}
+      </Button>
+
+      <Menu
+        id={menuId}
+        anchorEl={anchorEl}
+        open={open}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        slotProps={{ paper: { sx: { maxWidth: 320 } } }}
+      >
+        {items.map((item) => (
+          <MenuItem
+            key={item.href}
+            component={NextLink}
+            href={item.href}
+            selected={isActive(pathname, item.href)}
+            aria-current={isActive(pathname, item.href) ? 'page' : undefined}
+            onClick={() => setAnchorEl(null)}
+            sx={{ display: 'block', whiteSpace: 'normal', py: 1 }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {item.label}
+            </Typography>
+            {item.description ? (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {item.description}
+              </Typography>
+            ) : null}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
 }
 
 export default function AppShell({
@@ -45,7 +135,8 @@ export default function AppShell({
   const pathname = usePathname();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
-  const navItems = navItemsFor(role);
+  const navModel = navModelFor(role);
+  const mobileNavItems = navItemsFor(role);
 
   return (
     <>
@@ -97,15 +188,30 @@ export default function AppShell({
           <Box
             component="nav"
             aria-label="Primary"
-            sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flexGrow: 1 }}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              gap: 0.5,
+              flexGrow: 1,
+              alignItems: 'center',
+            }}
           >
-            {navItems.map((item) => {
-              const active = isActive(pathname, item.href);
+            {navModel.map((node) => {
+              if (node.kind === 'group') {
+                return (
+                  <GovernanceNav
+                    key={node.label}
+                    label={node.label}
+                    items={node.items}
+                    pathname={pathname}
+                  />
+                );
+              }
+              const active = isActive(pathname, node.item.href);
               return (
                 <Button
-                  key={item.href}
+                  key={node.item.href}
                   component={NextLink}
-                  href={item.href}
+                  href={node.item.href}
                   aria-current={active ? 'page' : undefined}
                   sx={{
                     color: active ? 'primary.main' : 'text.primary',
@@ -113,7 +219,7 @@ export default function AppShell({
                     bgcolor: active ? 'action.selected' : 'transparent',
                   }}
                 >
-                  {item.label}
+                  {node.item.label}
                 </Button>
               );
             })}
@@ -154,9 +260,9 @@ export default function AppShell({
             </Box>
             <Divider />
 
-            {/* Navigation collapses into the menu on small screens. */}
+            {/* Navigation collapses into the menu on small screens (flat list). */}
             <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-              {navItems.map((item) => (
+              {mobileNavItems.map((item) => (
                 <MenuItem
                   key={item.href}
                   component={NextLink}

@@ -41,7 +41,7 @@ function PageShell({ children }: { children: ReactNode }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h4" component="h1">
-          Audit trail
+          Audit Trail
         </Typography>
         <Typography variant="body1" color="text.secondary">
           A complete, time-stamped record of your organization&apos;s governed AI activity — what

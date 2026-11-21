@@ -61,7 +61,7 @@ export default async function UsagePage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h4" component="h1">
-          Usage
+          Monitoring
         </Typography>
         <Typography variant="body1" color="text.secondary">
           A plain-language record of your organization&apos;s governed AI activity.

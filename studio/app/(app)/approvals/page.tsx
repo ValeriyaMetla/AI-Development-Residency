@@ -22,7 +22,7 @@ export default async function ApprovalsPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Approvals
+          Human Review
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Runs the safety net flagged for a person to review. Read the draft and why it was flagged,
