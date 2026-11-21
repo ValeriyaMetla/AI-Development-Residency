@@ -6,7 +6,40 @@ The Vulnerabilities). Working draft: sections are added as each one is approved.
 
 ## Introduction
 
-*To be written last, once the other sections are done.*
+Building an app is only half the job. To be ready for real organizations, it also has to be
+secured. That means **information security**, protecting data from being seen, changed or
+destroyed by the wrong people, and **network security**, protecting the connections that data
+crosses [study guide §2]. This report looks at both through one software layer: the **Service
+layer**. We chose it because every request from outside crosses into the server there, and
+because it is where AI prompt injection enters an app that sends user text to a model.
+
+The report draws on four sources: the OWASP Top 10:2025, the OWASP Cheat Sheet Series, the
+course's Week 4 and Week 6 material, and our own architecture decision records (ADRs). Examples
+come from our app, the **Community AI Workflow Studio**. It is built with Next.js and Supabase,
+calls Claude for its AI features, and is hosted on Vercel [ADR-0011, ADR-0012, ADR-0013]. Every
+attack is described by the harm it does: to **Confidentiality** (who can see data), **Integrity**
+(whether data stays correct) or **Availability** (whether the app is there when needed) [study
+guide §4].
+
+**Three terms used throughout:**
+
+- **Vulnerability:** a weakness an attacker could use. Not every bug is one, but many start as
+  bugs [study guide §2].
+- **Attack surface:** every place someone could get in, such as each page, form, login, upload,
+  API or outside service. The bigger it is, the more there is to protect [study guide §2].
+- **Trust boundary:** the line where data passes from something we don't control, like the
+  user's browser, into something we do, like our server. Everything crossing it must be checked.
+  *(Our definition, based on how ADR-0003 uses the term.)*
+
+The sections that follow cover four things:
+
+- **Layer:** what the Service layer is and how the network reaches it.
+- **Vulnerabilities:** nine areas of attack.
+- **Challenges:** why the layer can't be completely protected.
+- **How to Fix:** the defenses and the practices teams should follow.
+
+The "where in our app" points in this report are places to test, not confirmed weaknesses. The
+companion PenTest report checks each one.
 
 ## Layer: The Service Layer
 
@@ -311,8 +344,177 @@ version order. The PenTest should confirm it with a dependency audit.
 
 ## Challenges of Securing This Layer
 
-*Not yet drafted.*
+The Service layer is the right place for security checks, because it is the app's single
+entrance. That same position makes it hard to protect *completely*. Seven barriers stand in the
+way of architects and developers.
+
+### 1. Every action is its own front door
+
+A server action can be called directly, so a login check on the page does not protect the
+actions that page uses. Each action has to re-check authentication and authorization itself
+[Next.js Data Security guide]. One forgotten check leaves a door open, even when every other
+action is correct.
+
+Our app has seven server-action files, each with several actions. The rule that keeps checks in
+this layer is, in ADR-0003's own words, "instruction-strength, not compiler-enforced" [ADR-0003].
+Nothing stops a new action from shipping without its checks.
+
+Copying the same check into every action creates a second risk. The `secure-coding` standard
+warns that "scattered copies are where gaps appear" [`secure-coding` rule 15]. The copies drift
+apart over time, and one quietly becomes weaker than the rest.
+
+### 2. Real and fake requests look the same
+
+The server sees only the request. It cannot see who really sent it or why. A tampered request,
+with a changed ID, an unticked box or an extra field, arrives looking exactly like a normal one.
+That is why the first principle is never to trust the user and to validate everything on the
+server [study guide §3].
+
+Successful tampering is also hard to notice afterwards. As the study guide puts it, "Altered data
+looks normal, so it's trusted for a long time." [study guide §4].
+
+### 3. Prompt injection has no complete fix
+
+SQL injection has a reliable fix: keep the query and the data in separate channels. Prompt
+injection does not, because to a language model, instructions and data are both just text.
+*(This contrast is our synthesis.)*
+
+Keeping the system prompt separate from the user's text helps, as our app does. But the
+`secure-coding` standard treats that separation as formatting, not enforcement. It also warns
+that input filters are not the boundary, "because a filter cannot stop an attack it fails to
+detect" [`secure-coding` rule 10].
+
+The study guide singles out prompt injection as the attack that can hit Confidentiality,
+Integrity and Availability all at once [study guide §4]. For a governance tool, a fooled model
+gives a wrong governance answer.
+
+### 4. Security fights usability and cost
+
+Rate limits, lockouts and size limits protect the app, but each one can also block a real user
+if it is set too tightly. A lockout can even be turned into a weapon: an attacker deliberately
+fails logins to lock a real user out. *(That lockout point is our own reasoning.)*
+
+For an AI app, cost raises the stakes. Every model call costs money [`secure-coding` rule 11],
+and ADR-0023 records that "every governed run makes several Claude API calls" [ADR-0023]. Limits
+that are too loose let an attacker run up the bill. Limits that are too tight break the product
+for the small nonprofits it serves.
+
+### 5. You depend on software you don't control
+
+The Service layer runs on a framework the team didn't write. A flaw in the framework can bypass
+every check the team did write, as the two 2025 Next.js and React flaws did (Vulnerabilities,
+area 9). For the more severe one, the Next.js advisory stated there was no workaround and the
+only fix was upgrading [Next.js advisory CVE-2025-66478].
+
+So part of this layer's security depends on how fast the team learns about a new flaw and ships
+the upgrade, not on its own code.
+
+### 6. The app keeps changing, often under time pressure
+
+Every new feature adds a new action, and every new action is a new entrance to secure. ADR-0003
+names the pressure directly. Under time pressure, it's tempting to drop a query into a route or a
+rule into a component [ADR-0003].
+
+A solo build with an AI coding assistant moves fast, which makes the pressure stronger. *(This is
+our observation about this project.)* Late discovery is expensive: a NIST study cited in the
+course found a problem caught after launch costs about 30 times more than one caught at the start
+[study guide §8]. That is why the course tests at every stage, not just once before launch [study
+guide §7].
+
+### 7. Attacks blend into normal traffic
+
+Most attacks on this layer are ordinary-looking requests, so the team only sees them if the app
+logs the right things. Two needs pull against each other:
+
+- Logs must record failed logins, refused access and changes to sensitive records, with who and
+  when.
+- Logs must never contain passwords, tokens or personal data [`secure-coding` rule 13; OWASP
+  A09:2025].
+
+Log too little and a breach goes unnoticed. Log carelessly and the logs themselves become
+something worth stealing.
+
+### Why this layer can't be completely protected
+
+No single control solves all seven barriers. Checks can be forgotten, prompt injection has no
+complete fix, frameworks have flaws of their own, and attacks look like normal use. The realistic
+goal is **defense in depth**: protect the same thing in several places, so that when one control
+fails, another catches the attack [study guide §3]. The next section sets out those controls for
+each vulnerability area.
 
 ## How to Fix The Vulnerabilities
 
-*Not yet drafted.*
+No single control fixes the Service layer, so the approach is **defense in depth**: protect each
+thing in several places, so one failure doesn't let an attacker in [study guide §3]. Each check
+is written **once**, as a shared check every action calls, so copies can't drift apart
+[`secure-coding` rule 15]. The fixes follow the OWASP Cheat Sheet Series, which turns each Top 10
+risk into concrete defenses [study guide §6].
+
+### Part A. Harden each area
+
+| # | Area | What to harden | How it works | OWASP cheat sheet |
+|---|---|---|---|---|
+| 1 | Authentication and sessions | Slow down or lock out repeated failed logins. Set session cookies `Secure`, `HttpOnly` and `SameSite`. End sessions at logout and after idle time. | Guessing passwords becomes too slow to pay off. The cookie can't be read by scripts, isn't sent over plain HTTP, and stops working once the user leaves. | Authentication; Session Management; Credential Stuffing Prevention |
+| 2 | Authorization | Inside every action, check this user may do *this* action on *this* record. Deny by default. | The server decides on every request, so hiding a button or an ID protects nothing, and nothing is open unless a check opens it. | Authorization; Insecure Direct Object Reference Prevention |
+| 3 | Tampering and forgery | Accept only the fields each action expects, and check their type, length and range. Keep the framework's CSRF protection on, plus `SameSite` cookies. Never change data on a GET request. | Extra or edited fields are dropped or rejected. A request sent from another website fails the origin check and doesn't carry the cookie. | Mass Assignment; Input Validation; Cross-Site Request Forgery Prevention |
+| 4 | Injection | AI: keep instructions apart from untrusted text, enforce in code what the model may do, require a human to approve consequential actions, and treat the model's output as untrusted. Database: parameterized queries only. | The model can be fooled, so the real limits live outside it. Parameterized queries keep input as data, never as part of the command. | LLM Prompt Injection Prevention; Query Parameterization |
+| 5 | Data in transit | HTTPS everywhere, plus HSTS (a header that tells browsers to use HTTPS every time). No secrets in web addresses. | Traffic can't be read or changed on the network, and the browser refuses to fall back to plain HTTP. | Transport Layer Security; HTTP Strict Transport Security |
+| 6 | Files and payloads | Check content, real file type and size before parsing. Parse defensively and reject anything that doesn't match the expected shape. | Hostile or oversized input is stopped at the door, before it reaches the code that trusts it. | File Upload; Input Validation |
+| 7 | Availability | Rate-limit per user and per IP, starting with the AI calls. Set timeouts and request-size limits. | One caller can't flood the app or run up the AI bill for everyone else. | Denial of Service |
+| 8 | Errors, settings and logs | Show users a short, generic error and send the details to a private log. Set security headers. Log failed logins, refused access and sensitive changes with who and when, never passwords, tokens or personal data. | Attackers learn nothing from failures, and the team can spot and trace an attack. | Error Handling; HTTP Headers; Logging |
+| 9 | Supply chain | Commit the lockfile, audit dependencies for known flaws, and upgrade quickly when an advisory lands. | Flaws in the framework are found and patched before attackers use them. | Vulnerable Dependency Management; NPM Security |
+
+*Sources for the "what to harden" column: `secure-coding` rules 1–15 and study guide §9; the cheat
+sheet titles are checked against the OWASP Cheat Sheet Series index.*
+
+### The two hardest fixes
+
+**Access control in every action.** The Challenges section showed that each server action is its
+own front door. Repeating the same check by hand in every action is exactly where gaps appear
+[`secure-coding` rule 15]. The fix is to write the check **once** as a shared function (signed
+in, right organization, right role, allowed on this record) and call it at the top of every
+action. Then add a test that fails if an action skips it. A forgotten check becomes a failing
+build instead of an open door. *(The shared function plus the "every action" test is our
+suggested pattern, applying rules 14 and 15.)*
+
+**Prompt injection.** There's no complete fix, so the defense goes in layers, and the most
+important layers sit outside the model [OWASP LLM Prompt Injection Prevention Cheat Sheet;
+`secure-coding` rule 10]:
+
+- **Separate instructions from content,** knowing this helps but doesn't enforce anything.
+- **Enforce limits in code:** the model may only take actions the user could take themselves,
+  with least privilege for each tool.
+- **Require a human to approve** anything consequential before it happens.
+- **Treat what the model writes as untrusted** wherever it goes next.
+
+Input filters still earn a place, but as a logging and review aid, not the boundary.
+
+### Part B. What teams should follow
+
+**Product teams: make security a requirement, not an afterthought.** Start from the threat model:
+for each threat, write at least one rule in plain words that a test can pass or fail. "Make it
+secure" doesn't count [study guide §9; `secure-coding` rule 14]. Each rule then flows down three
+steps:
+
+- **Acceptance criteria:** the rule goes into the story's acceptance criteria, so the story isn't
+  done until the rule passes.
+- **BDD scenario:** each rule gets a Given/When/Then scenario that includes the attacker's path,
+  not only the happy path.
+- **Recorded decision:** a risk the team decides to accept is written down, not silently skipped
+  [study guide §8 step 5].
+
+**Development teams: code from the cheat sheets and let the pipeline enforce them** [study guide
+§9]:
+
+- **Give the AI coding tool the cheat sheet,** then check its code against it.
+- **Put each check in one place.**
+- **Keep secrets and error details private.**
+- **Make every rule a CI check that blocks:** security tests, dependency audits and leaked-secret
+  scans that fail the build, not just warn.
+- **Add a regression check for every miss,** so each problem found once is caught automatically
+  from then on.
+
+### From this report to the PenTest
+
+This report names the defenses the Service layer needs. The PenTest report tests whether our app
+actually has them, and its Recommendations turn each real gap into a specific fix for `studio/`.
