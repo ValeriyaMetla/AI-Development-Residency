@@ -49,4 +49,6 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0024](0024-policy-editing-is-versioned.md) — Editing a policy publishes a new version; rules are never mutated in place (baseline rules locked)
 - [ADR-0025](0025-rule-suggestions-from-registry.md) — Rule suggestions are deterministic, read from audit metadata, deduped by a recorded leader decision, and accepted as a new policy version
 - [ADR-0026](0026-audit-insert-integrity.md) — The database stamps each audit entry's time and identity; app users may add only known kinds of event, as themselves, about their own organization
+- [ADR-0027](0027-policy-load-failure-degrades-and-reviews.md) — When an active policy's rules can't be read, a run degrades to baseline, discloses it, and is forced to human review
 - [ADR-0028](0028-review-decision-once-via-protected-function.md) — A run's review decision is made once, through one protected database step; members can no longer set a run's status directly (supersedes ADR-0020's re-review point; PenTest F-01, F-21)
+- [ADR-0029](0029-demo-renders-from-sample-data-in-code.md) — The no-login demo renders from fixed sample data in code and never touches the database
