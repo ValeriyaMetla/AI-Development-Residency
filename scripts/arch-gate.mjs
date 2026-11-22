@@ -20,6 +20,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 const CONFIG = join(ROOT, 'arch-gate.config.json');
@@ -119,7 +120,14 @@ function changedFiles(base) {
     .map(toPosix);
 }
 
-function scan(files, config) {
+/**
+ * Scans `files` (POSIX paths relative to `root`) against every rule in `config`.
+ *
+ * A rule may set `"allowTypeImports": true` to skip TypeScript `import type` statements. They are
+ * erased at build time, so they create no runtime dependency (ADR-0029, clarification 1). A
+ * multi-line `import type { … } from '…'` is skipped through its closing `from` line.
+ */
+export function scan(files, config, root = ROOT) {
   const violations = [];
   const rules = config.rules || {};
   for (const [ruleName, rule] of Object.entries(rules)) {
@@ -131,11 +139,16 @@ function scan(files, config) {
       if (excludes.length && matchesAny(file, excludes)) continue;
       let content;
       try {
-        content = readFileSync(join(ROOT, file), 'utf8');
+        content = readFileSync(join(root, file), 'utf8');
       } catch {
         continue;
       }
+      let inTypeImport = false;
       content.split('\n').forEach((text, idx) => {
+        if (rule.allowTypeImports && (inTypeImport || text.trimStart().startsWith('import type '))) {
+          inTypeImport = !/\bfrom\s+['"]/.test(text);
+          return;
+        }
         for (const pat of patterns) {
           if (text.includes(pat)) {
             violations.push({
@@ -195,4 +208,7 @@ function main() {
   process.exit(1);
 }
 
-main();
+// Run only when executed directly, so tests can import `scan` without triggering the CLI.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
