@@ -29,5 +29,10 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Test arch-gate rules
+        # Proves the rules still fail what they must (e.g. ADR-0029's demo-is-offline) before
+        # trusting a green scan.
+        run: node --test scripts/arch-gate.test.mjs
+
       - name: Run arch-gate
         run: node scripts/arch-gate.mjs --changed --base "origin/${{ github.base_ref || 'main' }}"
