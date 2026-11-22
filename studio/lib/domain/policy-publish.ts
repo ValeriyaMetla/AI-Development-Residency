@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/policy';
 import { writeAuditEvent } from '@/lib/data/runs';
 import { assembleEditedRules, type ParsedPolicyEdit } from '@/lib/domain/policy-edit';
+import { policyActivationResult } from '@/lib/domain/policy-activation';
 
 /**
  * Policy-edit orchestration (Domain layer, ADR-0003 / ADR-0024) — the side-effecting half of policy
@@ -48,8 +49,9 @@ export async function publishEditedPolicy(params: {
   const rulesOk = await insertPolicyRules(policyId, assembled.rules);
   if (!rulesOk) return { status: 'failed', message: 'Could not save the edited rules.' };
 
-  const activated = await activatePolicy({ orgId: params.orgId, policyId });
-  if (!activated) return { status: 'failed', message: 'Could not activate the new version.' };
+  // One protected all-or-nothing switch (ADR-0031): on any refusal the old version stays active.
+  const activated = policyActivationResult(await activatePolicy(policyId));
+  if (!activated.ok) return { status: 'failed', message: activated.message };
 
   await writeAuditEvent({
     orgId: params.orgId,
@@ -86,8 +88,9 @@ export async function publishImportedPolicy(params: {
   const rulesOk = await insertPolicyRules(policyId, params.rules);
   if (!rulesOk) return { status: 'failed', message: 'Could not save the imported rules.' };
 
-  const activated = await activatePolicy({ orgId: params.orgId, policyId });
-  if (!activated) return { status: 'failed', message: 'Could not activate the imported version.' };
+  // One protected all-or-nothing switch (ADR-0031): on any refusal the old version stays active.
+  const activated = policyActivationResult(await activatePolicy(policyId));
+  if (!activated.ok) return { status: 'failed', message: activated.message };
 
   await writeAuditEvent({
     orgId: params.orgId,

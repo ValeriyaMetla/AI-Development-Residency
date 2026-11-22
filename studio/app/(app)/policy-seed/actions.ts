@@ -12,6 +12,7 @@ import {
   getPolicyRulesOrNull,
 } from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
+import { discardDraftsResult, policyActivationResult } from '@/lib/domain/policy-activation';
 import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
 import { publishEditedPolicy, publishImportedPolicy } from '@/lib/domain/policy-publish';
 import { serializePolicy, parsePolicyImport } from '@/lib/domain/policy-export';
@@ -75,10 +76,12 @@ export async function confirmPolicy(policyId: string): Promise<ConfirmPolicyResu
     return { status: 'blocked', message: 'No policy to activate.' };
   }
 
-  const ok = await activatePolicy({ orgId, policyId });
-  return ok
+  // The database checks leader, org, draft and rules, and switches all-or-nothing (ADR-0031). Only an
+  // explicit 'ok' is reported as activated; anything else says nothing changed (F-18).
+  const result = policyActivationResult(await activatePolicy(policyId));
+  return result.ok
     ? { status: 'activated', policyId }
-    : { status: 'failed', message: 'Could not activate the policy. Please try again.' };
+    : { status: 'failed', message: result.message };
 }
 
 export type DiscardDraftResult =
@@ -103,8 +106,8 @@ export async function discardDraftPolicy(): Promise<DiscardDraftResult> {
   const orgId = await getMyOrgId();
   if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
 
-  const ok = await archiveDraftPolicies(orgId);
-  if (!ok) return { status: 'failed', message: 'Could not start over. Please try again.' };
+  const result = discardDraftsResult(await archiveDraftPolicies());
+  if (!result.ok) return { status: 'failed', message: result.message };
 
   revalidatePath('/policy-seed');
   return { status: 'discarded' };
