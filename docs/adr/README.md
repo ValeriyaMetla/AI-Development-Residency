@@ -52,3 +52,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0027](0027-policy-load-failure-degrades-and-reviews.md) — When an active policy's rules can't be read, a run degrades to baseline, discloses it, and is forced to human review
 - [ADR-0028](0028-review-decision-once-via-protected-function.md) — A run's review decision is made once, through one protected database step; members can no longer set a run's status directly (supersedes ADR-0020's re-review point; PenTest F-01, F-21)
 - [ADR-0029](0029-demo-renders-from-sample-data-in-code.md) — The no-login demo renders from fixed sample data in code and never touches the database
+- [ADR-0030](0030-ai-requests-rate-limited-by-protected-function.md) — AI requests are rate-limited by one protected database step that counts and records each request, and refuses when unsure (PenTest F-02; the run cap now fails closed)
