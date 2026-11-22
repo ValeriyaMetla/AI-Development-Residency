@@ -17,6 +17,21 @@ export const DEMO_INTRO = {
     "draft checked against the pantry's AI rules, and anything risky sent to a person to review.",
 } as const;
 
+/** Wording for the governed-run section (T5). Step order matches the real pipeline. */
+export const DEMO_RUN_COPY = {
+  heading: 'Try a sample request',
+  pickerLabel: 'Choose a sample request',
+  stepsLabel: 'What happened to the sample request',
+  steps: {
+    request: 'The request, as a staff member typed it',
+    pii: 'Personal details removed before anything else happens',
+    draft: 'The draft',
+    ruleCheck: "Checked against the pantry's AI rules",
+  },
+  piiFoundHeading: 'What the safety check found in this sample request',
+  outcomePrefix: 'Outcome:',
+} as const;
+
 export const DEMO_CLOSING = {
   heading: 'Ready to set your own rules?',
   body: 'Your team gets the same safety net, free.',
