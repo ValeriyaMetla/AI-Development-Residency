@@ -1,5 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { parseReviewInput, MAX_REVIEW_NOTE, MAX_EDITED_OUTPUT } from '@/lib/domain/approvals';
+import {
+  parseReviewInput,
+  MAX_REVIEW_NOTE,
+  MAX_EDITED_OUTPUT,
+  REVIEW_OUTCOMES,
+  canBeReviewed,
+  parseReviewOutcome,
+  reviewOutcomeMessage,
+} from '@/lib/domain/approvals';
 
 /**
  * The approval-gate input validator (ADR-0020). It is the one place untrusted review payloads are
@@ -116,5 +125,46 @@ describe('parseReviewInput', () => {
     expect(parseReviewInput({ taskRunId: 'r', decision: 'approved', editedOutput: atCap }).ok).toBe(
       true,
     );
+  });
+});
+
+/**
+ * ADR-0028: the database decides; these helpers only mirror it for display and wording. The caps
+ * test keeps the app's limits and the ones repeated inside review_task_run from drifting apart.
+ */
+describe('review outcomes (ADR-0028)', () => {
+  it('only a needs_review run can be reviewed — the first decision is final', () => {
+    expect(canBeReviewed('needs_review')).toBe(true);
+    for (const s of ['running', 'blocked', 'completed', 'approved', 'rejected', ''])
+      expect(canBeReviewed(s)).toBe(false);
+  });
+
+  it('accepts every outcome the database can return', () => {
+    for (const o of REVIEW_OUTCOMES) expect(parseReviewOutcome(o)).toBe(o);
+  });
+
+  it('treats anything else from the database as a failure (null)', () => {
+    for (const v of [null, undefined, '', 'OK', 'approved', 42, { outcome: 'ok' }])
+      expect(parseReviewOutcome(v)).toBeNull();
+  });
+
+  it('gives every refusal a plain, non-empty message', () => {
+    for (const o of REVIEW_OUTCOMES.filter((x) => x !== 'ok')) {
+      const msg = reviewOutcomeMessage(o);
+      expect(msg.length).toBeGreaterThan(0);
+      expect(msg).not.toMatch(/sql|postgres|policy|rls|42501/i);
+    }
+  });
+
+  it('says plainly when a run was already reviewed', () => {
+    expect(reviewOutcomeMessage('not_pending')).toBe(
+      'This run has already been reviewed, or wasn’t flagged for review.',
+    );
+  });
+
+  it('keeps the app caps equal to the ones enforced inside review_task_run', () => {
+    const sql = readFileSync('supabase/migrations/20261121120000_review_task_run.sql', 'utf8');
+    expect(sql).toContain(`char_length(v_note) > ${MAX_REVIEW_NOTE}`);
+    expect(sql).toContain(`char_length(p_edited_output) > ${MAX_EDITED_OUTPUT}`);
   });
 });

@@ -1,9 +1,11 @@
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 /**
- * Landing-page "How it works" (section 2 of 7).
+ * Landing-page "How it works" (section 2 of 7) — a horizontal three-step row (cards side by side on
+ * desktop, stacked on mobile).
  *
  * A three-step flow that backs the hero's "about five minutes" promise. Copy is limited to what
  * Release 1b actually ships (policy seed → governed Skills → a checked, labeled, recorded run); every
@@ -38,31 +40,33 @@ export function HowItWorks() {
       aria-labelledby="how-it-works-heading"
       sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}
     >
-      <Container maxWidth="md">
-        <Typography
-          component="p"
-          variant="overline"
-          sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.2 }}
-        >
-          Three steps
-        </Typography>
+      <Container maxWidth="lg">
+        <Box sx={{ maxWidth: '40rem' }}>
+          <Typography
+            component="p"
+            variant="overline"
+            sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.2 }}
+          >
+            Three steps
+          </Typography>
 
-        <Typography
-          id="how-it-works-heading"
-          variant="h3"
-          component="h2"
-          sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, lineHeight: 1.2, mt: 1 }}
-        >
-          How it works
-        </Typography>
+          <Typography
+            id="how-it-works-heading"
+            variant="h3"
+            component="h2"
+            sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, lineHeight: 1.2, mt: 1 }}
+          >
+            How it works
+          </Typography>
 
-        <Typography
-          variant="h6"
-          component="p"
-          sx={{ color: 'text.secondary', fontWeight: 400, mt: 2, maxWidth: '40rem' }}
-        >
-          From rules to real work in about five minutes — then it runs quietly in the background.
-        </Typography>
+          <Typography
+            variant="h6"
+            component="p"
+            sx={{ color: 'text.secondary', fontWeight: 400, mt: 2 }}
+          >
+            From rules to real work in about five minutes — then it runs quietly in the background.
+          </Typography>
+        </Box>
 
         <Box
           component="ol"
@@ -72,15 +76,26 @@ export function HowItWorks() {
             m: 0,
             mt: 5,
             display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 3,
+            alignItems: 'stretch',
           }}
         >
           {STEPS.map((step, i) => (
-            <Box
+            <Paper
               component="li"
               key={step.title}
-              sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, alignItems: 'flex-start' }}
+              variant="outlined"
+              sx={{
+                flex: '1 1 0',
+                minWidth: 0,
+                p: { xs: 3, md: 3.5 },
+                borderRadius: 3,
+                bgcolor: 'background.default',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+              }}
             >
               <Box
                 aria-hidden="true"
@@ -100,15 +115,13 @@ export function HowItWorks() {
               >
                 {i + 1}
               </Box>
-              <Box>
-                <Typography variant="h6" component="h3">
-                  {step.title}
-                </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                  {step.body}
-                </Typography>
-              </Box>
-            </Box>
+              <Typography variant="h6" component="h3">
+                {step.title}
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                {step.body}
+              </Typography>
+            </Paper>
           ))}
         </Box>
       </Container>

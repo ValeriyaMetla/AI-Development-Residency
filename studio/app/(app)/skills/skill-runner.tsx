@@ -13,6 +13,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { runSkill } from './actions';
 import ReviewActions from '@/app/(app)/approvals/review-actions';
+import { canBeReviewed } from '@/lib/domain/approvals';
 import { applicableRules } from '@/lib/domain/skills';
 import type { RunnableSkill } from '@/lib/data/runs';
 import type { RunResult } from '@/lib/domain/pipeline';
@@ -300,7 +301,7 @@ function RunResultView({
         {result.provenanceLabel} · You decide before this is used.
       </Typography>
 
-      {result.status === 'needs_review' ? (
+      {canBeReviewed(result.status) ? (
         <Box sx={{ mt: 1 }}>
           <ReviewActions taskRunId={result.taskRunId} output={result.output} />
         </Box>
