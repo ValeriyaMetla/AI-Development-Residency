@@ -5,13 +5,14 @@ import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
+import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
 import type { DemoRun } from '@/lib/demo/demo-run';
-import { DEMO_RUN_COPY } from './demo-content';
+import { DEMO_RUN_COPY, DEMO_VIEWS_COPY } from './demo-content';
 
 /**
  * The demo's governed run (ADR-0029 T5). Presentation only: every result was worked out on the
@@ -206,6 +207,11 @@ export function GovernedRun({ runs }: { runs: DemoRun[] }) {
               {DEMO_RUN_COPY.outcomePrefix} {run.outcome.label}
             </Typography>
           </Box>
+          {run.outcome.status === 'needs_review' && (
+            <Typography variant="body2" sx={{ mt: 1.5 }}>
+              <Link href="#demo-review">{DEMO_VIEWS_COPY.review.seeBelow}</Link>
+            </Typography>
+          )}
         </Step>
       </Box>
     </Box>

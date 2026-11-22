@@ -32,6 +32,35 @@ export const DEMO_RUN_COPY = {
   outcomePrefix: 'Outcome:',
 } as const;
 
+/** Wording for the read-only sections (T6): policy, review, record. */
+export const DEMO_VIEWS_COPY = {
+  policy: {
+    heading: "The pantry's AI policy",
+    intro:
+      'Riverbend set these rules in about five minutes. Every request above was checked against them.',
+    required: 'Required',
+    references: 'References',
+  },
+  review: {
+    heading: 'Waiting for review',
+    intro:
+      'The rule-check flagged this draft, so it waits for a person. Nothing is sent until someone decides.',
+    flaggedBecause: 'Why it was flagged',
+    acknowledge: 'I have read this draft and the reason it was flagged',
+    approve: 'Approve',
+    reject: 'Reject',
+    inactiveNote:
+      'In your own workspace, a person approves or rejects flagged drafts here. Sign up free to try it with your team.',
+    seeBelow: 'See it waiting for review below',
+  },
+  record: {
+    heading: 'The record',
+    intro:
+      'In your own workspace, every step is written to a record you can show your board or funders. These sample entries show what that record looks like for the runs above.',
+    orgWide: 'Policy',
+  },
+} as const;
+
 export const DEMO_CLOSING = {
   heading: 'Ready to set your own rules?',
   body: 'Your team gets the same safety net, free.',
