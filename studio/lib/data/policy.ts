@@ -273,53 +273,39 @@ export async function savePolicySeedResponse(params: {
 }
 
 /**
- * Make a policy the org's active one. The partial unique index allows only one active
- * policy per org, so the current active policy is archived first, then the target is
- * activated (two sequential updates, ADR-0009). Returns true only if both succeed.
+ * Make a draft policy the org's active one (ADR-0031). ONE call to the protected database step
+ * `activate_policy`, which checks the caller is a leader and the policy is a draft with rules in
+ * their own org, then archives the old active policy and activates this one in a single transaction —
+ * so a half-done switch can't happen (F-18). Members have no direct UPDATE on `policy` (F-03).
+ *
+ * Returns the database's answer as-is ('ok', or why not), or `null` on any error. The Domain's
+ * policyActivationResult() decides what it means and fails closed on anything but 'ok'.
  */
-export async function activatePolicy(params: {
-  orgId: string;
-  policyId: string;
-}): Promise<boolean> {
+export async function activatePolicy(policyId: string): Promise<string | null> {
   const supabase = await createClient();
-  // 1) Archive any currently-active policy for this org (keeps the one-active invariant).
-  const { error: archiveError } = await supabase
-    .from('policy')
-    .update({ status: 'archived' })
-    .eq('org_id', params.orgId)
-    .eq('status', 'active');
-  if (archiveError) {
-    console.error('activatePolicy (archive) failed:', archiveError.message);
-    return false;
+  const { data, error } = await supabase.rpc('activate_policy', { p_policy_id: policyId });
+  if (error) {
+    console.error('activatePolicy failed:', error.message);
+    return null;
   }
-  // 2) Activate the target policy.
-  const { error: activateError } = await supabase
-    .from('policy')
-    .update({ status: 'active' })
-    .eq('id', params.policyId);
-  if (activateError) {
-    console.error('activatePolicy (activate) failed:', activateError.message);
-    return false;
-  }
-  return true;
+  return typeof data === 'string' ? data : null;
 }
 
 /**
- * Discard ("start over") every draft policy for an org by archiving it. Policies are never
- * deleted (append-only record, policy-seed migration), so a discarded draft is kept as
- * `archived`. All drafts are archived — not just the newest — so an older one doesn't resurface.
- * Returns true on success, false on error.
+ * Discard ("start over") every draft policy in the caller's org by archiving it (ADR-0031). ONE call
+ * to the protected step `discard_draft_policies`: leader only, the org taken from the database.
+ * Policies are never deleted (append-only record), so a discarded draft is kept as `archived`, and all
+ * drafts are archived so an older one doesn't resurface.
+ *
+ * Returns the database's answer as-is, or `null` on any error (the Domain's discardDraftsResult()
+ * treats anything but 'ok' as a failure).
  */
-export async function archiveDraftPolicies(orgId: string): Promise<boolean> {
+export async function archiveDraftPolicies(): Promise<string | null> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from('policy')
-    .update({ status: 'archived' })
-    .eq('org_id', orgId)
-    .eq('status', 'draft');
+  const { data, error } = await supabase.rpc('discard_draft_policies');
   if (error) {
     console.error('archiveDraftPolicies failed:', error.message);
-    return false;
+    return null;
   }
-  return true;
+  return typeof data === 'string' ? data : null;
 }

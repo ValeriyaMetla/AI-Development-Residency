@@ -74,16 +74,18 @@ vi.mock('@/lib/data/policy', () => ({
     }
     return true;
   },
-  // Mirrors the real contract: archive the org's active policy, then activate the target.
-  activatePolicy: async (params: { orgId: string; policyId: string }) => {
-    if (store.failActivate) return false;
+  // Mirrors the real contract (ADR-0031 activate_policy): a draft in the store is activated and its
+  // org's old active policy archived together; anything else changes nothing and says why.
+  activatePolicy: async (policyId: string) => {
+    if (store.failActivate) return null;
+    const target = store.policies.find((p) => p.id === policyId);
+    if (!target) return 'not_found';
+    if (target.status !== 'draft') return 'not_draft';
     for (const p of store.policies) {
-      if (p.orgId === params.orgId && p.status === 'active') p.status = 'archived';
+      if (p.orgId === target.orgId && p.status === 'active') p.status = 'archived';
     }
-    const target = store.policies.find((p) => p.id === params.policyId);
-    if (!target) return false;
     target.status = 'active';
-    return true;
+    return 'ok';
   },
 }));
 
@@ -165,7 +167,7 @@ let nextDraft = CLEAN_DRAFT;
 async function seedActivePolicy(): Promise<string> {
   const id = (await createPolicy({ orgId: ORG, name: 'Starter policy' }))!;
   await insertPolicyRules(id, SEED_RULES);
-  await activatePolicy({ orgId: ORG, policyId: id });
+  await activatePolicy(id);
   return id;
 }
 

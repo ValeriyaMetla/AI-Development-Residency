@@ -20,7 +20,12 @@ vi.mock('@/lib/data/supabase/server', () => {
   }
   builder.then = (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
     Promise.resolve(mockResult()).then(resolve, reject);
-  const client = { from: () => builder };
+  // Protected database steps (ADR-0031) are one rpc call each; record the name and arguments.
+  const rpc = (...args: unknown[]) => {
+    calls.push(['rpc', args]);
+    return Promise.resolve(mockResult());
+  };
+  const client = { from: () => builder, rpc };
   return { createClient: () => Promise.resolve(client) };
 });
 
@@ -243,22 +248,34 @@ describe('savePolicySeedResponse', () => {
   });
 });
 
+// ADR-0031: activation is ONE call to the protected activate_policy step (archive + activate happen
+// together in the database, so a half-done switch is impossible). The accessor returns the
+// database's answer as-is; the Domain decides what it means.
 describe('activatePolicy', () => {
-  it('returns true when both archive and activate succeed', async () => {
-    mockResult.mockResolvedValue({ error: null });
-    expect(await activatePolicy({ orgId: 'org1', policyId: 'p1' })).toBe(true);
+  beforeEach(() => {
+    calls.length = 0;
   });
 
-  it('returns false when the archive step errors', async () => {
-    mockResult.mockResolvedValueOnce({ error: { message: 'boom' } });
-    expect(await activatePolicy({ orgId: 'org1', policyId: 'p1' })).toBe(false);
+  it('makes exactly one activate_policy call with the policy id, and no direct update', async () => {
+    mockResult.mockResolvedValue({ data: 'ok', error: null });
+    expect(await activatePolicy('p1')).toBe('ok');
+    expect(calls).toEqual([['rpc', ['activate_policy', { p_policy_id: 'p1' }]]]);
+    expect(calls.some(([m]) => m === 'update')).toBe(false);
   });
 
-  it('returns false when the activate step errors', async () => {
-    mockResult
-      .mockResolvedValueOnce({ error: null })
-      .mockResolvedValueOnce({ error: { message: 'boom' } });
-    expect(await activatePolicy({ orgId: 'org1', policyId: 'p1' })).toBe(false);
+  it("passes the database's refusal through unchanged", async () => {
+    mockResult.mockResolvedValue({ data: 'not_draft', error: null });
+    expect(await activatePolicy('p1')).toBe('not_draft');
+  });
+
+  it('returns null on an error (the Domain treats it as a failure)', async () => {
+    mockResult.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    expect(await activatePolicy('p1')).toBeNull();
+  });
+
+  it('returns null when the answer is not text', async () => {
+    mockResult.mockResolvedValue({ data: { status: 'ok' }, error: null });
+    expect(await activatePolicy('p1')).toBeNull();
   });
 });
 
@@ -295,17 +312,22 @@ describe('archiveDraftPolicies', () => {
     calls.length = 0;
   });
 
-  it("archives (never deletes) only this org's drafts", async () => {
-    mockResult.mockReturnValue({ error: null });
-    expect(await archiveDraftPolicies('org1')).toBe(true);
-    expect(calls).toContainEqual(['update', [{ status: 'archived' }]]);
-    expect(calls).toContainEqual(['eq', ['org_id', 'org1']]);
-    expect(calls).toContainEqual(['eq', ['status', 'draft']]);
-    expect(calls.some(([m]) => m === 'delete')).toBe(false);
+  // ADR-0031: the protected discard_draft_policies step archives (never deletes) the caller's own
+  // org's drafts; the org comes from the database, never from the app.
+  it('makes exactly one discard_draft_policies call, and no direct update or delete', async () => {
+    mockResult.mockReturnValue({ data: 'ok', error: null });
+    expect(await archiveDraftPolicies()).toBe('ok');
+    expect(calls).toEqual([['rpc', ['discard_draft_policies']]]);
+    expect(calls.some(([m]) => m === 'update' || m === 'delete')).toBe(false);
   });
 
-  it('returns false on a write error', async () => {
-    mockResult.mockReturnValue({ error: { message: 'boom' } });
-    expect(await archiveDraftPolicies('org1')).toBe(false);
+  it("passes the database's refusal through unchanged", async () => {
+    mockResult.mockReturnValue({ data: 'not_leader', error: null });
+    expect(await archiveDraftPolicies()).toBe('not_leader');
+  });
+
+  it('returns null on an error', async () => {
+    mockResult.mockReturnValue({ data: null, error: { message: 'boom' } });
+    expect(await archiveDraftPolicies()).toBeNull();
   });
 });
