@@ -119,3 +119,16 @@ are the app's real code; only the AI draft is prewritten.**
 - **Neutral:** the sample organization is in the public repo, which is fine because it's
   fictional. The demo pages can be served as static pages. A future live sandbox would get its
   own ADR and might supersede this one.
+
+## Clarifications
+
+- **2026-11-22 — Point 8's arch-gate rule bans runtime imports; type-only imports are
+  allowed.** Point 2 types the sample file against the app's real types, and those types live
+  in `studio/lib/data/*.ts`. The arch-gate scanner matches text line by line
+  (`scripts/arch-gate.mjs`), so a ban on any line mentioning `lib/data` would also block
+  `import type { … } from '@/lib/data/…'`. TypeScript erases type-only imports at build time,
+  so they create no runtime link to the database. The `demo-is-offline` rule therefore skips
+  lines that start with `import type`; every other line that mentions `lib/data`, `@supabase/`,
+  `@anthropic-ai/sdk`, `createClient(` or `supabase.from(` still fails the build. This keeps the
+  decision's intent (the demo has no runtime path to data or a model) and changes nothing
+  else. Val approved this clarification on 2026-11-22.
