@@ -6,6 +6,12 @@
       "runtimeExecutable": "bash",
       "runtimeArgs": ["-c", "cd studio && npm run dev"],
       "port": 3000
+    },
+    {
+      "name": "studio-prod",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd studio && npm start"],
+      "port": 3000
     }
   ]
 }
