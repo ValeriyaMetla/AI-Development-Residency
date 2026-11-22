@@ -100,6 +100,14 @@ test('passes a clean demo file that uses only pure Domain code', () => {
   assert.deepEqual(demoViolations(LIB, source), []);
 });
 
+test("fails a runtime data import in the landing page's Try-it section", () => {
+  const hits = demoViolations(
+    'studio/app/components/landing/try-demo.tsx',
+    "import { getPolicy } from '@/lib/data/policy';\n",
+  );
+  assert.equal(hits.length, 1);
+});
+
 test('does not apply to files outside the demo folders', () => {
   const hits = demoViolations(
     'studio/lib/domain/example.ts',
