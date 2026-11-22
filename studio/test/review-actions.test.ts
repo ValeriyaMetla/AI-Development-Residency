@@ -57,6 +57,7 @@ describe('submitReview', () => {
     await expect(submitReview(APPROVE)).resolves.toEqual({
       status: 'blocked',
       message: 'This run has already been reviewed, or wasn’t flagged for review.',
+      closed: true,
     });
     expect(revalidatePath).toHaveBeenCalledWith('/approvals');
   });
@@ -66,6 +67,16 @@ describe('submitReview', () => {
     await expect(submitReview(APPROVE)).resolves.toEqual({
       status: 'blocked',
       message: 'We couldn’t find that run.',
+      closed: true,
+    });
+  });
+
+  it('keeps the controls open for a fixable refusal (invalid input)', async () => {
+    vi.mocked(recordApproval).mockResolvedValue('invalid');
+    await expect(submitReview(APPROVE)).resolves.toEqual({
+      status: 'blocked',
+      message: 'Check your note and any edits, then try again.',
+      closed: false,
     });
   });
 

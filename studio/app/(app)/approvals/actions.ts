@@ -19,7 +19,8 @@ import {
 
 export type ReviewResult =
   | { status: 'done'; decision: ReviewDecision }
-  | { status: 'blocked'; message: string }
+  /** `closed`: the run can no longer be reviewed here (already decided, or not found) — hide the controls. */
+  | { status: 'blocked'; message: string; closed?: boolean }
   | { status: 'failed'; message: string };
 
 /** Record a reviewer's approve/reject decision on a flagged run. `input` is untrusted. */
@@ -49,7 +50,11 @@ export async function submitReview(input: unknown): Promise<ReviewResult> {
     // Refused by the database (e.g. already reviewed in another tab). Refresh the queue so the
     // stale run drops off, and say plainly what happened.
     revalidatePath('/approvals');
-    return { status: 'blocked', message: reviewOutcomeMessage(outcome) };
+    return {
+      status: 'blocked',
+      message: reviewOutcomeMessage(outcome),
+      closed: outcome === 'not_pending' || outcome === 'not_found',
+    };
   }
 
   // The queue is a server component; refresh it so the resolved run drops off the list.

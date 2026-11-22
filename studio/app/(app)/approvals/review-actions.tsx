@@ -37,6 +37,9 @@ export default function ReviewActions({
   const [done, setDone] = useState<ReviewDecision | null>(null);
   const [doneEdited, setDoneEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when the database says this run can no longer be reviewed here (ADR-0028) — e.g. someone
+  // already decided it in another tab. The controls close instead of staying clickable.
+  const [closedMessage, setClosedMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   // An edit counts only if the reviewer turned editing on AND actually changed the text.
@@ -51,10 +54,20 @@ export default function ReviewActions({
       if (res.status === 'done') {
         setDone(res.decision);
         setDoneEdited(Boolean(sendEdit));
+      } else if (res.status === 'blocked' && res.closed) {
+        setClosedMessage(res.message);
       } else {
         setError(res.message);
       }
     });
+  }
+
+  if (closedMessage) {
+    return (
+      <Alert severity="info" role="status">
+        {closedMessage} Refresh the page to see its current state.
+      </Alert>
+    );
   }
 
   if (done) {
