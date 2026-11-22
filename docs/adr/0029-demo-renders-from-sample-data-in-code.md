@@ -132,3 +132,8 @@ are the app's real code; only the AI draft is prewritten.**
   `@anthropic-ai/sdk`, `createClient(` or `supabase.from(` still fails the build. This keeps the
   decision's intent (the demo has no runtime path to data or a model) and changes nothing
   else. Val approved this clarification on 2026-11-22.
+- **2026-11-22 — Point 8's "render test" is a view-model test plus a static build.** The test
+  setup runs in Node with no DOM library, so a React render test would mean adding one. Instead,
+  a unit test checks the demo's view model (pure functions over the sample data), and
+  `next build` must render `/demo` as a static page, which only succeeds if the page needs no
+  database or session. Val approved this clarification on 2026-11-22.
