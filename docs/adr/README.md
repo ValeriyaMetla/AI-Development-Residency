@@ -54,3 +54,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0029](0029-demo-renders-from-sample-data-in-code.md) — The no-login demo renders from fixed sample data in code and never touches the database
 - [ADR-0030](0030-ai-requests-rate-limited-by-protected-function.md) — AI requests are rate-limited by one protected database step that counts and records each request, and refuses when unsure (PenTest F-02; the run cap now fails closed)
 - [ADR-0031](0031-policy-changes-leader-only-via-protected-functions.md) — Only an Accountable Leader can change an organization's policy, and activation happens in one protected all-or-nothing step (PenTest F-03, F-18; also closes direct rule inserts into the active policy)
+- [ADR-0032](0032-policy-text-as-data-and-reviewed-imports.md) — Policy text reaches the AI as marked data, command-like rules are flagged, and an import is a reviewed draft that always keeps the safety rules (PenTest F-20, F-08)
