@@ -115,7 +115,9 @@ begin
       ('approval', 'Choose an approval''s identifier', 'refused', '42501',
         format($q$insert into public.approval (id, task_run_id, decided_by, decision)
                   values (gen_random_uuid(), %L, %L, 'approved')$q$, v_run, v_uid)),
-      ('approval', 'Normal approval (still works)', 'accepted', null,
+      -- ADR-0028: approvals are now recorded ONLY through review_task_run, so a direct insert is
+      -- refused even with valid values. (review-integrity-check.sql tests the normal review path.)
+      ('approval', 'Direct approval insert (now only via review_task_run)', 'refused', '42501',
         format($q$insert into public.approval (task_run_id, decided_by, decision)
                   values (%L, %L, 'approved')$q$, v_run, v_uid)),
       -- run_correction
