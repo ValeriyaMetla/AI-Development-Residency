@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/data/supabase/server';
+import { parseReviewOutcome, type ReviewOutcome } from '@/lib/domain/approvals';
 
 /**
  * Data-Source helpers for the governed-run pipeline (ADR-0003). All Supabase access
@@ -220,72 +221,33 @@ export async function listPendingReviews(): Promise<PendingReview[] | null> {
 }
 
 /**
- * Record a reviewer's decision on a flagged run (ADR-0020 / ADR-0022). Writes, each with one job:
- *   0. (approve + edit only) append a NEW task_output version with the reviewer's edited draft,
- *      marked edited_by — the AI original row is preserved (ADR-0022);
- *   1. the APPEND-ONLY approval row — the durable, attributable record (who/what/when, + note);
- *   2. flip task_run.status to approved/rejected — it leaves the review queue;
- *   3. an audit event — the event-log entry (payload carries no sensitive content, ADR-6).
- * Fails closed: the edited version is saved BEFORE the decision, so a failed edit aborts with the
- * run still in review (no half-approved state). RLS enforces org scope and that the caller authors
- * both the approval and the edited row.
+ * Record a reviewer's decision on a flagged run — ONE call to the protected database step
+ * review_task_run (ADR-0028). In a single transaction it checks the run is in the caller's org and
+ * still needs_review, then writes the optional reviewer edit as a new output version (ADR-0022),
+ * the append-only approval row (ADR-0020), the status flip and the audit event. The reviewer is
+ * always the signed-in user (auth.uid() inside the function), so no "decided by" is passed in.
+ *
+ * Returns the database's plain outcome ('ok', 'not_pending', …), or null if the call itself failed
+ * or returned something unexpected — the caller treats null as "try again".
  */
 export async function recordApproval(params: {
-  orgId: string;
   taskRunId: string;
-  decidedBy: string;
   decision: 'approved' | 'rejected';
   note: string | null;
   /** The reviewer's edited draft (approve-only). Saved as a new output version; null = no edit. */
   editedOutput?: string | null;
-  /** Base provenance label for the edited row, passed down by the caller (Domain owns the string). */
-  editedProvenanceLabel?: string;
-}): Promise<boolean> {
+}): Promise<ReviewOutcome | null> {
   const supabase = await createClient();
-
-  // 0. An edit only applies when approving — a rejected draft is discarded, not versioned.
-  if (params.decision === 'approved' && params.editedOutput) {
-    const { error: editError } = await supabase.from('task_output').insert({
-      task_run_id: params.taskRunId,
-      content: params.editedOutput,
-      // The stored label stays the AI base (passed in — the Domain owns the string); the "edited by
-      // a person" layer is composed from edited_by at display time (ADR-0022): one source of truth.
-      provenance_label: params.editedProvenanceLabel ?? null,
-      edited_by: params.decidedBy,
-    });
-    if (editError) {
-      console.error('recordApproval edit save failed:', editError.message);
-      return false;
-    }
-  }
-
-  const { error: insertError } = await supabase.from('approval').insert({
-    task_run_id: params.taskRunId,
-    decided_by: params.decidedBy,
-    decision: params.decision,
-    note: params.note,
+  const { data, error } = await supabase.rpc('review_task_run', {
+    p_task_run_id: params.taskRunId,
+    p_decision: params.decision,
+    p_note: params.note,
+    // An edit only applies when approving — a rejected draft is discarded, not versioned.
+    p_edited_output: params.decision === 'approved' ? (params.editedOutput ?? null) : null,
   });
-  if (insertError) {
-    console.error('recordApproval insert failed:', insertError.message);
-    return false;
+  if (error) {
+    console.error('recordApproval failed:', error.message);
+    return null;
   }
-
-  const { error: statusError } = await supabase
-    .from('task_run')
-    .update({ status: params.decision, updated_at: new Date().toISOString() })
-    .eq('id', params.taskRunId);
-  if (statusError) {
-    console.error('recordApproval status update failed:', statusError.message);
-    return false;
-  }
-
-  await writeAuditEvent({
-    orgId: params.orgId,
-    taskRunId: params.taskRunId,
-    actor: params.decidedBy,
-    eventType: params.decision === 'approved' ? 'task_approved' : 'task_rejected',
-    payload: {}, // the decision fact only — no sensitive content (ADR-6)
-  });
-
-  return true;
+  return parseReviewOutcome(data);
 }

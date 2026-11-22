@@ -4,8 +4,12 @@
  * the untrusted review payload HERE before any write (secure-coding A03/A04 — never trust a value
  * that came from the client), and the Data-Source layer records the decision.
  *
- * A reviewer may only approve or reject (no inline edit this pass, ADR-0020). The note is optional,
- * trimmed, length-capped, and never required — a plain reason, never sensitive content.
+ * A reviewer approves or rejects, and may edit the draft when approving (ADR-0022). The note is
+ * optional, trimmed, length-capped, and never required — a plain reason, never sensitive content.
+ *
+ * ADR-0028: the DATABASE enforces who can review what (review_task_run). This file mirrors that
+ * rule only for display (`canBeReviewed`) and wording (`reviewOutcomeMessage`); it never decides.
+ * The note / edit caps below are repeated inside review_task_run — a test keeps the two equal.
  */
 
 export type ReviewDecision = 'approved' | 'rejected';
@@ -81,4 +85,47 @@ export function parseReviewInput(input: unknown): ParsedReview {
     note: cleanNote,
     editedOutput: cleanEdited,
   };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Review outcomes (ADR-0028). review_task_run returns one of these plain words instead of database
+// error text; the Service layer turns a refusal into a message a person can act on.
+// ---------------------------------------------------------------------------------------------
+
+export const REVIEW_OUTCOMES = [
+  'ok',
+  'not_signed_in',
+  'invalid',
+  'not_found',
+  'not_pending',
+] as const;
+export type ReviewOutcome = (typeof REVIEW_OUTCOMES)[number];
+
+/** Validate what the database returned. Anything unexpected is null (treated as a failure). */
+export function parseReviewOutcome(value: unknown): ReviewOutcome | null {
+  return typeof value === 'string' && (REVIEW_OUTCOMES as readonly string[]).includes(value)
+    ? (value as ReviewOutcome)
+    : null;
+}
+
+/**
+ * Whether a run can be reviewed — DISPLAY ONLY, so the UI offers approve/reject just on runs the
+ * database will accept. Only a flagged, undecided run qualifies; the first decision is final.
+ */
+export function canBeReviewed(status: string): boolean {
+  return status === 'needs_review';
+}
+
+/** Plain-language message for a refused review. Never reveals whether another org's run exists. */
+export function reviewOutcomeMessage(outcome: Exclude<ReviewOutcome, 'ok'>): string {
+  switch (outcome) {
+    case 'not_signed_in':
+      return 'You must be signed in.';
+    case 'invalid':
+      return 'Check your note and any edits, then try again.';
+    case 'not_found':
+      return 'We couldn’t find that run.';
+    case 'not_pending':
+      return 'This run has already been reviewed, or wasn’t flagged for review.';
+  }
 }
