@@ -69,3 +69,11 @@ export function runDemoPreset(id: string): DemoRun | null {
     outcome,
   };
 }
+
+/**
+ * Every preset's run, in picker order. The demo page computes these on the server so the client
+ * picker only chooses which finished result to show and decides nothing itself (ADR-0003).
+ */
+export function allDemoRuns(): DemoRun[] {
+  return SAMPLE_PRESETS.map((p) => runDemoPreset(p.id)).filter((r): r is DemoRun => r !== null);
+}

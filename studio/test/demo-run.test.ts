@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO_DRAFT_LABEL, runDemoPreset } from '@/lib/demo/demo-run';
+import { allDemoRuns, DEMO_DRAFT_LABEL, runDemoPreset } from '@/lib/demo/demo-run';
 import { SAMPLE_PRESETS } from '@/lib/demo/sample-org';
 import { detectPii } from '@/lib/domain/pii';
 import { AI_PROVENANCE } from '@/lib/domain/provenance';
@@ -54,5 +54,18 @@ describe('runDemoPreset (ADR-0029 T3)', () => {
   it('returns null for an unknown preset id', () => {
     expect(runDemoPreset('not-a-preset')).toBeNull();
     expect(runDemoPreset('')).toBeNull();
+  });
+});
+
+describe('allDemoRuns (ADR-0029 T5)', () => {
+  it('returns one finished run per preset, in picker order, with exactly one sent to review', () => {
+    const runs = allDemoRuns();
+    expect(runs.map((r) => r.preset.id)).toEqual(SAMPLE_PRESETS.map((p) => p.id));
+    expect(runs.filter((r) => r.outcome.status === 'needs_review')).toHaveLength(1);
+  });
+
+  it('is plain data that survives the server-to-client hand-off unchanged', () => {
+    const runs = allDemoRuns();
+    expect(JSON.parse(JSON.stringify(runs))).toEqual(runs);
   });
 });
