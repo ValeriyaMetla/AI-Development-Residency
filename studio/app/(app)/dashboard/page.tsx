@@ -80,9 +80,8 @@ export default async function DashboardPage() {
         </>
       ) : isLeader ? (
         <>
-          <RulesCard hasActivePolicy={activePolicy !== null} />
-          <CopilotCard />
           <RunSkillCard />
+          <GovernanceFlow hasActivePolicy={activePolicy !== null} />
         </>
       ) : (
         // Unknown / missing role — minimal safe home, no rules-admin surfaced.
@@ -95,39 +94,123 @@ export default async function DashboardPage() {
   );
 }
 
-function RulesCard({ hasActivePolicy }: { hasActivePolicy: boolean }) {
+/**
+ * The governance lifecycle on the Leader's home (wireframe §4): a numbered, top-down path that
+ * mirrors the "Your AI Governance" nav menu — decide → set the rules → review → monitor → prove.
+ * Presentation-only: static links into the existing areas (routes unchanged); step 2 reflects
+ * whether a policy is active. "Run a Skill" stays its own primary action above this.
+ *
+ * Accessibility: a real <ol> so the sequence + length are announced; the number badge is decorative
+ * (aria-hidden) and the meaning lives in the step heading (<h3>) under the section <h2>.
+ */
+function GovernanceFlow({ hasActivePolicy }: { hasActivePolicy: boolean }) {
+  const steps: { title: string; body: string; href: string; cta: string }[] = [
+    {
+      title: 'Decide',
+      body: 'Not sure whether to use AI for something? Ask the Co-Pilot for a grounded recommendation.',
+      href: '/copilot',
+      cta: 'Ask the Co-Pilot',
+    },
+    {
+      title: 'Set the rules',
+      body: hasActivePolicy
+        ? 'Your AI policy is active and applies across the Studio. Review or update it anytime.'
+        : 'Set your organization’s AI rules once — a starter policy grounded in recognized standards, in about five minutes.',
+      href: '/policy-seed',
+      cta: hasActivePolicy ? 'AI Policy' : 'Set your AI rules',
+    },
+    {
+      title: 'Review',
+      body: 'Approve anything the safety net flags for a person before it’s used.',
+      href: '/approvals',
+      cta: 'Human Review',
+    },
+    {
+      title: 'Monitor',
+      body: 'See how AI is being used across your organization, in plain language.',
+      href: '/dashboard/usage',
+      cta: 'Monitoring',
+    },
+    {
+      title: 'Prove',
+      body: 'A responsible-AI record you can show funders and your board.',
+      href: '/report',
+      cta: 'Audit Trail',
+    },
+  ];
+
   return (
-    <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Paper variant="outlined" sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Typography variant="h6" component="h2">
-          Your AI rules
+          Your AI governance
         </Typography>
-        {hasActivePolicy ? <Chip size="small" color="success" label="Active" /> : null}
+        <Chip
+          size="small"
+          color={hasActivePolicy ? 'success' : 'warning'}
+          label={hasActivePolicy ? 'Policy active' : 'No policy yet'}
+        />
       </Box>
-      {hasActivePolicy ? (
-        <>
-          <Typography variant="body2" color="text.secondary">
-            Your organization has an active AI policy. It applies to AI use across the Studio.
-          </Typography>
-          <Box>
-            <Button variant="outlined" component={NextLink} href="/policy-seed">
-              Review or update your rules
-            </Button>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        Five steps, from deciding to proving — the lifecycle your Studio runs on.
+      </Typography>
+
+      <Box
+        component="ol"
+        sx={{
+          listStyle: 'none',
+          p: 0,
+          m: 0,
+          mt: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3,
+        }}
+      >
+        {steps.map((step, i) => (
+          <Box
+            component="li"
+            key={step.title}
+            sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, alignItems: 'flex-start' }}
+          >
+            <Box
+              aria-hidden="true"
+              sx={{
+                flexShrink: 0,
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.95rem',
+              }}
+            >
+              {i + 1}
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }}>
+                {step.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                {step.body}
+              </Typography>
+              <Button
+                variant="text"
+                size="small"
+                component={NextLink}
+                href={step.href}
+                sx={{ mt: 0.5, px: 0 }}
+              >
+                {step.cta} →
+              </Button>
+            </Box>
           </Box>
-        </>
-      ) : (
-        <>
-          <Typography variant="body2" color="text.secondary">
-            Set your organization&apos;s AI rules once. Answer a few plain questions and we&apos;ll
-            draft a starter policy grounded in recognized standards — about five minutes.
-          </Typography>
-          <Box>
-            <Button variant="contained" component={NextLink} href="/policy-seed">
-              Set your AI rules
-            </Button>
-          </Box>
-        </>
-      )}
+        ))}
+      </Box>
     </Paper>
   );
 }
