@@ -94,6 +94,13 @@ export function Hero() {
               <Button component={NextLink} href="/login" variant="outlined" size="large">
                 Log in
               </Button>
+              {/* Lightest weight on purpose: sign-up stays the main action (ADR-0029, T7). */}
+              <Button component={NextLink} href="/demo" variant="text" size="large">
+                Try the demo
+                <Box component="span" aria-hidden="true" sx={{ ml: 0.75 }}>
+                  →
+                </Box>
+              </Button>
             </Box>
 
             <Box
