@@ -137,3 +137,10 @@ are the app's real code; only the AI draft is prewritten.**
   a unit test checks the demo's view model (pure functions over the sample data), and
   `next build` must render `/demo` as a static page, which only succeeds if the page needs no
   database or session. Val approved this clarification on 2026-11-22.
+- **2026-11-22 — The governed run also appears on the landing page.** Val decided visitors
+  should be able to preview the demo without leaving the landing page. A "Try it" section on `/`
+  reuses the same picker and the same server-computed runs as `/demo`. It carries its own label
+  ("Sample data · nothing is saved · no AI runs") because the `/demo` banner isn't there, and it
+  links to `/demo` for the policy, review and record. The `demo-is-offline` arch-gate rule also
+  targets that section's file. Everything else stands: no database call, no model call, no
+  session. Val approved this clarification on 2026-11-22.
