@@ -12,6 +12,7 @@ import { getMyOrgId } from '@/lib/data/runs';
 import { seedPolicyFromAnswers } from '@/lib/domain/policy-seed';
 import { activatePolicy, archiveDraftPolicies } from '@/lib/data/policy';
 import { getMyProfile } from '@/lib/data/profile';
+import { POLICY_CHANGE_MESSAGES } from '@/lib/domain/policy-activation';
 import { runPolicySeed, confirmPolicy, discardDraftPolicy } from '@/app/(app)/policy-seed/actions';
 
 const validAnswers = {
@@ -88,15 +89,22 @@ describe('confirmPolicy', () => {
 
   it('activates and reports success', async () => {
     signedIn();
-    vi.mocked(activatePolicy).mockResolvedValue(true);
+    vi.mocked(activatePolicy).mockResolvedValue('ok');
     expect(await confirmPolicy('p1')).toEqual({ status: 'activated', policyId: 'p1' });
-    expect(activatePolicy).toHaveBeenCalledWith({ orgId: 'org1', policyId: 'p1' });
+    expect(activatePolicy).toHaveBeenCalledWith('p1');
   });
 
-  it('reports failure when activation fails', async () => {
+  // F-18: anything but an explicit 'ok' is a failure with the database's reason — never "activated".
+  it.each([
+    ['not_leader', POLICY_CHANGE_MESSAGES.not_leader],
+    ['not_found', POLICY_CHANGE_MESSAGES.not_found],
+    ['not_draft', POLICY_CHANGE_MESSAGES.not_draft],
+    ['no_rules', POLICY_CHANGE_MESSAGES.no_rules],
+    [null, POLICY_CHANGE_MESSAGES.unavailable],
+  ])('reports %j as failed with its message, never activated', async (outcome, message) => {
     signedIn();
-    vi.mocked(activatePolicy).mockResolvedValue(false);
-    expect((await confirmPolicy('p1')).status).toBe('failed');
+    vi.mocked(activatePolicy).mockResolvedValue(outcome);
+    expect(await confirmPolicy('p1')).toEqual({ status: 'failed', message });
   });
 });
 
@@ -138,14 +146,17 @@ describe('discardDraftPolicy ("Start over")', () => {
 
   it("archives the leader's own org drafts and reports success", async () => {
     signedIn();
-    vi.mocked(archiveDraftPolicies).mockResolvedValue(true);
+    vi.mocked(archiveDraftPolicies).mockResolvedValue('ok');
     expect(await discardDraftPolicy()).toEqual({ status: 'discarded' });
-    expect(archiveDraftPolicies).toHaveBeenCalledWith('org1');
+    expect(archiveDraftPolicies).toHaveBeenCalledWith();
   });
 
-  it('reports failure when archiving fails', async () => {
+  it.each([
+    ['not_leader', POLICY_CHANGE_MESSAGES.not_leader],
+    [null, POLICY_CHANGE_MESSAGES.discardFailed],
+  ])('reports %j as failed with its message', async (outcome, message) => {
     signedIn();
-    vi.mocked(archiveDraftPolicies).mockResolvedValue(false);
-    expect((await discardDraftPolicy()).status).toBe('failed');
+    vi.mocked(archiveDraftPolicies).mockResolvedValue(outcome);
+    expect(await discardDraftPolicy()).toEqual({ status: 'failed', message });
   });
 });
