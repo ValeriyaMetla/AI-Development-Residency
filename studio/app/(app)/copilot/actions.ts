@@ -2,7 +2,9 @@
 
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyOrgId } from '@/lib/data/runs';
+import { claimAiRequest } from '@/lib/data/rate-limit';
 import { runCopilotAssessment, type CopilotAssessmentResult } from '@/lib/domain/copilot-pipeline';
+import { rateLimitDecision } from '@/lib/domain/rate-limit';
 import {
   missingNoneApplyConfirmation,
   type SignalInput,
@@ -57,6 +59,11 @@ export async function assessUse(input: AssessInput): Promise<CopilotAssessmentRe
       message: 'Please tick any question that applies, or confirm that none of them apply.',
     };
   }
+
+  // Rate limit (ADR-0030): claim one request AFTER the input checks (invalid input never uses one
+  // up) and BEFORE the pipeline, so a refused request makes no Claude call. Fails closed.
+  const limit = rateLimitDecision(await claimAiRequest('copilot'));
+  if (!limit.allowed) return { status: 'blocked', message: limit.message };
 
   return runCopilotAssessment({ userInput, signals, userId: user.id, orgId });
 }

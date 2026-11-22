@@ -48,8 +48,8 @@ export function monthStart(now: Date): Date {
 /**
  * How many governed runs the caller's org has made this calendar month (the cap meter). Counts
  * task_run rows created at/after the month start; a capped attempt never opens a run, so it is not
- * counted. Returns `null` on failure — the gate treats that as 0 and lets the run proceed (a safe
- * run is never blocked by a transient count error; capacity fails open, safety is unaffected).
+ * counted. Returns `null` on failure — the gate REFUSES the run (fails closed, ADR-0030 point 5 /
+ * SR-03; this replaced the earlier fail-open behavior). Safety is unaffected either way.
  */
 export async function countOrgRunsThisMonth(now: Date = new Date()): Promise<number | null> {
   const supabase = await createClient();
