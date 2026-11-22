@@ -67,6 +67,13 @@ describe('piiSummary — plain language, no raw value', () => {
   it('says so when nothing is found', () => {
     expect(piiSummary([])).toMatch(/no personal information/i);
   });
+  it('uses "an" before a vowel and "a" before a consonant', () => {
+    const summary = piiSummary(detectPii('jane.doe@example.org, 555-555-0123, SSN 123-45-6789'));
+    expect(summary).toContain('an email address');
+    expect(summary).toContain('a phone number');
+    expect(summary).toContain('a Social Security number');
+    expect(summary).not.toContain('a email');
+  });
 });
 
 describe('redactPii — strip/minimize by default', () => {

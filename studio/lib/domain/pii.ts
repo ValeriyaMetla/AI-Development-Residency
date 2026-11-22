@@ -82,7 +82,9 @@ export function hasPii(text: string): boolean {
 /** A plain-language, non-sensitive summary of findings (categories only, never the raw value). */
 export function piiSummary(findings: PiiFinding[]): string {
   if (findings.length === 0) return 'No personal information detected.';
-  const parts = findings.map((f) => (f.count > 1 ? `${f.count} ${f.label}s` : `a ${f.label}`));
+  const parts = findings.map((f) =>
+    f.count > 1 ? `${f.count} ${f.label}s` : `${/^[aeiou]/i.test(f.label) ? 'an' : 'a'} ${f.label}`,
+  );
   return `Detected personal information in your input: ${parts.join(', ')}.`;
 }
 
