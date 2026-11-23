@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { User } from '@supabase/supabase-js';
+import {
+  IS_PRODUCTION,
+  SESSION_LAST_ACTIVE_COOKIE,
+  SESSION_STARTED_COOKIE,
+  authCookieOptions,
+} from '@/lib/data/supabase/cookie-options';
 
 /**
  * Server-side Supabase client (Data-Source layer, ADR-0003).
@@ -15,6 +21,8 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // HttpOnly + Secure (on the live site) + SameSite=Lax for the auth cookies (ADR-0033 point 2).
+      cookieOptions: authCookieOptions(IS_PRODUCTION),
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -45,4 +53,14 @@ export async function getCurrentUser(): Promise<User | null> {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
+}
+
+/**
+ * Clear the session-timeout markers (ADR-0033 point 1), so the next request starts a fresh clock. Called
+ * at sign-in, sign-up and sign-out: a new session must never inherit an old session's start time.
+ */
+export async function resetSessionMarkers(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_STARTED_COOKIE);
+  cookieStore.delete(SESSION_LAST_ACTIVE_COOKIE);
 }
