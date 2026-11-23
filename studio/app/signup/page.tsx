@@ -7,7 +7,7 @@ import Link from '@mui/material/Link';
 import NextLink from 'next/link';
 import { signup } from '@/app/auth/actions';
 import { AuthScaffold } from '@/app/components/auth/auth-scaffold';
-import { SIGNUP_PANEL } from '@/app/components/auth/auth-content';
+import { SIGNUP_EARLY_NOTE, SIGNUP_PANEL } from '@/app/components/auth/auth-content';
 
 /**
  * Signup (Presentation layer). Unauthenticated, so it sits OUTSIDE the app shell — the same
@@ -37,6 +37,12 @@ export default async function SignupPage({
             You&apos;ll be set up as the Accountable Leader of a new organization.
           </Typography>
         </Box>
+
+        {/* Early-version safeguard (decision 2026-11-23): no formal privacy policy yet. A standing
+            note, not an alert, so screen readers read it in order instead of interrupting. */}
+        <Alert severity="info" role="note">
+          {SIGNUP_EARLY_NOTE}
+        </Alert>
 
         {error ? <Alert severity="error">{error}</Alert> : null}
         {message === 'check-email' ? (

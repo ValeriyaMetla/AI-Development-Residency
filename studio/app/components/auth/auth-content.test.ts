@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AUTH_BRAND, SIGNUP_PANEL, LOGIN_PANEL } from './auth-content';
+import { AUTH_BRAND, SIGNUP_EARLY_NOTE, SIGNUP_PANEL, LOGIN_PANEL } from './auth-content';
 
 /**
  * Honesty guard for the auth-page value panels. UI copy must not over-claim: every promise maps
@@ -51,5 +51,16 @@ describe('auth panel copy', () => {
         }
       }
     }
+  });
+});
+
+describe('sign-up early-version note', () => {
+  it('says plainly it is an early version and asks for no real client information', () => {
+    expect(SIGNUP_EARLY_NOTE).toMatch(/early version/i);
+    expect(SIGNUP_EARLY_NOTE).toMatch(/real client information/i);
+  });
+
+  it('makes no banned claim', () => {
+    for (const claim of BANNED_CLAIMS) expect(SIGNUP_EARLY_NOTE.toLowerCase()).not.toContain(claim);
   });
 });

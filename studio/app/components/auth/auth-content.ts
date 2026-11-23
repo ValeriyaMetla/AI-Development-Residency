@@ -30,3 +30,11 @@ export const LOGIN_PANEL = {
   subcopy: 'Your AI policy, approvals, and record are right where you left them.',
   promises: ['Governed runs, ready to go', "Your whole team's activity in one place"],
 } as const;
+
+/**
+ * Early-version safeguard on the sign-up page (decision 2026-11-23, card "Decide whether to publish
+ * a formal privacy policy"). Until a reviewed privacy policy and terms exist, sign-up stays open but
+ * asks people not to enter real client information. Remove only when that policy is published.
+ */
+export const SIGNUP_EARLY_NOTE =
+  "This is an early version for testing. Please don't enter real client information or details about the people you serve.";
