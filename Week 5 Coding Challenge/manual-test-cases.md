@@ -240,7 +240,7 @@ Do not add real names, case histories, contact details, or other sensitive infor
 - **Actual-result summary:** The Co-Pilot rated the scenario High-risk and "Use with conditions",
   kept the decision with a person, cited named standards for each risk signal, and gave concrete
   safer-way steps. The layout works at phone size and there were no errors. See F-1 and O-2.
-- **Bug ticket link(s), if any:** F-1 drafted for review; not yet filed
+- **Bug ticket link(s), if any:** F-1 — [Bug — Co-Pilot says "checked against your active policy" but doesn't check the rules](https://app.notion.com/p/421975c3b9508186b7fcccc3fbdc19cd) (Notion Kanban)
 
 ---
 
