@@ -119,3 +119,14 @@ describe('plural labels', () => {
     expect(piiSummary(detectPii('a@example.org, b@example.org'))).not.toContain('addresss');
   });
 });
+
+describe('card number redaction keeps the surrounding spaces', () => {
+  it('does not swallow the space after the number', () => {
+    expect(redactPii('Card 4111 1111 1111 1111 was charged').redacted).toBe(
+      'Card [card number removed] was charged',
+    );
+    expect(detectPii('Card 4111 1111 1111 1111 was charged').map((f) => f.category)).toEqual([
+      'credit_card',
+    ]);
+  });
+});
