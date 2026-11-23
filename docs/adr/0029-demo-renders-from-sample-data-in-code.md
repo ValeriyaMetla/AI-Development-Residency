@@ -151,3 +151,12 @@ are the app's real code; only the AI draft is prewritten.**
   stays and links to the full demo at `/demo`, which is unchanged. The landing-page preview Val
   wants is tracked as the card "Add a walkthrough video of the product journey to the landing
   page". Val approved this clarification on 2026-11-23.
+- **2026-11-23 — Clarification 2's static-build check no longer applies; the other isolation
+  checks stand.** Since ADR-0033, the root layout reads the per-request content-security-policy
+  nonce, so every page — `/demo` included — is rendered on request instead of at build time. A
+  successful `next build` therefore no longer shows that `/demo` needs no database or session.
+  Nothing about the demo's isolation changed: `/demo` is still excluded from the middleware (it
+  gets a fixed security policy from the config, ADR-0033), and the `demo-is-offline` arch-gate
+  rule, the `no-anon-access` migration test and the demo view-model tests still enforce that it
+  has no runtime path to data, sign-in or a model. Recorded by Claude on 2026-11-23 after
+  noticing the build output change; Val to approve.
