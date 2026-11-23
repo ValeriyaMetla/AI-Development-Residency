@@ -6,6 +6,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { AUTH_BRAND } from '../components/auth/auth-content';
+import { SiteFooter } from '../components/site-footer';
 import { PRIVACY_EMAIL, YOUR_DATA, type Item } from './your-data-content';
 
 /**
@@ -154,6 +155,7 @@ export default function YourDataPage() {
           </Typography>
         </Section>
       </Container>
+      <SiteFooter />
     </>
   );
 }

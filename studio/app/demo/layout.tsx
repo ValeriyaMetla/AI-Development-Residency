@@ -5,6 +5,7 @@ import Container from '@mui/material/Container';
 import Link from '@mui/material/Link';
 import NextLink from 'next/link';
 import { AUTH_BRAND } from '../components/auth/auth-content';
+import { SiteFooter } from '../components/site-footer';
 import { DemoBanner } from './demo-banner';
 import { DEMO_CTA } from './demo-content';
 
@@ -65,6 +66,7 @@ export default function DemoLayout({ children }: Readonly<{ children: React.Reac
       </Box>
 
       <Box component="main">{children}</Box>
+      <SiteFooter />
     </>
   );
 }
