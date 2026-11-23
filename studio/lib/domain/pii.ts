@@ -79,12 +79,21 @@ export function hasPii(text: string): boolean {
   return detectPii(text).length > 0;
 }
 
+/** "2 email addresses", "3 phone numbers": a count plus the plural label ("-es" after an "s"). */
+export function countedLabel(f: Pick<PiiFinding, 'label' | 'count'>): string {
+  return `${f.count} ${f.label}${f.label.endsWith('s') ? 'es' : 's'}`;
+}
+
+/** One finding as words: "an email address", "a phone number", or "2 email addresses". */
+export function findingPhrase(f: Pick<PiiFinding, 'label' | 'count'>): string {
+  if (f.count > 1) return countedLabel(f);
+  return `${/^[aeiou]/i.test(f.label) ? 'an' : 'a'} ${f.label}`;
+}
+
 /** A plain-language, non-sensitive summary of findings (categories only, never the raw value). */
 export function piiSummary(findings: PiiFinding[]): string {
   if (findings.length === 0) return 'No personal information detected.';
-  const parts = findings.map((f) =>
-    f.count > 1 ? `${f.count} ${f.label}s` : `${/^[aeiou]/i.test(f.label) ? 'an' : 'a'} ${f.label}`,
-  );
+  const parts = findings.map(findingPhrase);
   return `Detected personal information in your input: ${parts.join(', ')}.`;
 }
 

@@ -185,6 +185,13 @@ function Result({ result }: { result: CopilotAssessmentResult }) {
         {r.summary}
       </Alert>
 
+      {/* What was removed before the AI saw the text — categories only, never the values. */}
+      {result.piiNotice && (
+        <Alert severity="info" variant="outlined">
+          {result.piiNotice}
+        </Alert>
+      )}
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Chip label={r.tierLabel} size="small" />
         {r.humanDecisionRequired && (
