@@ -30,6 +30,24 @@ export type SeedStandard = {
 /** Resolved standards, keyed by their stable `code` (ADR-0008). */
 export type StandardsByCode = Map<string, SeedStandard>;
 
+/** Index the standards library by code, for generatePolicyRules (shared by seeding and import). */
+export function indexStandardsByCode(
+  standards: (SeedStandard & { code: string })[],
+): StandardsByCode {
+  return new Map(
+    standards.map((s) => [
+      s.code,
+      {
+        id: s.id,
+        citation: s.citation,
+        ruleText: s.ruleText,
+        category: s.category,
+        riskTier: s.riskTier,
+      },
+    ]),
+  );
+}
+
 /**
  * Generate the policy rules for a completed answer set.
  * Returns the fixed spec rules (in spec order) followed by any custom prohibited-uses.

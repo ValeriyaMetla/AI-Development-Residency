@@ -6,7 +6,11 @@ import {
   type NewPolicyRule,
 } from '@/lib/data/policy';
 import { writeAuditEvent } from '@/lib/data/runs';
-import { generatePolicyRules, type StandardsByCode } from '@/lib/domain/policy-generator';
+import {
+  generatePolicyRules,
+  indexStandardsByCode,
+  type StandardsByCode,
+} from '@/lib/domain/policy-generator';
 import type { PolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 
 /**
@@ -46,18 +50,7 @@ export async function seedPolicyFromAnswers(params: {
   if (standards.length === 0) {
     return { status: 'failed', message: 'The standards library is unavailable.' };
   }
-  const standardsByCode: StandardsByCode = new Map(
-    standards.map((s) => [
-      s.code,
-      {
-        id: s.id,
-        citation: s.citation,
-        ruleText: s.ruleText,
-        category: s.category,
-        riskTier: s.riskTier,
-      },
-    ]),
-  );
+  const standardsByCode: StandardsByCode = indexStandardsByCode(standards);
 
   // 2. Generate the rules deterministically (no LLM).
   const rules = generatePolicyRules(answers, standardsByCode);

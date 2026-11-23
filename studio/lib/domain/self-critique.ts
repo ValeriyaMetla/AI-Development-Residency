@@ -14,6 +14,7 @@
  */
 
 import type { GuardrailResult } from '@/lib/domain/guardrails';
+import { formatPolicyRulesAsData } from '@/lib/domain/policy-context';
 
 export type CritiqueVerdict = 'pass' | 'revise' | 'block';
 
@@ -42,11 +43,11 @@ export function buildCritiquePrompt(
   policyRules: { ruleText: string }[] = [],
   qualityCriteria?: string,
 ): string {
+  // The same marked data block as the draft prompt (ADR-0032): the reviewer checks the draft against
+  // these rules, but never takes orders from text inside them.
   const policyBlock =
     policyRules.length > 0
-      ? `\n\nThe organization's AI policy requires:\n${policyRules
-          .map((r) => `- ${r.ruleText}`)
-          .join('\n')}`
+      ? `\n\nThe organization's AI policy requires:\n${formatPolicyRulesAsData(policyRules)}`
       : '';
 
   // Optional per-Skill quality bar (e.g. tone for the thank-you Skill). Folded in only when the

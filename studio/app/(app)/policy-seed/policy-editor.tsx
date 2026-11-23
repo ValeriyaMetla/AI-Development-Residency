@@ -9,8 +9,10 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import Divider from '@mui/material/Divider';
 import { publishRuleEdits } from './actions';
+import type { FlaggedRule } from '@/lib/domain/policy-injection-scan';
 import { MAX_RULE_TEXT } from '@/lib/domain/policy-edit';
 import { SAFETY_FLOOR_LABEL } from './policy-rule-list';
 
@@ -39,6 +41,8 @@ export default function PolicyEditor({ rules }: { rules: EditorRule[] }) {
   const [additions, setAdditions] = useState<{ key: number; ruleText: string }[]>([]);
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // ADR-0032: rules this edit changes or adds that read like commands to the AI. Warn, never block.
+  const [warning, setWarning] = useState<FlaggedRule[] | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function editRule(id: string, ruleText: string) {
@@ -57,19 +61,22 @@ export default function PolicyEditor({ rules }: { rules: EditorRule[] }) {
     setAdditions((a) => a.filter((r) => r.key !== key));
   }
 
-  function publish() {
+  function publish(confirmCommandLike = false) {
     setError(null);
     setDone(null);
+    setWarning(null);
     const input = {
       edits: editable.map((e) => ({ id: e.id, ruleText: e.ruleText })),
       additions: additions.map((a) => a.ruleText),
     };
     startTransition(async () => {
-      const res = await publishRuleEdits(input);
+      const res = await publishRuleEdits(input, { confirmCommandLike });
       if (res.status === 'published') {
         setDone(`Published — ${res.ruleCount} rule${res.ruleCount === 1 ? '' : 's'} now active.`);
         setAdditions([]);
         router.refresh(); // re-sync the editor with the newly-active version
+      } else if (res.status === 'confirm') {
+        setWarning(res.flagged); // nothing published yet; the leader decides
       } else {
         setError(res.message);
       }
@@ -180,8 +187,51 @@ export default function PolicyEditor({ rules }: { rules: EditorRule[] }) {
         </Alert>
       ) : null}
 
+      {warning ? (
+        <Alert severity="warning" role="alert">
+          <AlertTitle>
+            {warning.length === 1
+              ? 'One rule reads like an instruction to the AI'
+              : `${warning.length} rules read like instructions to the AI`}
+          </AlertTitle>
+          <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {warning.map((f) => (
+              <li key={f.ruleText}>
+                <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                  “{f.ruleText}”
+                </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                  {f.reasons.map((reason) => (
+                    <li key={reason}>
+                      <Typography variant="body2">{reason}</Typography>
+                    </li>
+                  ))}
+                </Box>
+              </li>
+            ))}
+          </Box>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Rules are shown to the AI as policy, not as commands, but wording like this can still
+            change what it writes. Nothing has been published yet.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1.5 }}>
+            <Button variant="outlined" onClick={() => setWarning(null)} disabled={isPending}>
+              Go back and edit
+            </Button>
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={() => publish(true)}
+              disabled={isPending}
+            >
+              Publish anyway
+            </Button>
+          </Box>
+        </Alert>
+      ) : null}
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Button variant="contained" size="large" onClick={publish} disabled={isPending}>
+        <Button variant="contained" size="large" onClick={() => publish()} disabled={isPending}>
           {isPending ? 'Publishing…' : 'Publish changes'}
         </Button>
         <Typography variant="caption" color="text.secondary">

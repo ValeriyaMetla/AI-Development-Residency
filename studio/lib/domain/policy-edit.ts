@@ -68,6 +68,22 @@ export function parsePolicyEditInput(input: unknown): ParsePolicyEditResult {
   return { ok: true, value: { edits: cleanEdits, additions: cleanAdditions } };
 }
 
+/**
+ * The rule texts an edit actually changes or adds (ADR-0032 point 2): edited texts that differ from
+ * the current rule (ignoring surrounding whitespace), then every addition. Only these are scanned for
+ * command-like text on publish, so an existing rule doesn't re-trigger the warning every time.
+ */
+export function changedRuleTexts(
+  current: { id: string; ruleText: string }[],
+  input: { edits: RuleEdit[]; additions: string[] },
+): string[] {
+  const currentText = new Map(current.map((r) => [r.id, r.ruleText.trim()]));
+  const edited = input.edits
+    .filter((e) => currentText.get(e.id) !== e.ruleText.trim())
+    .map((e) => e.ruleText);
+  return [...edited, ...input.additions];
+}
+
 export type AssembleResult = { ok: true; rules: NewPolicyRule[] } | { ok: false; error: string };
 
 /**
