@@ -19,8 +19,9 @@ import {
  * query here is automatically scoped to the caller's organization (ADR-0013).
  *
  * It selects ONLY the allow-listed, non-sensitive fields the trail may show (card non-goal
- * "No content, ever"; Build Plan ADR-6). It never selects `task_run.input_summary` — the Co-Pilot
- * stores raw input there without PII removal (known residual, owned by a separate Co-Pilot card).
+ * "No content, ever"; Build Plan ADR-6). It never selects `task_run.input_summary`: it holds typed
+ * content. (Co-Pilot runs stored it raw until the card "Strip personal details in the Co-Pilot
+ * before the AI sees them"; new runs store only the redacted text.)
  * The plain-language wording and gap logic live in the Domain layer (`lib/domain/report.ts`).
  */
 

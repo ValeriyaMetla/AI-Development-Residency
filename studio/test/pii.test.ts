@@ -111,3 +111,11 @@ describe('redactPii — strip/minimize by default', () => {
     expect(findings.map((f) => f.category).sort()).toEqual(['email', 'phone']);
   });
 });
+
+describe('plural labels', () => {
+  it('says "addresses", not "addresss", and counts other kinds normally', () => {
+    expect(piiSummary(detectPii('a@example.org, b@example.org'))).toContain('2 email addresses');
+    expect(piiSummary(detectPii('555-555-0101 and 555-555-0102'))).toContain('2 phone numbers');
+    expect(piiSummary(detectPii('a@example.org, b@example.org'))).not.toContain('addresss');
+  });
+});

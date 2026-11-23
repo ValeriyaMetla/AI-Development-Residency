@@ -17,7 +17,7 @@ import { canBeReviewed } from '@/lib/domain/approvals';
 import { applicableRules } from '@/lib/domain/skills';
 import type { RunnableSkill } from '@/lib/data/runs';
 import type { RunResult } from '@/lib/domain/pipeline';
-import { detectPii, type PiiCategory } from '@/lib/domain/pii';
+import { countedLabel, detectPii, type PiiCategory } from '@/lib/domain/pii';
 import { coachingFor, type CoachingNudge } from '@/lib/domain/coaching';
 
 /** Display-only policy-rule guidance passed from the server page. */
@@ -208,7 +208,7 @@ function ApplicableRulesPanel({ rules }: { rules: RuleGuidance[] }) {
 }
 
 function labelList(findings: { label: string; count: number }[]): string {
-  return findings.map((f) => (f.count > 1 ? `${f.count} ${f.label}s` : f.label)).join(', ');
+  return findings.map((f) => (f.count > 1 ? countedLabel(f) : f.label)).join(', ');
 }
 
 /**
