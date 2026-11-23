@@ -17,7 +17,7 @@ vi.mock('@/lib/data/runs', () => ({ writeAuditEvent: vi.fn() }));
 
 import { createPolicy, insertPolicyRules, activatePolicy } from '@/lib/data/policy';
 import { writeAuditEvent } from '@/lib/data/runs';
-import { publishEditedPolicy, publishImportedPolicy } from '@/lib/domain/policy-publish';
+import { publishEditedPolicy } from '@/lib/domain/policy-publish';
 import { POLICY_CHANGE_MESSAGES } from '@/lib/domain/policy-activation';
 
 const BASELINE = {
@@ -53,7 +53,8 @@ beforeEach(() => {
 
 // ADR-0031 / F-18: if the protected activation step refuses or errors, the publish reports the
 // database's reason and that nothing changed — never "published" — and writes no audit event.
-describe('publishEditedPolicy / publishImportedPolicy — activation refused', () => {
+// (Imports are now reviewed drafts — ADR-0032; their tests are in policy-import-draft.test.ts.)
+describe('publishEditedPolicy — activation refused', () => {
   it.each([
     ['not_leader', POLICY_CHANGE_MESSAGES.not_leader],
     ['no_rules', POLICY_CHANGE_MESSAGES.no_rules],
@@ -62,18 +63,6 @@ describe('publishEditedPolicy / publishImportedPolicy — activation refused', (
     vi.mocked(activatePolicy).mockResolvedValue(outcome);
     expect(await publishEditedPolicy(params([BASELINE]))).toEqual({ status: 'failed', message });
     expect(activatePolicy).toHaveBeenCalledWith('p2');
-    expect(writeAuditEvent).not.toHaveBeenCalled();
-  });
-
-  it('an import whose activation errors fails with the "nothing changed" message', async () => {
-    vi.mocked(activatePolicy).mockResolvedValue(null);
-    const res = await publishImportedPolicy({
-      orgId: 'org1',
-      createdBy: 'leader1',
-      policyName: 'Imported policy',
-      rules: [BASELINE],
-    });
-    expect(res).toEqual({ status: 'failed', message: POLICY_CHANGE_MESSAGES.unavailable });
     expect(writeAuditEvent).not.toHaveBeenCalled();
   });
 });

@@ -13,8 +13,14 @@ import {
 } from '@/lib/data/policy';
 import { validatePolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
 import { discardDraftsResult, policyActivationResult } from '@/lib/domain/policy-activation';
-import { parsePolicyEditInput } from '@/lib/domain/policy-edit';
-import { publishEditedPolicy, publishImportedPolicy } from '@/lib/domain/policy-publish';
+import { changedRuleTexts, parsePolicyEditInput } from '@/lib/domain/policy-edit';
+import { flagCommandLikeRules, type FlaggedRule } from '@/lib/domain/policy-injection-scan';
+import {
+  activateImportedPolicy,
+  draftImportedPolicy,
+  publishEditedPolicy,
+  type ImportDraftResult,
+} from '@/lib/domain/policy-publish';
 import { serializePolicy, parsePolicyImport } from '@/lib/domain/policy-export';
 
 /**
@@ -115,6 +121,8 @@ export async function discardDraftPolicy(): Promise<DiscardDraftResult> {
 
 export type PublishEditsResult =
   | { status: 'published'; ruleCount: number }
+  /** A changed or added rule reads like a command to the AI: show the warning, publish on confirm. */
+  | { status: 'confirm'; flagged: FlaggedRule[] }
   | { status: 'blocked'; message: string }
   | { status: 'failed'; message: string };
 
@@ -124,7 +132,10 @@ export type PublishEditsResult =
  * in the nav. The current rules are read server-side (authoritative); the client's `input` is a
  * trusted-nowhere diff validated by the Domain parser before any write.
  */
-export async function publishRuleEdits(input: unknown): Promise<PublishEditsResult> {
+export async function publishRuleEdits(
+  input: unknown,
+  options?: { confirmCommandLike?: boolean },
+): Promise<PublishEditsResult> {
   const user = await getCurrentUser();
   if (!user) return { status: 'blocked', message: 'You must be signed in.' };
 
@@ -146,6 +157,15 @@ export async function publishRuleEdits(input: unknown): Promise<PublishEditsResu
   const current = await getPolicyRulesOrNull(active.id);
   if (current === null) {
     return { status: 'failed', message: 'Could not load your current rules. Nothing was changed.' };
+  }
+
+  // ADR-0032 point 2: warn (never block) when a changed or added rule reads like a command to the AI.
+  // The leader can confirm and publish anyway; this only decides whether to show the warning first.
+  if (options?.confirmCommandLike !== true) {
+    const flagged = flagCommandLikeRules(
+      changedRuleTexts(current, parsed.value).map((ruleText) => ({ ruleText })),
+    );
+    if (flagged.length > 0) return { status: 'confirm', flagged };
   }
 
   const result = await publishEditedPolicy({
@@ -199,16 +219,14 @@ export async function exportPolicy(): Promise<ExportPolicyResult> {
   return { status: 'ok', filename: `policy-${slug || 'export'}.json`, json };
 }
 
-export type ImportPolicyResult =
-  | { status: 'published'; ruleCount: number }
-  | { status: 'blocked'; message: string }
-  | { status: 'failed'; message: string };
+export type ImportPolicyResult = ImportDraftResult;
 
 /**
- * Import a policy from an uploaded file's text and publish it as a new active version (Epic 1
+ * Import a policy from an uploaded file's text as a DRAFT for the leader to review (ADR-0032 · Epic 1
  * portability). Leader-only. `raw` is untrusted — the pure Domain parser validates it (secure-coding)
- * and rejects a malformed file with a clear message before anything is written; a valid file publishes
- * via the same versioned path as an edit (ADR-0024).
+ * and rejects a malformed file before anything is written. A valid file becomes a draft that always
+ * keeps the org's safety rules; the preview lists what will be kept and warns about any rule that
+ * reads like a command to the AI. Nothing changes until the leader activates it.
  */
 export async function importPolicy(raw: unknown): Promise<ImportPolicyResult> {
   const user = await getCurrentUser();
@@ -225,16 +243,43 @@ export async function importPolicy(raw: unknown): Promise<ImportPolicyResult> {
   const parsed = parsePolicyImport(raw);
   if (!parsed.ok) return { status: 'blocked', message: parsed.error };
 
-  const result = await publishImportedPolicy({
+  return draftImportedPolicy({
     orgId,
     createdBy: user.id,
+    leaderName: profile.display_name ?? '',
     policyName: parsed.name,
     rules: parsed.rules,
   });
+}
 
-  if (result.status === 'published') {
-    revalidatePath('/policy-seed');
-    return { status: 'published', ruleCount: result.ruleCount };
+export type ActivateImportActionResult =
+  | { status: 'activated' }
+  | { status: 'blocked'; message: string }
+  | { status: 'failed'; message: string };
+
+/**
+ * Switch on a reviewed import draft (ADR-0032 point 3). Leader-only here and in the database
+ * (activate_policy, ADR-0031): only a draft in the leader's own org can be activated, all-or-nothing.
+ */
+export async function activateImportedPolicyAction(
+  policyId: unknown,
+): Promise<ActivateImportActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'blocked', message: 'You must be signed in.' };
+
+  const profile = await getMyProfile();
+  if (profile?.role !== 'accountable_leader') {
+    return { status: 'blocked', message: 'Only an Accountable Leader can import a policy.' };
   }
+
+  const orgId = await getMyOrgId();
+  if (!orgId) return { status: 'blocked', message: 'No organization found for your account.' };
+
+  if (typeof policyId !== 'string' || !policyId) {
+    return { status: 'blocked', message: 'No imported policy to activate.' };
+  }
+
+  const result = await activateImportedPolicy({ orgId, createdBy: user.id, policyId });
+  if (result.status === 'activated') revalidatePath('/policy-seed');
   return result;
 }
