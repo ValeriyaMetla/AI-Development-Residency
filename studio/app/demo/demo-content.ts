@@ -70,12 +70,3 @@ export const DEMO_CTA = {
   signUp: 'Sign up free',
   logIn: 'Log in',
 } as const;
-
-/** Wording for the landing page's "Try it" section (ADR-0029 clarification 3). */
-export const DEMO_LANDING_COPY = {
-  heading: 'Try it — no sign-up needed',
-  label: 'Sample data · nothing is saved · no AI runs',
-  intro: 'Pick a sample request from a fictional food pantry and watch the safety net work on it.',
-  reviewLink: 'See it waiting for review in the full demo',
-  fullDemo: "See the full demo: the pantry's policy, the review queue and the record",
-} as const;
