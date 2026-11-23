@@ -7,24 +7,28 @@ import { Standards } from './components/landing/standards';
 import { FreeSafetyNet } from './components/landing/free-safety-net';
 import { FinalCta } from './components/landing/final-cta';
 import { Faq } from './components/landing/faq';
+import { SiteFooter } from './components/site-footer';
 
 /**
  * Public landing page — hero → how it works → the safety net → who it's for → standards → free
- * safety net → FAQ → final CTA. Presentation only — no data access, so the Leak Test trivially holds.
- * The hero's "Try the demo" button links to the full demo at /demo (ADR-0029). Every claim maps
- * to a mechanism Release 1b actually ships.
+ * safety net → FAQ → final CTA, then the shared footer (outside <main>). Presentation only — no
+ * data access, so the Leak Test trivially holds. The hero's "Try the demo" button links to the
+ * full demo at /demo (ADR-0029). Every claim maps to a mechanism Release 1b actually ships.
  */
 export default function Home() {
   return (
-    <Box component="main">
-      <Hero />
-      <HowItWorks />
-      <SafetyNet />
-      <WhoItsFor />
-      <Standards />
-      <FreeSafetyNet />
-      <Faq />
-      <FinalCta />
-    </Box>
+    <>
+      <Box component="main">
+        <Hero />
+        <HowItWorks />
+        <SafetyNet />
+        <WhoItsFor />
+        <Standards />
+        <FreeSafetyNet />
+        <Faq />
+        <FinalCta />
+      </Box>
+      <SiteFooter />
+    </>
   );
 }
