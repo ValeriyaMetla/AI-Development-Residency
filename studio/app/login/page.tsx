@@ -18,9 +18,12 @@ import { LOGIN_PANEL } from '@/app/components/auth/auth-content';
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reason?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reason } = await searchParams;
+  // ADR-0033: the middleware signs a user out after 1 hour idle or 24 hours; say why, plainly. Only a
+  // fixed message is shown for the known reason — the query value itself is never displayed.
+  const signedOut = reason === 'signed-out';
 
   return (
     <AuthScaffold
@@ -33,6 +36,11 @@ export default async function LoginPage({
           Log in
         </Typography>
 
+        {signedOut ? (
+          <Alert severity="info" role="status">
+            For your security, you were signed out. Please log in again.
+          </Alert>
+        ) : null}
         {error ? <Alert severity="error">{error}</Alert> : null}
 
         <Box

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/data/supabase/server';
+import { createClient, resetSessionMarkers } from '@/lib/data/supabase/server';
 
 /**
  * Auth server actions (Service layer, ADR-0003) — the app's "front door" for
@@ -24,6 +24,8 @@ export async function login(formData: FormData) {
     redirect('/login?error=' + encodeURIComponent(error.message));
   }
 
+  // A new session starts a fresh 24-hour / 1-hour clock (ADR-0033).
+  await resetSessionMarkers();
   revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
@@ -57,6 +59,7 @@ export async function signup(formData: FormData) {
     redirect('/signup?message=check-email');
   }
 
+  await resetSessionMarkers();
   revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
@@ -64,6 +67,7 @@ export async function signup(formData: FormData) {
 export async function signout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  await resetSessionMarkers();
   revalidatePath('/', 'layout');
   redirect('/login');
 }
