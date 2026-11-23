@@ -144,3 +144,10 @@ are the app's real code; only the AI draft is prewritten.**
   links to `/demo` for the policy, review and record. The `demo-is-offline` arch-gate rule also
   targets that section's file. Everything else stands: no database call, no model call, no
   session. Val approved this clarification on 2026-11-22.
+- **2026-11-23 — The landing page's "Try it" section is removed; only the hero button stays.**
+  Clarification 3 came from a misunderstanding: Val meant a *video* on the landing page, not the
+  interactive picker, and the section also didn't fit the page's design. The section and the
+  copy and gate entry that existed only for it are removed. The hero's "Try the demo" button
+  stays and links to the full demo at `/demo`, which is unchanged. The landing-page preview Val
+  wants is tracked as the card "Add a walkthrough video of the product journey to the landing
+  page". Val approved this clarification on 2026-11-23.
