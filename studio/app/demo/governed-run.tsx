@@ -114,17 +114,7 @@ function Quote({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * `reviewLink` points the flagged run at its review. On `/demo` it jumps down the same page; on
- * the landing page, which has no review section, it goes to the full demo instead.
- */
-export function GovernedRun({
-  runs,
-  reviewLink = { href: '#demo-review', label: DEMO_VIEWS_COPY.review.seeBelow },
-}: {
-  runs: DemoRun[];
-  reviewLink?: { href: string; label: string };
-}) {
+export function GovernedRun({ runs }: { runs: DemoRun[] }) {
   const [selectedId, setSelectedId] = React.useState(runs[0]?.preset.id ?? '');
   const [announcement, setAnnouncement] = React.useState('');
   const run = runs.find((r) => r.preset.id === selectedId) ?? runs[0];
@@ -219,7 +209,7 @@ export function GovernedRun({
           </Box>
           {run.outcome.status === 'needs_review' && (
             <Typography variant="body2" sx={{ mt: 1.5 }}>
-              <Link href={reviewLink.href}>{reviewLink.label}</Link>
+              <Link href="#demo-review">{DEMO_VIEWS_COPY.review.seeBelow}</Link>
             </Typography>
           )}
         </Step>

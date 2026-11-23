@@ -14,11 +14,10 @@
       "bannedPatterns": ["@supabase/supabase-js", "@anthropic-ai/sdk"]
     },
     "demo-is-offline": {
-      "description": "ADR-0029: the no-login demo has no runtime path to data, auth or a model. Files under studio/app/demo and studio/lib/demo, and the landing page's Try-it section, may not import the data layer, Supabase or the Claude SDK (type-only imports are allowed).",
+      "description": "ADR-0029: the no-login demo has no runtime path to data, auth or a model. Files under studio/app/demo and studio/lib/demo may not import the data layer, Supabase or the Claude SDK (type-only imports are allowed).",
       "targetFiles": [
         "studio/app/demo/**/*.{ts,tsx}",
-        "studio/lib/demo/**/*.{ts,tsx}",
-        "studio/app/components/landing/try-demo.tsx"
+        "studio/lib/demo/**/*.{ts,tsx}"
       ],
       "allowTypeImports": true,
       "bannedPatterns": ["lib/data", "'../data", "@supabase/", "@anthropic-ai/sdk", "createClient(", "supabase.from("]
