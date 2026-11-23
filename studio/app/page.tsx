@@ -6,10 +6,11 @@ import { WhoItsFor } from './components/landing/who-its-for';
 import { Standards } from './components/landing/standards';
 import { FreeSafetyNet } from './components/landing/free-safety-net';
 import { FinalCta } from './components/landing/final-cta';
+import { Faq } from './components/landing/faq';
 
 /**
  * Public landing page — hero → how it works → the safety net → who it's for → standards → free
- * safety net → final CTA. Presentation only — no data access, so the Leak Test trivially holds.
+ * safety net → FAQ → final CTA. Presentation only — no data access, so the Leak Test trivially holds.
  * The hero's "Try the demo" button links to the full demo at /demo (ADR-0029). Every claim maps
  * to a mechanism Release 1b actually ships.
  */
@@ -22,6 +23,7 @@ export default function Home() {
       <WhoItsFor />
       <Standards />
       <FreeSafetyNet />
+      <Faq />
       <FinalCta />
     </Box>
   );
