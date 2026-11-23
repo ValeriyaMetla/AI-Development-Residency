@@ -52,7 +52,7 @@ function luhnValid(digits: string): boolean {
 
 /** Count Luhn-valid 13–19 digit sequences (allowing spaces/dashes between digits). */
 function countCreditCards(text: string): number {
-  const candidates = text.match(/\b(?:\d[ -]?){13,19}\b/g) ?? [];
+  const candidates = text.match(/\b(?:\d[ -]?){12,18}\d\b/g) ?? [];
   let count = 0;
   for (const candidate of candidates) {
     const digits = candidate.replace(/\D/g, '');
@@ -124,7 +124,7 @@ export function redactPii(
     redacted = redacted.replace(detector.re, PLACEHOLDER[detector.category]);
   }
   if (!keptSet.has('credit_card')) {
-    redacted = redacted.replace(/\b(?:\d[ -]?){13,19}\b/g, (match) =>
+    redacted = redacted.replace(/\b(?:\d[ -]?){12,18}\d\b/g, (match) =>
       luhnValid(match.replace(/\D/g, '')) ? PLACEHOLDER.credit_card : match,
     );
   }
