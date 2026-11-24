@@ -138,15 +138,21 @@ export async function writeAuditEvent(params: {
   payload?: Record<string, unknown>;
 }): Promise<void> {
   const supabase = await createClient();
-  // payload holds NO sensitive content (ADR-6) — only non-sensitive event facts.
-  const { error } = await supabase.from('audit_event').insert({
-    org_id: params.orgId,
-    task_run_id: params.taskRunId,
-    actor: params.actor,
-    event_type: params.eventType,
-    payload: params.payload ?? {},
+  // ADR-0039: audit writes go through the one protected step write_audit_event. The database stamps
+  // the actor and org itself (so orgId/actor here are ignored by the DB — they stay in the signature
+  // for call-site readability) and refuses forged or unbacked events; direct inserts are no longer
+  // permitted. Best-effort, exactly as before: a refused write is logged, never thrown, so a logging
+  // hiccup can't break a governed run. Payload holds NO sensitive content (ADR-6).
+  const { data, error } = await supabase.rpc('write_audit_event', {
+    p_task_run_id: params.taskRunId,
+    p_event_type: params.eventType,
+    p_payload: params.payload ?? {},
   });
-  if (error) console.error('writeAuditEvent failed:', error.message);
+  if (error) {
+    console.error('writeAuditEvent failed:', error.message);
+  } else if (data !== 'ok') {
+    console.error('writeAuditEvent refused:', data);
+  }
 }
 
 // ---------------------------------------------------------------------------
