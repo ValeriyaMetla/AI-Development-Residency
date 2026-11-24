@@ -162,6 +162,21 @@ describe('review outcomes (ADR-0028)', () => {
     );
   });
 
+  it('tells a reviewer plainly that a Co-Pilot "don\'t" assessment can\'t be approved (ADR-0036)', () => {
+    expect(reviewOutcomeMessage('not_approvable')).toMatch(/can’t be approved/);
+    expect(reviewOutcomeMessage('not_approvable')).toMatch(/Don’t go ahead/);
+  });
+
+  it('knows every outcome the newest review_task_run can return', () => {
+    const sql = readFileSync(
+      'supabase/migrations/20261123120000_review_refuses_dont_approval.sql',
+      'utf8',
+    );
+    const returned = [...sql.matchAll(/return '([a-z_]+)';/g)].map((m) => m[1]);
+    expect(returned).toContain('not_approvable');
+    for (const o of returned) expect(REVIEW_OUTCOMES).toContain(o);
+  });
+
   it('keeps the app caps equal to the ones enforced inside review_task_run', () => {
     const sql = readFileSync('supabase/migrations/20261121120000_review_task_run.sql', 'utf8');
     expect(sql).toContain(`char_length(v_note) > ${MAX_REVIEW_NOTE}`);
