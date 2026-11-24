@@ -6,6 +6,7 @@ import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import NextLink from 'next/link';
 import { listPendingReviews, type PendingReview } from '@/lib/data/runs';
+import type { CopilotReview } from '@/lib/domain/copilot-review';
 import ReviewActions from './review-actions';
 
 /**
@@ -25,8 +26,8 @@ export default async function ApprovalsPage() {
           Human Review
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Runs the safety net flagged for a person to review. Read the draft and why it was flagged,
-          then approve or reject — your decision is recorded.
+          Work the safety net flagged for a person to decide. Read what was flagged and why, then
+          decide — your decision is recorded.
         </Typography>
       </Box>
 
@@ -73,6 +74,7 @@ function EmptyQueue() {
 
 /** One pending run: what it is, why it flagged, the draft, and the approve/reject controls. */
 function PendingRunCard({ item }: { item: PendingReview }) {
+  if ('copilot' in item) return <CopilotAdviceCard item={item} review={item.copilot ?? null} />;
   return (
     <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
@@ -126,6 +128,123 @@ function PendingRunCard({ item }: { item: PendingReview }) {
 
       <Divider />
       <ReviewActions taskRunId={item.taskRunId} output={item.output ?? ''} />
+    </Paper>
+  );
+}
+
+/**
+ * A flagged Co-Pilot assessment (card "Show reviewers why a Co-Pilot assessment was flagged"): what
+ * was asked, the advice, why, and how to make it safer — no draft, because the Co-Pilot gives
+ * advice, not a draft. A "Don't use AI for this" verdict is never approvable (Val, 2026-11-23), and
+ * advice whose reasons can't be loaded can't be approved here either: you can't approve what you
+ * can't see. Meaning is in words, never color alone.
+ */
+function CopilotAdviceCard({
+  item,
+  review,
+}: {
+  item: PendingReview;
+  review: CopilotReview | null;
+}) {
+  const blockedReason = !review
+    ? "We couldn't load the Co-Pilot's reasons, so this can't be approved here. Choose \"Don't go ahead\", or ask the person who asked."
+    : !review.approvable
+      ? "The Co-Pilot advises against this use, so it can't be approved. Record your decision below."
+      : undefined;
+
+  return (
+    <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" component="h2">
+          {item.skillName}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Flagged {new Date(item.createdAt).toLocaleString()}
+        </Typography>
+      </Box>
+
+      {item.inputSummary ? (
+        <Box>
+          <Typography variant="overline" color="text.secondary" component="h3">
+            What was asked
+          </Typography>
+          <Typography variant="body2">{item.inputSummary}</Typography>
+        </Box>
+      ) : null}
+
+      {review ? (
+        <>
+          <Box>
+            <Typography variant="overline" color="text.secondary" component="h3">
+              The Co-Pilot&apos;s advice
+            </Typography>
+            <Typography variant="subtitle1" component="p" sx={{ fontWeight: 700 }}>
+              {review.verdictTitle}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Risk level: {review.riskLabel}
+            </Typography>
+            {review.explanation ? (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2">{review.explanation}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Written by AI. The advice itself comes from fixed rules, not the AI.
+                </Typography>
+              </Box>
+            ) : null}
+          </Box>
+
+          <Box>
+            <Typography variant="overline" color="text.secondary" component="h3">
+              Why
+            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2.5, display: 'grid', gap: 1 }}>
+              {review.reasons.map((r) => (
+                <li key={r.text}>
+                  <Typography variant="body2">{r.text}</Typography>
+                  {r.sources.length > 0 ? (
+                    <Typography variant="caption" color="text.secondary">
+                      Source: {r.sources.join('; ')}
+                    </Typography>
+                  ) : null}
+                </li>
+              ))}
+            </Box>
+          </Box>
+
+          {review.saferWay ? (
+            <Box>
+              <Typography variant="overline" color="text.secondary" component="h3">
+                {review.saferWay.noSafePath
+                  ? 'There is no safe way to do this'
+                  : 'To make it safer'}
+              </Typography>
+              {review.saferWay.steps.length > 0 ? (
+                <Box component="ul" sx={{ m: 0, pl: 2.5, display: 'grid', gap: 0.5 }}>
+                  {review.saferWay.steps.map((step) => (
+                    <Typography component="li" variant="body2" key={step}>
+                      {step}
+                    </Typography>
+                  ))}
+                </Box>
+              ) : null}
+            </Box>
+          ) : null}
+        </>
+      ) : (
+        <Alert severity="warning" role="note">
+          The Co-Pilot&apos;s reasons for this assessment couldn&apos;t be loaded.
+        </Alert>
+      )}
+
+      <Divider />
+      <ReviewActions
+        taskRunId={item.taskRunId}
+        output=""
+        kind="advice"
+        canApprove={Boolean(review?.approvable)}
+        blockedReason={blockedReason}
+      />
     </Paper>
   );
 }
