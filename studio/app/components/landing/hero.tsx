@@ -82,9 +82,9 @@ export function Hero() {
               component="p"
               sx={{ color: 'text.secondary', fontWeight: 400, mt: 3, maxWidth: '36rem' }}
             >
-              Set your AI rules in about five minutes. Then your team drafts real work — thank-you
-              notes, updates, summaries — with personal data stripped out, your rules checked, risky
-              tasks sent to a person, and every result clearly labeled.
+              Set your AI rules in about five minutes. Then draft real work — thank-you notes,
+              updates, summaries — with personal data stripped out, your rules checked, risky tasks
+              sent to a person, and every result clearly labeled.
             </Typography>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 4 }}>

@@ -24,8 +24,8 @@ const STEPS = [
     body: "Answer a few plain questions and we'll draft a starter AI policy grounded in recognized standards. About five minutes — and you can change it anytime.",
   },
   {
-    title: 'Your team drafts real work',
-    body: 'Everyday tasks — donor thank-yous, program updates, summaries — run as governed Skills. Your team always gets a draft to review, never an unchecked auto-send.',
+    title: 'Draft real work, safely',
+    body: 'Everyday tasks — donor thank-yous, program updates, summaries — run as governed Skills. You always get a draft to review, never an unchecked auto-send.',
   },
   {
     title: 'Every run is checked and recorded',
