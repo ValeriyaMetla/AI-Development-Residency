@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/data/supabase/server';
 import { parseReviewOutcome, type ReviewOutcome } from '@/lib/domain/approvals';
 import { toCopilotReview, type CopilotReview } from '@/lib/domain/copilot-review';
+import type { PendingReviewsSummary } from '@/lib/domain/review-waiting';
 
 /** The Co-Pilot's skill key (seeded in `20261114010000_copilot_assessment.sql`). */
 const COPILOT_SKILL_KEY = 'governance_copilot';
@@ -196,7 +197,7 @@ function firstOf<T>(value: T | T[] | null): T | null {
 }
 
 /**
- * The review queue: the org's runs sitting at 'needs_review', newest first, each joined to its
+ * The review queue: the org's runs sitting at 'needs_review', oldest first, each joined to its
  * draft output and the guardrail checks that flagged it. RLS limits this to the caller's org.
  * Returns null on a query error (the page shows an error state), [] when nothing is pending.
  */
@@ -212,7 +213,9 @@ export async function listPendingReviews(): Promise<PendingReview[] | null> {
         'guardrail_check ( check_type, result, reason_plain )',
     )
     .eq('status', 'needs_review')
-    .order('created_at', { ascending: false });
+    // Oldest first, so what has waited longest is seen first (card "Tell leaders when something
+    // is waiting for their review").
+    .order('created_at', { ascending: true });
   if (error) {
     console.error('listPendingReviews failed:', error.message);
     return null;
@@ -241,6 +244,28 @@ export async function listPendingReviews(): Promise<PendingReview[] | null> {
         : {}),
     };
   });
+}
+
+/**
+ * How many of the org's runs are waiting for review, and when the oldest was flagged — for the
+ * count on Home and in the menu (card "Tell leaders when something is waiting for their review").
+ * One count query under the existing org-scoped read rule (RLS). Returns null on any error: the
+ * count is then simply not shown, and a failed count never breaks a page.
+ */
+export async function countPendingReviews(): Promise<PendingReviewsSummary | null> {
+  const supabase = await createClient();
+  const { data, count, error } = await supabase
+    .from('task_run')
+    .select('created_at', { count: 'exact' })
+    .eq('status', 'needs_review')
+    .order('created_at', { ascending: true })
+    .limit(1);
+  if (error || count === null) {
+    if (error) console.error('countPendingReviews failed:', error.message);
+    return null;
+  }
+  const oldest = (data as { created_at: string }[] | null)?.[0]?.created_at ?? null;
+  return { count, oldestCreatedAt: oldest };
 }
 
 /**

@@ -197,7 +197,8 @@ function Result({ result }: { result: CopilotAssessmentResult }) {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         <Chip label={r.tierLabel} size="small" />
         {r.humanDecisionRequired && (
-          <Chip label="A person must approve" size="small" variant="outlined" />
+          // "Decide", not "approve": a "Don't use AI" result can never be approved (ADR-0036).
+          <Chip label="A person must decide" size="small" variant="outlined" />
         )}
       </Box>
 

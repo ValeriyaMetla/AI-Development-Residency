@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/data/supabase/server';
 import { getMyProfile } from '@/lib/data/profile';
+import { countPendingReviews } from '@/lib/data/runs';
 import { signout } from '@/app/auth/actions';
 import AppShell from '@/app/components/app-shell';
 
@@ -25,12 +26,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const profile = await getMyProfile();
   const roleLabel = profile ? (ROLE_LABEL[profile.role] ?? profile.role) : '';
+  // Waiting-for-review count for the menu (card "Tell leaders when something is waiting for their
+  // review"); everyone who can review sees it. A failed read shows no count, never an error.
+  const pending = await countPendingReviews();
 
   return (
     <AppShell
       email={user.email ?? ''}
       roleLabel={roleLabel}
       role={profile?.role ?? null}
+      pendingReviews={pending?.count ?? 0}
       signOutAction={signout}
     >
       {children}
