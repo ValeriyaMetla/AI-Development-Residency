@@ -400,6 +400,7 @@ export default function PolicySeedWizard({
               label="Reviewer name or role (optional)"
               value={form.reviewer}
               onChange={(e) => update('reviewer', e.target.value)}
+              helperText="For example: Maria Lopez, or our Executive Director. This goes into your policy as written."
               fullWidth
             />
           </>
