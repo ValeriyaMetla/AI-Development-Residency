@@ -1,6 +1,6 @@
 # ADR-0026: The database stamps each audit entry's time and identity; app users may add only known kinds of event, as themselves, about their own organization
 
-- **Status:** Accepted
+- **Status:** Accepted — partly superseded by [ADR-0039](0039-audit-write-via-protected-function.md) (points 1–2: app users lose direct insert; audit writes go through one protected function)
 - **Date:** 2026-11-18
 
 ## Context
