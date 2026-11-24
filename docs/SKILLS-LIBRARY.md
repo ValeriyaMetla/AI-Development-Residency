@@ -104,8 +104,9 @@ Grounded in [Anthropic's Skill authoring best practices](https://platform.claude
    git add .claude/skills/<name>/SKILL.md docs/SKILLS-LIBRARY.md CLAUDE.md
    git commit -m "Add <name> skill" && git push -u origin install-<name>-skill
    ```
-   Then open a PR to `main`. (A pure-doc skill may instead commit straight to `main` per the git
-   rule D12 — but still stage only the skill's files, never `git add .`.)
+   Then open a PR to `main`. (Every skill change goes via a PR — direct pushes to `main` are
+   refused since [ADR-0035](adr/0035-security-checks-block-merges.md), which ended rule D12's
+   docs exception. Still stage only the skill's files, never `git add .`.)
    This branch rule governs **installing or changing a skill**. An incidental repo fix that merely
    touches the catalog (e.g. a sync/count correction, or a governance-text edit) is not a skill
    install — it follows the normal workflow (docs straight to `main`, code via PR).

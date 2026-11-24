@@ -113,7 +113,7 @@ skill install is the remaining piece.
 
 ---
 
-### D12 — Git workflow: docs straight to `main`, code via PR ✅
+### D12 — Git workflow: docs straight to `main`, code via PR ✅ _(superseded by ADR-0035)_
 **Decided (2026-11-08) → [BUILD-RULEBOOK.md](BUILD-RULEBOOK.md) › Git workflow.** Relaxes the
 "never commit to `main`" rule: **pure-doc changes** (ADRs, the rulebook, the decisions log,
 READMEs) may be committed directly to `main`; **code changes** (anything under `studio/` /
@@ -122,6 +122,10 @@ READMEs) may be committed directly to `main`; **code changes** (anything under `
 **The question:** PR-per-change is heavy for solo doc edits — require a PR for every doc?
 **Why it matters:** doc PRs add friction with no CI value (nothing to gate); code PRs are where
 the quality gates matter. **Resolved:** docs → `main`; code → PR.
+
+**Superseded (2026-11-23) by [ADR-0035](adr/0035-security-checks-block-merges.md):** every change
+goes via a branch + PR, docs too, and a ruleset on `main` refuses direct pushes, with no bypass.
+Doc PRs now have CI value too: the Skills gate, gitleaks, arch-gate and CodeQL run on every change.
 
 ---
 
