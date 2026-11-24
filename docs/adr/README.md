@@ -28,7 +28,7 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0003](0003-internal-server-layering.md) — Internal server code follows Service → Domain → Data-Source layers
 - [ADR-0004](0004-repository-layout.md) — Repository layout: app in studio/, process docs in docs/, specs in Notion
 - [ADR-0005](0005-material-ui.md) — Use Material UI as the UI component library (supersedes Build-Plan ADR-33)
-- [ADR-0006](0006-ci-quality-gate.md) — Stand up the CI quality gate: lint · format · types · tests · build · dependency + secret scan (supersedes ADR-0002)
+- [ADR-0006](0006-ci-quality-gate.md) — Stand up the CI quality gate: lint · format · types · tests · build · dependency + secret scan (supersedes ADR-0002) _(partly superseded by ADR-0038: dev-advisory policy, Vitest pin)_
 - [ADR-0007](0007-signup-provisioning-trigger.md) — Provision org + profile at sign-up via a SECURITY DEFINER trigger
 - [ADR-0008](0008-standards-library-data-model.md) — Standards library data model: `standard` + `standard_rule` as a read-only catalog
 - [ADR-0009](0009-policy-seed-data-model.md) — Policy-seed data model: org-owned `policy` / `policy_rule` / `policy_seed_response`
@@ -58,3 +58,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0033](0033-session-limits-cookie-flags-and-security-headers.md) — Sessions end after 24 hours or 1 hour idle (app-side), the session cookie is HttpOnly and Secure, and every response carries a script-strict content security policy and hardening headers (PenTest F-05, F-06, F-09; corrects SR-08/09 to current NIST AAL2)
 - [ADR-0035](0035-security-checks-block-merges.md) — Security checks block merges: static database-permission tests and CodeQL run in CI, a ruleset on `main` requires them (no bypass), and a real-database test job is deferred (PenTest F-17; partly supersedes ADR-0016's "no branch protection")
 - [ADR-0036](0036-copilot-dont-assessment-never-approvable.md) — A Co-Pilot assessment that advises against a use can never be approved: `review_task_run` refuses `approved` for a "don't" assessment; "Don't go ahead" still works (changes ADR-0028's review rule only)
+- [ADR-0038](0038-vitest-4-and-blocking-full-audit.md) — Test tooling moves to Vitest 4, and CI blocks on high or critical advisories in every package, dev tooling included (PenTest F-16; partly supersedes ADR-0006)

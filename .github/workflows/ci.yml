@@ -80,9 +80,12 @@ jobs:
         # What ships to users is held to a strict bar; the postcss override keeps this clean.
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Dependency report — dev tooling (non-blocking)
-        # Dev-only advisories (test runner, bundler) never reach runtime; Dependabot tracks them.
-        run: npm audit || true
+      - name: Dependency scan — all packages incl. dev tooling (block on high+)
+        # ADR-0038 / PenTest F-16 / SR-22: dev tooling runs on our machines and in CI, so a high or
+        # critical advisory anywhere blocks the merge. Moderate/low are printed but don't block.
+        # No fixed version yet? Record an exception in an ADR and use a scoped `overrides` entry —
+        # never `|| true` (ADR-0038 point 4).
+        run: npm audit --audit-level=high
 
   bdd-acceptance:
     # The third Week-5 named check (ADR-0016): the Week-2 BDD scenarios traced to tests, run as
