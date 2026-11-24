@@ -38,7 +38,7 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0013](0013-use-supabase.md) — Use Supabase for database, auth, and row-level security
 - [ADR-0014](0014-policy-rule-check.md) — Policy rule-check is deterministic, category-driven code (not an LLM judge)
 - [ADR-0015](0015-self-critique-pass.md) — Self-critique is a model-based Challenger pass with a bounded re-draft, behind the deterministic rule-check
-- [ADR-0016](0016-week-5-ci-safety-gates.md) — Run CI on every branch, gate-check the Claude Skills (structure + library-sync), and trace checks to Week-2 BDD (extends ADR-0006)
+- [ADR-0016](0016-week-5-ci-safety-gates.md) — Run CI on every branch, gate-check the Claude Skills (structure + library-sync), and trace checks to Week-2 BDD (extends ADR-0006) _(partly superseded by ADR-0035: branch protection)_
 - [ADR-0017](0017-self-host-roboto-font.md) — Self-host the Roboto font via @fontsource instead of next/font/google (removes the flaky build-time Google Fonts fetch)
 - [ADR-0018](0018-no-active-policy-baseline-safety.md) — With no active policy, a governed run proceeds on baseline safety (discloses, does not block)
 - [ADR-0019](0019-move-toolchain-to-node-22.md) — Move the toolchain and CI to Node 22 (silences the supabase Node-20 warning at the source; off EOL-bound Node 20)
@@ -56,3 +56,4 @@ Deprecated / Superseded) · **Context** · **Decision** · **Alternatives consid
 - [ADR-0031](0031-policy-changes-leader-only-via-protected-functions.md) — Only an Accountable Leader can change an organization's policy, and activation happens in one protected all-or-nothing step (PenTest F-03, F-18; also closes direct rule inserts into the active policy)
 - [ADR-0032](0032-policy-text-as-data-and-reviewed-imports.md) — Policy text reaches the AI as marked data, command-like rules are flagged, and an import is a reviewed draft that always keeps the safety rules (PenTest F-20, F-08)
 - [ADR-0033](0033-session-limits-cookie-flags-and-security-headers.md) — Sessions end after 24 hours or 1 hour idle (app-side), the session cookie is HttpOnly and Secure, and every response carries a script-strict content security policy and hardening headers (PenTest F-05, F-06, F-09; corrects SR-08/09 to current NIST AAL2)
+- [ADR-0035](0035-security-checks-block-merges.md) — Security checks block merges: static database-permission tests and CodeQL run in CI, a ruleset on `main` requires them (no bypass), and a real-database test job is deferred (PenTest F-17; partly supersedes ADR-0016's "no branch protection") _(proposed)_
