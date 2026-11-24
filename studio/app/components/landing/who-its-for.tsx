@@ -19,12 +19,15 @@ const ROLES = [
   {
     label: 'For the person in charge',
     title: 'The person in charge',
-    body: "Set your organization's AI rules in minutes and stay in control — you have the final say, and your rules apply to everyone's AI use automatically.",
+    body: "Set your organization's AI rules in minutes and stay in control — you have the final say, and your rules apply to every AI task in the Studio automatically.",
   },
   {
-    label: 'For the team',
+    label: 'For the team — coming soon',
     title: 'The people doing the work',
     body: 'Get safe AI help for everyday tasks — thank-yous, updates, summaries — with the guardrails built in, so you can use AI in the open instead of quietly carrying the risk.',
+    // Invites aren't built yet (card "Let a leader invite teammates to their organization", MMP),
+    // so this panel says so plainly rather than promising team use today.
+    note: 'Inviting teammates is coming. For now, one person sets the rules and does the work.',
   },
 ] as const;
 
@@ -106,6 +109,14 @@ export function WhoItsFor() {
               <Typography variant="body1" sx={{ color: 'text.secondary', mt: 1 }}>
                 {role.body}
               </Typography>
+              {'note' in role ? (
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'text.secondary', mt: 1.5, fontStyle: 'italic' }}
+                >
+                  {role.note}
+                </Typography>
+              ) : null}
             </Paper>
           ))}
         </Box>

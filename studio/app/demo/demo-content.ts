@@ -50,7 +50,7 @@ export const DEMO_VIEWS_COPY = {
     approve: 'Approve',
     reject: 'Reject',
     inactiveNote:
-      'In your own workspace, a person approves or rejects flagged drafts here. Sign up free to try it with your team.',
+      'In your own workspace, a person approves or rejects flagged drafts here. Sign up free to try it yourself.',
     seeBelow: 'See it waiting for review below',
   },
   record: {
@@ -63,7 +63,7 @@ export const DEMO_VIEWS_COPY = {
 
 export const DEMO_CLOSING = {
   heading: 'Ready to set your own rules?',
-  body: 'Your team gets the same safety net, free.',
+  body: 'Your organization gets the same safety net, free.',
 } as const;
 
 export const DEMO_CTA = {

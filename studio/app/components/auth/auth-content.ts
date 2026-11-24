@@ -15,9 +15,9 @@ export const AUTH_BRAND = {
 } as const;
 
 export const SIGNUP_PANEL = {
-  heading: 'Set up safe, fair AI for your whole team in minutes.',
+  heading: 'Set up safe, fair AI for your organization in minutes.',
   subcopy:
-    'You become the Accountable Leader of a new organization — set the rules once, and your team works inside them.',
+    'You become the Accountable Leader of a new organization — set the rules once, and every AI task works inside them.',
   promises: [
     'Free safety net, always',
     'Decisions about people go to a person',
@@ -28,7 +28,7 @@ export const SIGNUP_PANEL = {
 export const LOGIN_PANEL = {
   heading: 'Welcome back.',
   subcopy: 'Your AI policy, approvals, and record are right where you left them.',
-  promises: ['Governed runs, ready to go', "Your whole team's activity in one place"],
+  promises: ['Governed runs, ready to go', 'All your AI activity in one place'],
 } as const;
 
 /**
