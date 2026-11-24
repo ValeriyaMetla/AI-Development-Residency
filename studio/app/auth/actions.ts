@@ -11,6 +11,8 @@ import {
   firstForwardedIp,
 } from '@/lib/domain/signup-limits';
 import { claimSignupAttempt } from '@/lib/data/signup-limits';
+import { LOGIN_GENERIC_ERROR, loginBlocked } from '@/lib/domain/login-lockout';
+import { loginGuard, recordLogin } from '@/lib/data/login-lockout';
 
 /**
  * Auth server actions (Service layer, ADR-0003) — the app's "front door" for
@@ -26,10 +28,23 @@ export async function login(formData: FormData) {
     redirect('/login?error=' + encodeURIComponent('Email and password are required.'));
   }
 
+  // SR-07: throttle repeated failed logins. The guard is checked BEFORE the password and FAILS OPEN
+  // (only an explicit 'locked' blocks — a database blip never locks everyone out). The generic
+  // message is the same for a lockout and a wrong password, so neither reveals the account (ADR-0037).
+  const ip = firstForwardedIp((await headers()).get('x-forwarded-for'));
+  if (loginBlocked(await loginGuard(email, ip))) {
+    redirect('/login?error=' + encodeURIComponent(LOGIN_GENERIC_ERROR));
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  // Record the outcome (best-effort): a success clears the account's failures; a failure bumps the
+  // per-account and per-IP counters toward a lockout.
+  await recordLogin(email, ip, !error);
+
   if (error) {
-    redirect('/login?error=' + encodeURIComponent(error.message));
+    redirect('/login?error=' + encodeURIComponent(LOGIN_GENERIC_ERROR));
   }
 
   // A new session starts a fresh 24-hour / 1-hour clock (ADR-0033).
