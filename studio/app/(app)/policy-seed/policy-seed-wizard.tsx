@@ -24,6 +24,7 @@ import {
 } from '@/lib/domain/policy-seed-spec';
 import PolicyRuleList, { RuleTagKey } from './policy-rule-list';
 import { needsReviewCount } from '@/lib/domain/policy-review-labels';
+import { POLICY_SEED_DRAFT_KEY as STORAGE_KEY } from '@/lib/client/policy-seed-draft';
 import PolicyActivated from './policy-activated';
 
 /**
@@ -35,8 +36,6 @@ import PolicyActivated from './policy-activated';
  * Accessibility: each step is an <h2> that receives focus on change; radio/checkbox groups
  * use FormLabel + aria-labelledby; every input is labeled; the whole flow is keyboard-operable.
  */
-
-const STORAGE_KEY = 'policy-seed-draft-v1';
 
 const LOCKED_PROHIBITIONS = [
   "We won't use AI to manipulate or deceive people.",
