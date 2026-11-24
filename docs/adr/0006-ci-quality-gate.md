@@ -1,6 +1,6 @@
 # ADR-0006: Stand up the CI quality gate (supersedes ADR-0002)
 
-- **Status:** Accepted
+- **Status:** Accepted — partly superseded by [ADR-0038](0038-vitest-4-and-blocking-full-audit.md) (dev-advisory policy; Vitest pin)
 - **Date:** 2026-11-09
 
 ## Context
