@@ -34,13 +34,18 @@ function opensToAnon(roleList: string): boolean {
     .some((r) => r === 'anon' || r === 'public');
 }
 
-// ADR-0034 addendum: sign-up runs before login and the app has no service-role key (ADR-0012/0028),
-// so `anon` must hold EXECUTE on exactly one data-free function, claim_signup_attempt(text). It reads
-// no data and writes only an IP hash to a locked table (signup_attempt), so it is not the "opening
-// into the data" ADR-0029 §8 guards against. This ONE statement is allowed by exact, normalised
-// match; every other anon opening — including any other grant to this same function — still fails.
+// Narrow, documented exceptions to ADR-0029 §8: a few pre-login auth steps must be callable by
+// `anon` because sign-up and sign-in run before there is a session and the app has no service-role
+// key (ADR-0012/0028). Each is data-free — it reads no application data and writes only hashes to a
+// locked table — so none is the "opening into the data" §8 guards against:
+//   - claim_signup_attempt (per-IP sign-up limit, ADR-0034)
+//   - login_guard / login_record (failed-login lockout, ADR-0037)
+// Each is allowed by exact, normalised match; every other anon opening — including any other grant
+// to these same functions — still fails.
 const ALLOWED_ANON = [
   'grant execute on function public.claim_signup_attempt(text) to anon, authenticated',
+  'grant execute on function public.login_guard(text, text) to anon, authenticated',
+  'grant execute on function public.login_record(text, text, boolean) to anon, authenticated',
 ];
 
 /** Every migration statement that would give the logged-out role a way in. */
