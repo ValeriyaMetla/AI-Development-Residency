@@ -1,7 +1,7 @@
 # ADR-0035: Security checks block merges — static database-permission tests and CodeQL run in CI, a ruleset on `main` requires them, and a real-database test job is deferred
 
-- **Status:** Proposed
-- **Date:** 2026-11-23
+- **Status:** Accepted
+- **Date:** 2026-11-23 (accepted 2026-11-23)
 - **Relates to:** ADR-0006 (CI quality gate), ADR-0016 (CI is credential-free; this ADR supersedes
   its point 1 sentence "No branch protection (free plan)"), ADR-0019 (Node 22), ADR-0026, ADR-0028,
   ADR-0029, ADR-0030, ADR-0031 (the protected database steps these tests guard). PenTest F-17
