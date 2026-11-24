@@ -159,3 +159,26 @@ stored; unlimited easy app sign-ups) and bounds the cost, with email confirmatio
   `ip_hour` or errors (fail closed), before `auth.signUp` is called.
 - **Break-it check:** weaken each control (raise the limit, drop a constraint) and confirm the tests
   fail.
+
+## Addendum (2026-11-23): `anon` may execute one data-free function, qualifying ADR-0029 §8
+
+ADR-0029 §8 holds that the logged-out role `anon` gets no way into the data, enforced by
+`no-anon-access.test.ts`. Sign-up, however, runs before login, and the app never uses the
+service-role key (ADR-0012 / 0028), so the only role available to call a sign-up gate is `anon`.
+A database-side per-IP counter for sign-up (points 3–4 above) therefore requires `anon` to hold
+EXECUTE on exactly one function, `claim_signup_attempt(text)`.
+
+This is a deliberate, narrow exception to ADR-0029 §8, not a loosening of it:
+
+- **The function is data-free.** It reads no application data and returns only `ok` / `ip_hour`;
+  its only write is a SHA-256 hash of the caller's IP into the locked `signup_attempt` table
+  (RLS on, no policies, no direct grants). It exposes nothing about any user, org or record —
+  the data exposure §8 guards against.
+- **The grant is EXECUTE on this one function only.** `no-anon-access.test.ts` gains a by-name
+  allow-list that matches exactly the one sanctioned statement; every other anon grant, policy, or
+  table/function opening — including any *other* grant to this same function — still fails the guard.
+- **Worst case** for an anon caller is adding hash rows (auto-pruned after 2 hours, tiny) or
+  exhausting a victim-IP bucket — the minor griefing already noted under "Honest limits".
+
+If the per-IP counter is ever removed, revoke this grant and delete the allow-list entry,
+restoring ADR-0029 §8 unqualified.

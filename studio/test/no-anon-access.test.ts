@@ -34,6 +34,15 @@ function opensToAnon(roleList: string): boolean {
     .some((r) => r === 'anon' || r === 'public');
 }
 
+// ADR-0034 addendum: sign-up runs before login and the app has no service-role key (ADR-0012/0028),
+// so `anon` must hold EXECUTE on exactly one data-free function, claim_signup_attempt(text). It reads
+// no data and writes only an IP hash to a locked table (signup_attempt), so it is not the "opening
+// into the data" ADR-0029 §8 guards against. This ONE statement is allowed by exact, normalised
+// match; every other anon opening — including any other grant to this same function — still fails.
+const ALLOWED_ANON = [
+  'grant execute on function public.claim_signup_attempt(text) to anon, authenticated',
+];
+
 /** Every migration statement that would give the logged-out role a way in. */
 export function anonOpenings(migrations: Migration[]): string[] {
   const found: string[] = [];
@@ -43,6 +52,7 @@ export function anonOpenings(migrations: Migration[]): string[] {
         /^(?:alter default privileges .*? )?grant .+? to (.+?)(?: with grant option| granted by \w+)?$/,
       );
       if (grant && opensToAnon(grant[1])) {
+        if (ALLOWED_ANON.includes(stmt)) continue; // sanctioned, data-free exception (ADR-0034)
         found.push(`${name}: ${stmt.slice(0, 120)}`);
         continue;
       }
@@ -94,6 +104,11 @@ describe('the logged-out role gets no way in (ADR-0029 §8)', () => {
     ],
     ['an RLS rule with no TO clause', 'create policy "p" on public.org for select using (true);'],
     ['a policy altered to anon', 'alter policy "p" on public.org to anon;'],
+    // The allow-list is exact: a DIFFERENT grant to the sanctioned function is still an opening.
+    [
+      'any other grant to the sign-up gate (anon only)',
+      'grant execute on function public.claim_signup_attempt(text) to anon;',
+    ],
   ])('fails on %s', (_label, sql) => {
     expect(anonOpenings([...repoMigrations(), bad(sql)])).toHaveLength(1);
   });
@@ -111,6 +126,11 @@ describe('the logged-out role gets no way in (ADR-0029 §8)', () => {
     [
       'an RLS rule for authenticated',
       'create policy "p" on public.org for select to authenticated using (id = public.current_org_id());',
+    ],
+    // The one sanctioned, data-free exception (ADR-0034 addendum).
+    [
+      'the sanctioned sign-up gate grant',
+      'grant execute on function public.claim_signup_attempt(text) to anon, authenticated;',
     ],
   ])('allows %s', (_label, sql) => {
     expect(anonOpenings([bad(sql)])).toEqual([]);
