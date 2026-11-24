@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useId, useState, useTransition } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -22,14 +22,29 @@ import { composeProvenance } from '@/lib/domain/provenance';
  * approving; an actual change is sent as `editedOutput` and the outcome shows the composed
  * provenance ("edited and approved by a person"). These are UX guards, not security controls — the
  * human-in-the-loop guarantee is the gate itself plus the recorded decision.
+ *
+ * Co-Pilot advice (card "Show reviewers why a Co-Pilot assessment was flagged"): `kind="advice"`
+ * drops the draft editing and uses advice wording. When `canApprove` is false — a "Don't use AI for
+ * this" verdict (never approvable, Val 2026-11-23) or advice whose reasons couldn't be loaded — the
+ * only action is "Don't go ahead" (recorded as a rejection), and `blockedReason` says why.
  */
+export type ReviewKind = 'draft' | 'advice';
+
 export default function ReviewActions({
   taskRunId,
   output,
+  kind = 'draft',
+  canApprove = true,
+  blockedReason,
 }: {
   taskRunId: string;
   output: string;
+  kind?: ReviewKind;
+  canApprove?: boolean;
+  blockedReason?: string;
 }) {
+  const helpId = useId();
+  const isAdvice = kind === 'advice';
   const [note, setNote] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -74,9 +89,13 @@ export default function ReviewActions({
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Alert severity={done === 'approved' ? 'success' : 'info'} role="status">
-          {done === 'approved' ? 'Approved' : 'Rejected'} — your decision is recorded.
+          {done === 'approved'
+            ? 'Approved — your decision is recorded.'
+            : isAdvice
+              ? "Recorded: don't go ahead."
+              : 'Rejected — your decision is recorded.'}
         </Alert>
-        {done === 'approved' ? (
+        {done === 'approved' && !isAdvice ? (
           <Typography variant="caption" color="text.secondary">
             {composeProvenance({ approved: true, edited: doneEdited })}
           </Typography>
@@ -87,7 +106,7 @@ export default function ReviewActions({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      {editing ? (
+      {!isAdvice && editing ? (
         <TextField
           label="Your edited draft"
           value={draft}
@@ -97,14 +116,14 @@ export default function ReviewActions({
           fullWidth
           slotProps={{ htmlInput: { maxLength: MAX_EDITED_OUTPUT } }}
         />
-      ) : (
+      ) : isAdvice ? null : (
         <Box>
           <Button variant="text" size="small" onClick={() => setEditing(true)}>
             Edit the draft before approving
           </Button>
         </Box>
       )}
-      {editing ? (
+      {!isAdvice && editing ? (
         <Box>
           <Button
             variant="text"
@@ -137,43 +156,65 @@ export default function ReviewActions({
         </Alert>
       ) : null}
 
-      <Box>
-        <Typography variant="body2" sx={{ mb: 0.5 }}>
-          Approving means {editedOutput ? 'your edited draft' : 'this AI draft'} can be used as-is.
-        </Typography>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={acknowledged}
-              onChange={(e) => setAcknowledged(e.target.checked)}
-              slotProps={{ input: { 'aria-describedby': 'approve-gate-help' } }}
-            />
-          }
-          label="I've read the draft and why it was flagged."
-        />
-        {!acknowledged ? (
-          <Typography id="approve-gate-help" variant="caption" color="text.secondary" component="p">
-            Confirm you&apos;ve reviewed it to enable Approve. You can reject at any time.
+      {canApprove ? (
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            {isAdvice
+              ? 'Approving records that a person decided this use may go ahead, with the conditions shown.'
+              : `Approving means ${editedOutput ? 'your edited draft' : 'this AI draft'} can be used as-is.`}
           </Typography>
-        ) : null}
-      </Box>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={acknowledged}
+                onChange={(e) => setAcknowledged(e.target.checked)}
+                slotProps={{ input: { 'aria-describedby': helpId } }}
+              />
+            }
+            label={
+              isAdvice
+                ? "I've read the advice and the reasons."
+                : "I've read the draft and why it was flagged."
+            }
+          />
+          {!acknowledged ? (
+            <Typography id={helpId} variant="caption" color="text.secondary" component="p">
+              Confirm you&apos;ve reviewed it to enable Approve. You can{' '}
+              {isAdvice ? 'choose "Don\'t go ahead"' : 'reject'} at any time.
+            </Typography>
+          ) : null}
+        </Box>
+      ) : (
+        <Typography variant="body2" id={helpId}>
+          {blockedReason}
+        </Typography>
+      )}
 
       <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={() => decide('approved')}
-          disabled={isPending || !acknowledged}
-        >
-          {isPending ? 'Saving…' : editedOutput ? 'Approve edited draft' : 'Approve'}
-        </Button>
+        {canApprove ? (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => decide('approved')}
+            disabled={isPending || !acknowledged}
+          >
+            {isPending
+              ? 'Saving…'
+              : isAdvice
+                ? 'Approve this use'
+                : editedOutput
+                  ? 'Approve edited draft'
+                  : 'Approve'}
+          </Button>
+        ) : null}
         <Button
           variant="outlined"
           color="error"
           onClick={() => decide('rejected')}
           disabled={isPending}
+          aria-describedby={canApprove ? undefined : helpId}
         >
-          {isPending ? 'Saving…' : 'Reject'}
+          {isPending ? 'Saving…' : isAdvice ? "Don't go ahead" : 'Reject'}
         </Button>
       </Box>
     </Box>

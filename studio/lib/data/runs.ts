@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/data/supabase/server';
 import { parseReviewOutcome, type ReviewOutcome } from '@/lib/domain/approvals';
+import { toCopilotReview, type CopilotReview } from '@/lib/domain/copilot-review';
+
+/** The Co-Pilot's skill key (seeded in `20261114010000_copilot_assessment.sql`). */
+const COPILOT_SKILL_KEY = 'governance_copilot';
 
 /**
  * Data-Source helpers for the governed-run pipeline (ADR-0003). All Supabase access
@@ -162,13 +166,23 @@ export type PendingReview = {
   output: string | null;
   provenanceLabel: string | null;
   flags: PendingReviewFlag[];
+  /**
+   * Present only for Co-Pilot runs (card "Show reviewers why a Co-Pilot assessment was
+   * flagged"): the stored advice as a review view, or null when it can't be shown faithfully
+   * (missing or malformed) — the screen then says so and doesn't allow Approve.
+   */
+  copilot?: CopilotReview | null;
 };
 
 type PendingReviewRow = {
   id: string;
   input_summary: string | null;
   created_at: string;
-  skill: { name: string } | { name: string }[] | null;
+  skill: { name: string; key: string } | { name: string; key: string }[] | null;
+  copilot_assessment:
+    | { verdict: unknown; tier: unknown; recommendation: unknown }
+    | { verdict: unknown; tier: unknown; recommendation: unknown }[]
+    | null;
   task_output:
     | { content: string | null; provenance_label: string | null }
     | { content: string | null; provenance_label: string | null }[]
@@ -192,7 +206,8 @@ export async function listPendingReviews(): Promise<PendingReview[] | null> {
     .from('task_run')
     .select(
       'id, input_summary, created_at, ' +
-        'skill:skill_id ( name ), ' +
+        'skill:skill_id ( name, key ), ' +
+        'copilot_assessment ( verdict, tier, recommendation ), ' +
         'task_output ( content, provenance_label ), ' +
         'guardrail_check ( check_type, result, reason_plain )',
     )
@@ -216,6 +231,14 @@ export async function listPendingReviews(): Promise<PendingReview[] | null> {
       output: output?.content ?? null,
       provenanceLabel: output?.provenance_label ?? null,
       flags,
+      ...(skill?.key === COPILOT_SKILL_KEY
+        ? {
+            copilot: (() => {
+              const assessment = firstOf(row.copilot_assessment);
+              return assessment ? toCopilotReview(assessment) : null;
+            })(),
+          }
+        : {}),
     };
   });
 }

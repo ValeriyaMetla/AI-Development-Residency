@@ -25,12 +25,14 @@ import {
 } from '@/lib/domain/copilot';
 import { COPILOT_QUESTIONS, NONE_APPLY_ERROR, NONE_APPLY_LABEL } from './copilot-questions';
 import type { CopilotAssessmentResult } from '@/lib/domain/copilot-pipeline';
+import { VERDICT_TITLES } from '@/lib/domain/copilot-review';
 
+// Titles are shared with the Human Review screen (`VERDICT_TITLES`), so both say the same words.
 const VERDICT: Record<CopilotVerdict, { title: string; severity: AlertColor }> = {
-  use: { title: 'Go ahead', severity: 'success' },
-  use_with_conditions: { title: 'Use with conditions', severity: 'warning' },
-  dont: { title: "Don't use AI for this", severity: 'error' },
-  out_of_scope: { title: 'This needs a person to decide', severity: 'info' },
+  use: { title: VERDICT_TITLES.use, severity: 'success' },
+  use_with_conditions: { title: VERDICT_TITLES.use_with_conditions, severity: 'warning' },
+  dont: { title: VERDICT_TITLES.dont, severity: 'error' },
+  out_of_scope: { title: VERDICT_TITLES.out_of_scope, severity: 'info' },
 };
 
 export default function CopilotForm() {
