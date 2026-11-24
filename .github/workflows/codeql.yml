@@ -1,0 +1,45 @@
+name: CodeQL
+
+# Code scanning (static analysis) for the JavaScript/TypeScript code — ADR-0035 point 3, PenTest
+# F-17 / SR-23. GitHub's CodeQL reads the source for risky patterns (injection, unsafe redirects,
+# leaked data paths) that no unit test looks for. Deterministic and credential-free: it needs only
+# the repository and a token to upload results to the Security tab. Runs on every push (any
+# branch), on PRs into main, and weekly so new queries catch old code. Starts with the default
+# query suite; widening to `security-extended` is a later, separate choice (ADR-0035).
+
+on:
+  # Same trigger as the other gates (ADR-0016): every push, not just main.
+  push:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL (JavaScript/TypeScript)
+    runs-on: ubuntu-latest
+    # Least privilege: read the code, write only the scan results.
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          # JavaScript/TypeScript is analysed from source; no build step is needed.
+          build-mode: none
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:javascript-typescript"
