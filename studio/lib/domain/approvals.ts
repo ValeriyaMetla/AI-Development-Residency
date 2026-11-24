@@ -98,6 +98,8 @@ export const REVIEW_OUTCOMES = [
   'invalid',
   'not_found',
   'not_pending',
+  // ADR-0036: approving a Co-Pilot "don't" assessment is refused; "Don't go ahead" still works.
+  'not_approvable',
 ] as const;
 export type ReviewOutcome = (typeof REVIEW_OUTCOMES)[number];
 
@@ -127,5 +129,7 @@ export function reviewOutcomeMessage(outcome: Exclude<ReviewOutcome, 'ok'>): str
       return 'We couldn’t find that run.';
     case 'not_pending':
       return 'This run has already been reviewed, or wasn’t flagged for review.';
+    case 'not_approvable':
+      return 'This can’t be approved: the Co-Pilot advised against this use. Choose “Don’t go ahead” to record your decision.';
   }
 }
