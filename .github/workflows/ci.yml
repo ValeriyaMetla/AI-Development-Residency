@@ -67,6 +67,9 @@ jobs:
       - name: Security — database permissions (static) · no logged-out access (ADR-0029)
         run: npm run test:run -- no-anon-access
 
+      - name: Security — database permissions (static) · sign-up limits (ADR-0034; F-07)
+        run: npm run test:run -- signup-integrity
+
       - name: Unit tests (Vitest)
         run: npm run test:run
 
