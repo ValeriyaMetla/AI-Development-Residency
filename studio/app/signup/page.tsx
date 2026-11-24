@@ -8,6 +8,7 @@ import NextLink from 'next/link';
 import { signup } from '@/app/auth/actions';
 import { AuthScaffold } from '@/app/components/auth/auth-scaffold';
 import { SIGNUP_EARLY_NOTE, SIGNUP_PANEL } from '@/app/components/auth/auth-content';
+import { PASSWORD_HINT } from '@/lib/domain/signup-limits';
 
 /**
  * Signup (Presentation layer). Unauthenticated, so it sits OUTSIDE the app shell — the same
@@ -73,6 +74,7 @@ export default async function SignupPage({
             autoComplete="new-password"
             required
             fullWidth
+            helperText={PASSWORD_HINT}
           />
           <Button type="submit" variant="contained" size="large" fullWidth>
             Create account

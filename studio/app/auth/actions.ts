@@ -2,7 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { createClient, resetSessionMarkers } from '@/lib/data/supabase/server';
+import {
+  validateSignupNames,
+  signupThrottleDecision,
+  signupErrorMessage,
+  firstForwardedIp,
+} from '@/lib/domain/signup-limits';
+import { claimSignupAttempt } from '@/lib/data/signup-limits';
 
 /**
  * Auth server actions (Service layer, ADR-0003) — the app's "front door" for
@@ -42,6 +50,21 @@ export async function signup(formData: FormData) {
     );
   }
 
+  // SR-11: refuse over-length names before anything is created. The database CHECK constraints
+  // (ADR-0034) are the backstop; this gives the person a plain message, not a database error.
+  const names = validateSignupNames({ orgName, displayName });
+  if (!names.ok) {
+    redirect('/signup?error=' + encodeURIComponent(names.message));
+  }
+
+  // SR-12: the per-IP sign-up limit, before any account is created. Fails closed — a refusal or any
+  // error from the gate stops the sign-up (ADR-0034).
+  const ip = firstForwardedIp((await headers()).get('x-forwarded-for'));
+  const throttle = signupThrottleDecision(await claimSignupAttempt(ip));
+  if (!throttle.allowed) {
+    redirect('/signup?error=' + encodeURIComponent(throttle.message));
+  }
+
   const supabase = await createClient();
   // org_name + display_name ride along as user metadata; the handle_new_user
   // trigger (ADR-0007) reads them to create the org + Accountable-Leader profile.
@@ -51,7 +74,9 @@ export async function signup(formData: FormData) {
     options: { data: { org_name: orgName, display_name: displayName } },
   });
   if (error) {
-    redirect('/signup?error=' + encodeURIComponent(error.message));
+    // F-10 / SR-20 + UX: never echo Supabase's raw text (it reveals whether the email already has
+    // an account); turn it into plain, non-disclosing words.
+    redirect('/signup?error=' + encodeURIComponent(signupErrorMessage(error.message)));
   }
 
   // When email confirmation is required, there's a user but no session yet.
