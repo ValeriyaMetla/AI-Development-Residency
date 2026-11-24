@@ -17,6 +17,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navItemsFor, navModelFor, type NavItem, type UserRole } from './nav';
 import { accessibleLabelWithCount, labelWithCount } from '@/lib/domain/review-waiting';
+import { clearClientDraftsOnSignOut } from '@/lib/client/policy-seed-draft';
 
 /** The menu item that carries the waiting-for-review count. */
 const REVIEW_HREF = '/approvals';
@@ -307,8 +308,16 @@ export default function AppShell({
               <Divider />
             </Box>
 
+            {/* F-11 / SR-21: wipe the policy-seed wizard's saved draft from this browser before the
+                sign-out action runs, so a leader's in-progress answers don't linger for the next
+                person on a shared computer. Synchronous and best-effort — it never blocks logout. */}
             <Box component="form" action={signOutAction}>
-              <MenuItem component="button" type="submit" sx={{ width: '100%' }}>
+              <MenuItem
+                component="button"
+                type="submit"
+                onClick={() => clearClientDraftsOnSignOut()}
+                sx={{ width: '100%' }}
+              >
                 Log out
               </MenuItem>
             </Box>
