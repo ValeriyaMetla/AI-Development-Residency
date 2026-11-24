@@ -1,6 +1,6 @@
 # ADR-0016: Run CI on every branch, gate-check the Claude Skills, and trace checks to Week-2 BDD
 
-- **Status:** Accepted
+- **Status:** Accepted — partly superseded by [ADR-0035](0035-security-checks-block-merges.md) (branch protection: point 1's "No branch protection (free plan)")
 - **Date:** 2026-11-15 (accepted 2026-11-16)
 
 ## Context
