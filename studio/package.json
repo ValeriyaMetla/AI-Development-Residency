@@ -15,7 +15,7 @@
     "verify": "npm run format:check && npm run lint && npm run typecheck && node scripts/filter-noise.mjs npm run test:run && node scripts/filter-noise.mjs npm run build && cd .. && node scripts/arch-gate.mjs --changed --base main"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.8.0",
+    "@anthropic-ai/sdk": "^1.12.0",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
