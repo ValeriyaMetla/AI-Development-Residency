@@ -10,11 +10,16 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Badge from '@mui/material/Badge';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navItemsFor, navModelFor, type NavItem, type UserRole } from './nav';
+import { accessibleLabelWithCount, labelWithCount } from '@/lib/domain/review-waiting';
+
+/** The menu item that carries the waiting-for-review count. */
+const REVIEW_HREF = '/approvals';
 
 /**
  * Shared application shell (Presentation layer, ADR-0003). The one chrome every authenticated
@@ -56,11 +61,15 @@ function GovernanceNav({
   label,
   items,
   pathname,
+  pendingReviews,
 }: {
   label: string;
   items: NavItem[];
   pathname: string;
+  pendingReviews: number;
 }) {
+  // The count shows on the menu button itself, so it's visible without opening the menu.
+  const reviewCount = items.some((item) => item.href === REVIEW_HREF) ? pendingReviews : 0;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const groupActive = items.some((item) => isActive(pathname, item.href));
@@ -76,13 +85,14 @@ function GovernanceNav({
         aria-controls={open ? menuId : undefined}
         aria-expanded={open ? 'true' : undefined}
         endIcon={<ChevronDownIcon />}
+        aria-label={accessibleLabelWithCount(label, reviewCount)}
         sx={{
           color: groupActive ? 'primary.main' : 'text.primary',
           fontWeight: groupActive ? 700 : 500,
           bgcolor: groupActive ? 'action.selected' : 'transparent',
         }}
       >
-        {label}
+        {labelWithCount(label, reviewCount)}
       </Button>
 
       <Menu
@@ -105,7 +115,7 @@ function GovernanceNav({
             sx={{ display: 'block', whiteSpace: 'normal', py: 1 }}
           >
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {item.label}
+              {item.href === REVIEW_HREF ? labelWithCount(item.label, pendingReviews) : item.label}
             </Typography>
             {item.description ? (
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -123,12 +133,15 @@ export default function AppShell({
   email,
   roleLabel,
   role,
+  pendingReviews = 0,
   signOutAction,
   children,
 }: {
   email: string;
   roleLabel: string;
   role: UserRole;
+  /** Runs waiting for review in the org (0 when none, or when the count couldn't be read). */
+  pendingReviews?: number;
   signOutAction: () => void | Promise<void>;
   children: React.ReactNode;
 }) {
@@ -203,6 +216,7 @@ export default function AppShell({
                     label={node.label}
                     items={node.items}
                     pathname={pathname}
+                    pendingReviews={pendingReviews}
                   />
                 );
               }
@@ -229,15 +243,30 @@ export default function AppShell({
 
           <IconButton
             onClick={(e) => setAnchorEl(e.currentTarget)}
-            aria-label="Account menu"
+            aria-label={accessibleLabelWithCount('Account menu', pendingReviews)}
             aria-haspopup="true"
             aria-controls={menuOpen ? 'account-menu' : undefined}
             aria-expanded={menuOpen ? 'true' : undefined}
             edge="end"
           >
-            <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 15 }}>
-              {(email.trim()[0] ?? '?').toUpperCase()}
-            </Avatar>
+            {/* On narrow screens the navigation lives in this menu, so the count shows here too.
+                Decorative badge: the number is also in the button's accessible name. */}
+            <Badge
+              badgeContent={pendingReviews}
+              color="warning"
+              invisible={pendingReviews <= 0}
+              slotProps={{ badge: { 'aria-hidden': true } as Record<string, unknown> }}
+              sx={{ display: { md: 'none' } }}
+            >
+              <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 15 }}>
+                {(email.trim()[0] ?? '?').toUpperCase()}
+              </Avatar>
+            </Badge>
+            <Box component="span" sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 15 }}>
+                {(email.trim()[0] ?? '?').toUpperCase()}
+              </Avatar>
+            </Box>
           </IconButton>
 
           <Menu
@@ -270,7 +299,9 @@ export default function AppShell({
                   selected={isActive(pathname, item.href)}
                   onClick={() => setAnchorEl(null)}
                 >
-                  {item.label}
+                  {item.href === REVIEW_HREF
+                    ? labelWithCount(item.label, pendingReviews)
+                    : item.label}
                 </MenuItem>
               ))}
               <Divider />

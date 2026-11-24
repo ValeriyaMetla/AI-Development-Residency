@@ -6,12 +6,13 @@ import Chip from '@mui/material/Chip';
 import NextLink from 'next/link';
 import { redirect } from 'next/navigation';
 import { getMyProfile } from '@/lib/data/profile';
-import { getMyOrgId } from '@/lib/data/runs';
+import { countPendingReviews, getMyOrgId } from '@/lib/data/runs';
 import { getActivePolicy } from '@/lib/data/policy';
 import { countOrgRuns, getMyRunEntries, type MyRunEntry } from '@/lib/data/usage';
 import { hasSkippedSetupThisSession } from '@/lib/data/setup-skip';
 import { outcomeLabel } from '@/lib/domain/usage';
 import { setupProgress, shouldRouteToSetup } from '@/lib/domain/setup';
+import { waitingHeadline, type PendingReviewsSummary } from '@/lib/domain/review-waiting';
 
 /**
  * Home (Presentation layer, ADR-0003). Renders inside the shared app shell
@@ -61,6 +62,10 @@ export default async function DashboardPage() {
   // null = failed to load (error state), [] = no runs yet (empty state) — the two must differ.
   const recentRuns = isDoer ? await getMyRunEntries(5) : null;
 
+  // Waiting-for-review count (card "Tell leaders when something is waiting for their review"):
+  // shown to everyone who can review. null = couldn't read it → the line is simply left out.
+  const pending = await countPendingReviews();
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
@@ -72,6 +77,8 @@ export default async function DashboardPage() {
         </Typography>
       </Box>
 
+      {pending ? <WaitingForReview pending={pending} /> : null}
+
       {isDoer ? (
         <>
           <RunSkillCard />
@@ -81,7 +88,10 @@ export default async function DashboardPage() {
       ) : isLeader ? (
         <>
           <RunSkillCard />
-          <GovernanceFlow hasActivePolicy={activePolicy !== null} />
+          <GovernanceFlow
+            hasActivePolicy={activePolicy !== null}
+            pendingReviews={pending?.count ?? null}
+          />
         </>
       ) : (
         // Unknown / missing role — minimal safe home, no rules-admin surfaced.
@@ -103,7 +113,14 @@ export default async function DashboardPage() {
  * Accessibility: a real <ol> so the sequence + length are announced; the number badge is decorative
  * (aria-hidden) and the meaning lives in the step heading (<h3>) under the section <h2>.
  */
-function GovernanceFlow({ hasActivePolicy }: { hasActivePolicy: boolean }) {
+function GovernanceFlow({
+  hasActivePolicy,
+  pendingReviews,
+}: {
+  hasActivePolicy: boolean;
+  /** Runs waiting for review; null when the count couldn't be read (then the step says nothing). */
+  pendingReviews: number | null;
+}) {
   const steps: { title: string; body: string; href: string; cta: string }[] = [
     {
       title: 'Decide',
@@ -121,7 +138,10 @@ function GovernanceFlow({ hasActivePolicy }: { hasActivePolicy: boolean }) {
     },
     {
       title: 'Review',
-      body: 'Approve anything the safety net flags for a person before it’s used.',
+      body:
+        pendingReviews === null || pendingReviews === 0
+          ? 'Approve anything the safety net flags for a person before it’s used.'
+          : `${pendingReviews} waiting for your review now. Approve anything the safety net flags for a person before it’s used.`,
       href: '/approvals',
       cta: 'Human Review',
     },
@@ -320,4 +340,50 @@ function formatWhen(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+/**
+ * "Something is waiting" line at the top of Home (card "Tell leaders when something is waiting for
+ * their review"), for every role that can review. Says so plainly when nothing is waiting, so silence
+ * is never ambiguous. A standing status (role="status"), meaning in words, not color alone.
+ */
+function WaitingForReview({ pending }: { pending: PendingReviewsSummary }) {
+  const line = waitingHeadline(pending, new Date());
+  if (!line) {
+    return (
+      <Typography variant="body2" color="text.secondary" role="status">
+        Nothing is waiting for review.
+      </Typography>
+    );
+  }
+  return (
+    <Paper
+      variant="outlined"
+      role="status"
+      sx={{
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 2,
+        borderColor: 'warning.main',
+        borderLeftWidth: 4,
+      }}
+    >
+      <Box>
+        <Typography variant="subtitle1" component="p" sx={{ fontWeight: 700 }}>
+          {line.headline}
+        </Typography>
+        {line.age ? (
+          <Typography variant="body2" color="text.secondary">
+            {line.age.charAt(0).toUpperCase() + line.age.slice(1)}.
+          </Typography>
+        ) : null}
+      </Box>
+      <Button component={NextLink} href="/approvals" variant="contained">
+        Go to Human Review
+      </Button>
+    </Paper>
+  );
 }

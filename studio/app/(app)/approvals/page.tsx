@@ -7,6 +7,7 @@ import Link from '@mui/material/Link';
 import NextLink from 'next/link';
 import { listPendingReviews, type PendingReview } from '@/lib/data/runs';
 import type { CopilotReview } from '@/lib/domain/copilot-review';
+import { waitingAge } from '@/lib/domain/review-waiting';
 import ReviewActions from './review-actions';
 
 /**
@@ -26,8 +27,8 @@ export default async function ApprovalsPage() {
           Human Review
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Work the safety net flagged for a person to decide. Read what was flagged and why, then
-          decide — your decision is recorded.
+          Work the safety net flagged for a person to decide, oldest first. Read what was flagged
+          and why, then decide — your decision is recorded.
         </Typography>
       </Box>
 
@@ -82,7 +83,10 @@ function PendingRunCard({ item }: { item: PendingReview }) {
           {item.skillName}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Flagged {new Date(item.createdAt).toLocaleString()}
+          <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            {waitingAge(item.createdAt, new Date())}
+          </Box>{' '}
+          · {new Date(item.createdAt).toLocaleString()}
         </Typography>
       </Box>
 
@@ -159,7 +163,10 @@ function CopilotAdviceCard({
           {item.skillName}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Flagged {new Date(item.createdAt).toLocaleString()}
+          <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            {waitingAge(item.createdAt, new Date())}
+          </Box>{' '}
+          · {new Date(item.createdAt).toLocaleString()}
         </Typography>
       </Box>
 
