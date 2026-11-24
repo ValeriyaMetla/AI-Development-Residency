@@ -46,6 +46,27 @@ jobs:
       - name: Type check (tsc --noEmit)
         run: npm run typecheck
 
+      # Security — database permissions (static), ADR-0035 / PenTest F-17 / SR-23.
+      # CI has no database (ADR-0016), so these tests replay the migration files as text and fail if
+      # a later migration reopens a fixed hole. They run before the full suite so a permission
+      # regression fails fast under its own name. The real-database proof is the hand-run
+      # studio/supabase/checks/*.sql scripts (ADR-0035 point 2). If a file filter matches nothing,
+      # Vitest exits non-zero, so a renamed test can't silently drop out of this gate.
+      - name: Security — database permissions (static) · review decided once (ADR-0028; F-01, F-21)
+        run: npm run test:run -- review-integrity
+
+      - name: Security — database permissions (static) · AI request counter (ADR-0030; F-02)
+        run: npm run test:run -- rate-limit-integrity
+
+      - name: Security — database permissions (static) · leader-only policy changes (ADR-0031; F-03, F-18)
+        run: npm run test:run -- policy-integrity
+
+      - name: Security — database permissions (static) · audit log append-only (ADR-0026)
+        run: npm run test:run -- audit-append-only
+
+      - name: Security — database permissions (static) · no logged-out access (ADR-0029)
+        run: npm run test:run -- no-anon-access
+
       - name: Unit tests (Vitest)
         run: npm run test:run
 
