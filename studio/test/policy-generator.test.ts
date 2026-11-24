@@ -4,7 +4,11 @@ import {
   type StandardsByCode,
   type SeedStandard,
 } from '@/lib/domain/policy-generator';
-import { EXPECTED_STANDARD_CODES, type PolicySeedAnswers } from '@/lib/domain/policy-seed-spec';
+import {
+  EXPECTED_STANDARD_CODES,
+  validatePolicySeedAnswers,
+  type PolicySeedAnswers,
+} from '@/lib/domain/policy-seed-spec';
 
 // A fake resolved-standards map covering all nine codes, so the generator can ground rules.
 function makeStandards(): StandardsByCode {
@@ -127,5 +131,30 @@ describe('grounding guarantee', () => {
     for (const r of rules.filter((x) => x.origin !== 'custom')) {
       expect(r.standardRuleId).toBeTruthy();
     }
+  });
+});
+
+describe('the reviewer rule never reads "myself reviews" (audit M5)', () => {
+  /** The generated human-review sentence for a typed Q6 answer, via the same validation the app uses. */
+  function reviewerSentence(reviewer: string): string {
+    const res = validatePolicySeedAnswers({ ...fullYes, reviewer });
+    if (!res.ok) throw new Error('answers should be valid');
+    const rule = generatePolicyRules(res.answers, makeStandards()).find((r) =>
+      r.ruleText.startsWith('Before higher-stakes AI output is used or sent'),
+    );
+    return rule!.ruleText;
+  }
+
+  it.each(['myself', 'Me', ' I ', 'same person', 'Same as above.'])(
+    'turns "%s" into the accountable person',
+    (reviewer) => {
+      const text = reviewerSentence(reviewer);
+      expect(text).toContain('Jane Doe (Executive Director) reviews it');
+      expect(text).not.toMatch(/\b(myself|me|same person|same as above)\b/i);
+    },
+  );
+
+  it('keeps a named reviewer as written', () => {
+    expect(reviewerSentence('Ops Manager')).toContain('Ops Manager reviews it');
   });
 });
