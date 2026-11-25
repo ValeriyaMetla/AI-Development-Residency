@@ -47,7 +47,8 @@ export const SIGNAL_DEFS: Record<SignalKey, SignalDef> = {
     neutralizes: false,
   },
   judgesPerson: {
-    reason: 'This would have AI judge, rank, score, or decide about a specific person.',
+    reason:
+      'This would have AI make or predict a judgment about a specific person (who is eligible, at risk, deserving, or likely to succeed) rather than help a person make that call.',
     citationCodes: ['euaiact-human-override', 'nist-human-oversight', 'euaiact-no-scoring'],
     mitigation:
       'Restructure so the AI only does the work (organizing, drafting) and a person makes the judgment about people.',
