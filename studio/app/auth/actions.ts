@@ -14,6 +14,7 @@ import { claimSignupAttempt } from '@/lib/data/signup-limits';
 import { LOGIN_GENERIC_ERROR, loginBlocked } from '@/lib/domain/login-lockout';
 import { loginGuard, recordLogin } from '@/lib/data/login-lockout';
 import { validateNewPassword, resetErrorMessage } from '@/lib/domain/password-reset';
+import { logSecurityEvent, emailRef } from '@/lib/security/security-log';
 
 /**
  * Auth server actions (Service layer, ADR-0003) — the app's "front door" for
@@ -34,6 +35,13 @@ export async function login(formData: FormData) {
   // message is the same for a lockout and a wrong password, so neither reveals the account (ADR-0037).
   const ip = firstForwardedIp((await headers()).get('x-forwarded-for'));
   if (loginBlocked(await loginGuard(email, ip))) {
+    // F-22 / SR-18 (ADR-0040): a security-event trace, with a hashed email ref — never the email.
+    logSecurityEvent({
+      event: 'login_blocked',
+      action: 'signin',
+      ref: emailRef(email),
+      outcome: 'locked',
+    });
     redirect('/login?error=' + encodeURIComponent(LOGIN_GENERIC_ERROR));
   }
 
@@ -45,6 +53,13 @@ export async function login(formData: FormData) {
   await recordLogin(email, ip, !error);
 
   if (error) {
+    // F-22 / SR-18 (ADR-0040): log the failed sign-in with a hashed email ref, never the raw error.
+    logSecurityEvent({
+      event: 'login_failed',
+      action: 'signin',
+      ref: emailRef(email),
+      outcome: 'wrong_password',
+    });
     redirect('/login?error=' + encodeURIComponent(LOGIN_GENERIC_ERROR));
   }
 
@@ -78,6 +93,13 @@ export async function signup(formData: FormData) {
   const ip = firstForwardedIp((await headers()).get('x-forwarded-for'));
   const throttle = signupThrottleDecision(await claimSignupAttempt(ip));
   if (!throttle.allowed) {
+    // F-22 / SR-18 (ADR-0040): repeated sign-up abuse is a refused-access signal worth a trace.
+    logSecurityEvent({
+      event: 'access_refused',
+      action: 'signup',
+      ref: emailRef(email),
+      outcome: 'rate_limited',
+    });
     redirect('/signup?error=' + encodeURIComponent(throttle.message));
   }
 
@@ -152,6 +174,9 @@ export async function updatePassword(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
+    // F-22 / SR-18 (ADR-0040): setting a password with no valid recovery session is a refused-access
+    // signal (fail-safe A10). No account is known here, so there is no ref to attach.
+    logSecurityEvent({ event: 'access_refused', action: 'password_update', outcome: 'no_session' });
     redirect(
       '/reset-password?error=' +
         encodeURIComponent('Your reset link is invalid or has expired. Please request a new one.'),
