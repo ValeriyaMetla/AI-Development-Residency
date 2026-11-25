@@ -42,13 +42,13 @@ export const SIGNAL_DEFS: Record<SignalKey, SignalDef> = {
   bannedPurpose: {
     reason:
       'This looks like a banned purpose (e.g. manipulation, social scoring, surveillance, or anything illegal).',
-    citationCodes: ['euaiact-match-risk'],
+    citationCodes: ['euaiact-match-risk', 'euaiact-no-scoring'],
     mitigation: null, // irreducible
     neutralizes: false,
   },
   judgesPerson: {
     reason: 'This would have AI judge, rank, score, or decide about a specific person.',
-    citationCodes: ['euaiact-human-override', 'nist-human-oversight'],
+    citationCodes: ['euaiact-human-override', 'nist-human-oversight', 'euaiact-no-scoring'],
     mitigation:
       'Restructure so the AI only does the work (organizing, drafting) and a person makes the judgment about people.',
     neutralizes: true, // clears only if the judgment is taken off the AI
@@ -56,7 +56,7 @@ export const SIGNAL_DEFS: Record<SignalKey, SignalDef> = {
   highStakesDomain: {
     reason:
       'This is a high-stakes domain (health, legal, financial, housing/benefits, safety, or crisis).',
-    citationCodes: ['nist-check-output', 'euaiact-human-override'],
+    citationCodes: ['nist-check-output', 'euaiact-human-override', 'nist-high-stakes-boundary'],
     mitigation: 'Add a mandatory human review and check the output carefully before acting on it.',
     neutralizes: false, // the domain remains; human approval stays a permanent floor
   },

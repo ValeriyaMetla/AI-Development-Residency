@@ -34,13 +34,15 @@ export function groundReasons(reasons: Reason[], citations: CitationMap): Ground
 
 /**
  * The always-apply baseline rules (standard_rule.risk_tier = 'all'): human oversight, write-it-down,
- * disclosure, and logging. These hold at EVERY tier (§3.6), so the Co-Pilot surfaces them on any
- * recommendation, including a Minimal one.
+ * disclosure, logging, and an honest statement of what the AI cannot do (`nist-capability-limits`,
+ * 1b). These hold at EVERY tier (§3.6), so the Co-Pilot surfaces them on any recommendation,
+ * including a Minimal one.
  */
 export const BASELINE_RULE_CODES = [
   'nist-human-oversight',
   'nist-document-use',
   'euaiact-disclose-ai',
+  'nist-capability-limits',
   'iso42001-managed-logging',
   'iso42001-records',
 ] as const;

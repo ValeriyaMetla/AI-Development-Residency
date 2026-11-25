@@ -79,3 +79,21 @@ describe('baselineCitations — the always-apply rules hold at every tier (§3.6
     expect(cites.every((c) => c.text.length > 0)).toBe(true);
   });
 });
+
+describe('Release 1b — new standards wired into the engine (ADR-0042 / 1b)', () => {
+  it('judgesPerson and bannedPurpose cite the dedicated no-scoring rule (ADR-0042)', () => {
+    const judges = reasonsFor(sig({ judgesPerson: true }))[0];
+    const banned = reasonsFor(sig({ bannedPurpose: true }))[0];
+    expect(judges.citationCodes).toContain('euaiact-no-scoring');
+    expect(banned.citationCodes).toContain('euaiact-no-scoring');
+  });
+
+  it('a high-stakes domain cites the high-stakes boundary rule', () => {
+    const hs = reasonsFor(sig({ highStakesDomain: true }))[0];
+    expect(hs.citationCodes).toContain('nist-high-stakes-boundary');
+  });
+
+  it('capability-limits is an always-apply baseline rule', () => {
+    expect(BASELINE_RULE_CODES as readonly string[]).toContain('nist-capability-limits');
+  });
+});
