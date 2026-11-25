@@ -232,7 +232,8 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     isBaselineSafety: true,
     sourceQuestion: 'Q7',
     gate: always,
-    text: () => "We won't use AI to score, rank, or judge people (for example, who deserves help).",
+    text: () =>
+      "We don't let AI decide or predict judgments about people (who is eligible, at risk, deserving, or likely to succeed). AI can organize information and apply our own written rules to help, but a person makes the call.",
   },
   {
     id: 'q7-prohibit-banned',

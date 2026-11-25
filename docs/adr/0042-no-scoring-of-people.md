@@ -1,6 +1,6 @@
 # ADR-0042: The Studio never uses AI to score, rank, or predict outcomes about people
 
-- **Status:** Accepted
+- **Status:** Accepted (refined by ADR-0043)
 - **Date:** 2026-11-25
 
 ## Context
