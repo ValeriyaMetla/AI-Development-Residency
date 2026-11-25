@@ -1,6 +1,6 @@
 # ADR-0042: The Studio never uses AI to score, rank, or predict outcomes about people
 
-- **Status:** Proposed (pending Val's acceptance)
+- **Status:** Accepted
 - **Date:** 2026-11-25
 
 ## Context
@@ -29,7 +29,7 @@ so that doesn't happen.
 **The Studio will never build AI that scores, ranks, or predicts outcomes about a person** —
 eligibility, risk, deservingness, likelihood to succeed, or prioritization of who receives help.
 AI stays on the *work* (drafting, summarizing, organizing, researching); people decide about people.
-(Decided by Val on 2026-11-DD — pending acceptance.)
+(Decided by Val on 2026-11-25.)
 
 1. **A dedicated, precisely-cited catalog row.** A new `standard_rule` — `euaiact-no-scoring`,
    citing EU AI Act Article 5 (prohibited practices) — so the non-overridable policy baseline cites
