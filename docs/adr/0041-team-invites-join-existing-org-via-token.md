@@ -1,6 +1,6 @@
 # ADR-0041: Team invites — join an existing org via a hashed single-use token consumed by the invite-aware sign-up trigger
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-25
 
 ## Context
