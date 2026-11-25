@@ -24,7 +24,11 @@ describe('POLICY_SEED_SPEC coverage', () => {
 
   it('seeds the 1b accuracy baselines and cites the dedicated no-scoring row (ADR-0042)', () => {
     const byId = new Map(POLICY_SEED_SPEC.map((r) => [r.id, r]));
-    for (const id of ['baseline-uncertainty', 'baseline-safe-abstention', 'baseline-source-traceability']) {
+    for (const id of [
+      'baseline-uncertainty',
+      'baseline-safe-abstention',
+      'baseline-source-traceability',
+    ]) {
       const rule = byId.get(id);
       expect(rule, `${id} missing`).toBeDefined();
       expect(rule!.isBaselineSafety).toBe(true);
