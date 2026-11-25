@@ -1,162 +1,27 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  APP_ROLES,
+  TABLE_PRIVS,
+  policiesForTable,
+  replay,
+  repoMigrations,
+  type Migration,
+  type State,
+} from './support/migration-replay';
 
 // ADR-0037: failed logins are throttled by two locked tables (login_lock per account, login_attempt
 // per IP) and two anon-callable functions (login_guard before the password check, login_record
-// after). This static check runs with no database (CI is credential-free, ADR-0016) — like
-// signup-integrity.test.ts, whose replay machinery it copies — and asserts, after every migration:
+// after). This static check runs with no database (CI is credential-free, ADR-0016) and replays the
+// migrations through the shared model in ./support/migration-replay (CONSERVATIVE, and strict about
+// REVOKE ... FROM public). It asserts, after every migration:
 //   (a) neither app role can touch either table, RLS is on, and no policy opens them;
 //   (b) each function keeps security definer, the pinned search_path, hashing, and its limits
 //       (5 / 15 minutes / 20), and the doubling formula;
 //   (c) both functions stay callable by anon (sign-in is pre-login) — asserted, not flagged.
 // Live behaviour is checked separately by supabase/checks/login-lockout-check.sql. PenTest F-04.
 
-const APP_ROLES = ['authenticated', 'anon'] as const;
-const TABLE_PRIVS = ['select', 'insert', 'update', 'delete', 'truncate'] as const;
 const TABLES = ['login_lock', 'login_attempt'] as const;
 const FNS = ['login_guard', 'login_record'] as const;
-
-type Migration = { name: string; sql: string };
-type Grant = { table: boolean; columns: Set<string> };
-type State = {
-  privs: Map<string, Map<string, Grant>>;
-  policies: Set<string>;
-  rls: Set<string>;
-};
-
-function statements(sql: string): string[] {
-  const noComments = sql.replace(/--[^\n]*/g, '');
-  const out: string[] = [];
-  let current = '';
-  let inBody = false;
-  for (let i = 0; i < noComments.length; i++) {
-    if (noComments.startsWith('$$', i)) {
-      inBody = !inBody;
-      current += '$$';
-      i++;
-      continue;
-    }
-    const ch = noComments[i];
-    if (ch === ';' && !inBody) {
-      out.push(current);
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  out.push(current);
-  return out.map((s) => s.replace(/\s+/g, ' ').trim().toLowerCase()).filter(Boolean);
-}
-
-function splitPrivileges(list: string): { priv: string; columns: string[] | null }[] {
-  const parts: string[] = [];
-  let depth = 0;
-  let cur = '';
-  for (const ch of list) {
-    if (ch === '(') depth++;
-    if (ch === ')') depth--;
-    if (ch === ',' && depth === 0) {
-      parts.push(cur);
-      cur = '';
-    } else cur += ch;
-  }
-  parts.push(cur);
-  return parts.map((p) => {
-    const m = p.trim().match(/^([a-z ]+?)\s*(?:\((.*)\))?$/);
-    const priv = (m?.[1] ?? p).trim();
-    const columns = m?.[2] ? m[2].split(',').map((c) => c.trim()) : null;
-    return { priv, columns };
-  });
-}
-
-function roles(list: string, verb: string): string[] {
-  const names = list.split(',').map((r) => r.trim());
-  const named = names.filter((r) => r !== 'public');
-  return verb === 'grant' && names.includes('public') ? [...APP_ROLES] : named;
-}
-
-function objectKey(target: string): string {
-  const fn = target.match(/^function (?:public\.)?(\w+)/);
-  if (fn) return `fn:${fn[1]}`;
-  return target.replace(/^table /, '').replace(/^public\./, '');
-}
-
-function grantFor(state: State, object: string, role: string, priv: string): Grant {
-  const key = `${object}:${role}`;
-  const byPriv = state.privs.get(key) ?? new Map<string, Grant>();
-  state.privs.set(key, byPriv);
-  const g = byPriv.get(priv) ?? { table: false, columns: new Set<string>() };
-  byPriv.set(priv, g);
-  return g;
-}
-
-export function replay(migrations: Migration[]): State {
-  const state: State = { privs: new Map(), policies: new Set(), rls: new Set() };
-  const sorted = [...migrations].sort((a, b) => a.name.localeCompare(b.name));
-  for (const { sql } of sorted) {
-    for (const stmt of statements(sql)) {
-      const table = stmt.match(/^create table (?:if not exists )?(?:public\.)?(\w+)/);
-      if (table) {
-        for (const role of APP_ROLES)
-          for (const p of TABLE_PRIVS) grantFor(state, table[1], role, p).table = true;
-        continue;
-      }
-      const fn = stmt.match(/^create (?:or replace )?function (?:public\.)?(\w+)/);
-      if (fn) {
-        for (const role of APP_ROLES) grantFor(state, `fn:${fn[1]}`, role, 'execute').table = true;
-        continue;
-      }
-      const rls = stmt.match(
-        /^alter table (?:if exists )?(?:only )?(?:public\.)?(\w+) (enable|disable) row level security/,
-      );
-      if (rls) {
-        if (rls[2] === 'enable') state.rls.add(rls[1]);
-        else state.rls.delete(rls[1]);
-        continue;
-      }
-      const pol = stmt.match(/^create policy "([^"]+)" on (?:public\.)?(\w+)/);
-      if (pol) {
-        state.policies.add(`${pol[2]}:${pol[1]}`);
-        continue;
-      }
-      const dropPol = stmt.match(/^drop policy (?:if exists )?"([^"]+)" on (?:public\.)?(\w+)/);
-      if (dropPol) {
-        state.policies.delete(`${dropPol[2]}:${dropPol[1]}`);
-        continue;
-      }
-      const g = stmt.match(
-        /^(grant|revoke) (.+?) on (.+?) (to|from) ([a-z_, ]+?)(?: with grant option| cascade)?$/,
-      );
-      if (!g) continue;
-      const [, verb, privList, target, , roleList] = g;
-      const object = objectKey(target);
-      for (const role of roles(roleList, verb)) {
-        for (const { priv, columns } of splitPrivileges(privList)) {
-          const names =
-            priv === 'all' || priv === 'all privileges'
-              ? object.startsWith('fn:')
-                ? ['execute']
-                : [...TABLE_PRIVS]
-              : [priv];
-          for (const name of names) {
-            const grant = grantFor(state, object, role, name);
-            if (verb === 'grant') {
-              if (columns) columns.forEach((c) => grant.columns.add(c));
-              else grant.table = true;
-            } else if (columns) {
-              columns.forEach((c) => grant.columns.delete(c));
-            } else {
-              grant.table = false;
-              grant.columns.clear();
-            }
-          }
-        }
-      }
-    }
-  }
-  return state;
-}
 
 /** Every way an app user could touch the lockout tables, or a function losing its anon grant. */
 export function lockoutLeaks(state: State): string[] {
@@ -170,8 +35,8 @@ export function lockoutLeaks(state: State): string[] {
       }
     }
     if (!state.rls.has(table)) leaks.push(`${table} has row-level security off`);
-    for (const p of state.policies)
-      if (p.startsWith(`${table}:`)) leaks.push(`unexpected ${table} policy ${p.split(':')[1]}`);
+    for (const p of policiesForTable(state, table))
+      leaks.push(`unexpected ${table} policy ${p.name}`);
   }
   // Sign-in is pre-login, so anon MUST keep EXECUTE on both functions, else sign-in breaks.
   for (const fn of FNS)
@@ -216,13 +81,6 @@ export function functionLeaks(allSql: string): string[] {
     leaks.push('login_record lost the 15-minute base lockout');
   if (record && !record.includes('power(2')) leaks.push('login_record lost the doubling');
   return leaks;
-}
-
-function repoMigrations(): Migration[] {
-  const dir = 'supabase/migrations';
-  return readdirSync(dir)
-    .filter((f) => f.endsWith('.sql'))
-    .map((name) => ({ name, sql: readFileSync(join(dir, name), 'utf8') }));
 }
 
 const joined = (ms: Migration[]) =>
