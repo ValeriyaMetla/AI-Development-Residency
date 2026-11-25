@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { AUTH_BRAND, SIGNUP_EARLY_NOTE, SIGNUP_PANEL, LOGIN_PANEL } from './auth-content';
+import {
+  AUTH_BRAND,
+  SIGNUP_EARLY_NOTE,
+  SIGNUP_PANEL,
+  LOGIN_PANEL,
+  RESET_PANEL,
+} from './auth-content';
 
 /**
  * Honesty guard for the auth-page value panels. UI copy must not over-claim: every promise maps
@@ -7,7 +13,7 @@ import { AUTH_BRAND, SIGNUP_EARLY_NOTE, SIGNUP_PANEL, LOGIN_PANEL } from './auth
  * into the panel copy — the same rule the landing hero follows, pinned here so it can't drift.
  */
 
-const ALL_PANELS = [SIGNUP_PANEL, LOGIN_PANEL] as const;
+const ALL_PANELS = [SIGNUP_PANEL, LOGIN_PANEL, RESET_PANEL] as const;
 
 // Claims the product does NOT make yet (or ever). Lower-cased substrings.
 const BANNED_CLAIMS = [

@@ -13,6 +13,7 @@ import {
 import { claimSignupAttempt } from '@/lib/data/signup-limits';
 import { LOGIN_GENERIC_ERROR, loginBlocked } from '@/lib/domain/login-lockout';
 import { loginGuard, recordLogin } from '@/lib/data/login-lockout';
+import { validateNewPassword, resetErrorMessage } from '@/lib/domain/password-reset';
 
 /**
  * Auth server actions (Service layer, ADR-0003) — the app's "front door" for
@@ -102,6 +103,71 @@ export async function signup(formData: FormData) {
   await resetSessionMarkers();
   revalidatePath('/', 'layout');
   redirect('/dashboard');
+}
+
+/**
+ * Step 1 of password recovery: email a reset link. Supabase sends a one-time link to the
+ * /auth/callback route, which exchanges it for a short-lived recovery session (see callback/route.ts).
+ *
+ * Security: the response is identical whether or not the email has an account — we ignore the
+ * result and always show the same confirmation, so this form can't be used to discover which
+ * emails are registered (secure-coding A07, no account enumeration). `redirectTo` is only honoured
+ * by Supabase when it matches the project's Redirect URLs allow-list, so the client-supplied
+ * `origin` header can't bend the link to another site.
+ */
+export async function requestPasswordReset(formData: FormData) {
+  const email = String(formData.get('email') ?? '').trim();
+  if (!email) {
+    redirect('/forgot-password?error=' + encodeURIComponent('Enter your email.'));
+  }
+
+  const supabase = await createClient();
+  const origin = (await headers()).get('origin');
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: origin ? `${origin}/auth/callback` : undefined,
+  });
+
+  // Always the same message, success or failure (secure-coding A07).
+  redirect('/forgot-password?message=sent');
+}
+
+/**
+ * Step 2 of password recovery: set the new password. Runs under the short-lived recovery session
+ * the callback established. Validates the new password in the Domain layer first, refuses when
+ * there is no session (someone opened the page without the email link — fail safe, A10), delegates
+ * the hash to Supabase (we never store passwords ourselves), then ends the recovery session so the
+ * link can't be reused and sends the person to log in with the new password.
+ */
+export async function updatePassword(formData: FormData) {
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm_password') ?? '');
+
+  const check = validateNewPassword({ password, confirm });
+  if (!check.ok) {
+    redirect('/reset-password?error=' + encodeURIComponent(check.message));
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(
+      '/reset-password?error=' +
+        encodeURIComponent('Your reset link is invalid or has expired. Please request a new one.'),
+    );
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    // Never echo Supabase's raw text; map it to plain, non-disclosing words (secure-coding A09).
+    redirect('/reset-password?error=' + encodeURIComponent(resetErrorMessage(error.message)));
+  }
+
+  await supabase.auth.signOut({ scope: 'local' });
+  await resetSessionMarkers();
+  revalidatePath('/', 'layout');
+  redirect('/login?message=password-updated');
 }
 
 export async function signout() {
