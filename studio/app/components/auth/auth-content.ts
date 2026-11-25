@@ -31,6 +31,13 @@ export const LOGIN_PANEL = {
   promises: ['Governed runs, ready to go', 'All your AI activity in one place'],
 } as const;
 
+export const RESET_PANEL = {
+  heading: 'Reset your password.',
+  subcopy:
+    'Choose a new password — your AI policy, approvals, and record stay exactly as they were.',
+  promises: LOGIN_PANEL.promises,
+} as const;
+
 /**
  * Early-version safeguard on the sign-up page (decision 2026-11-23, card "Decide whether to publish
  * a formal privacy policy"). Until a reviewed privacy policy and terms exist, sign-up stays open but

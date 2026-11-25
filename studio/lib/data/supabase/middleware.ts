@@ -53,8 +53,14 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+  // Public, pre-auth pages. /reset-password is deliberately NOT here: the recovery link signs the
+  // person in with a short-lived session, so they ARE authenticated when they reach it — listing it
+  // as an auth route would bounce them to /dashboard before they could set a new password.
   const isAuthRoute =
-    path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/auth');
+    path.startsWith('/login') ||
+    path.startsWith('/signup') ||
+    path.startsWith('/forgot-password') ||
+    path.startsWith('/auth');
   const isProtected = path.startsWith('/dashboard');
 
   // Redirect, carrying over any refreshed (or cleared) session cookies so they aren't lost.
