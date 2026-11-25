@@ -19,12 +19,18 @@ vi.mock('@/lib/data/supabase/server', () => ({
   resetSessionMarkers: vi.fn(),
 }));
 vi.mock('@/lib/data/login-lockout', () => ({ loginGuard: vi.fn(), recordLogin: vi.fn() }));
+vi.mock('@/lib/security/security-log', () => ({
+  logSecurityEvent: vi.fn(),
+  emailRef: vi.fn((e: string) => `e:${e}`),
+  userRef: vi.fn(),
+}));
 
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createClient, resetSessionMarkers } from '@/lib/data/supabase/server';
 import { loginGuard, recordLogin } from '@/lib/data/login-lockout';
 import { LOGIN_GENERIC_ERROR } from '@/lib/domain/login-lockout';
+import { logSecurityEvent } from '@/lib/security/security-log';
 import { login } from '@/app/auth/actions';
 
 const signInWithPassword = vi.fn();
@@ -66,6 +72,10 @@ describe('login action — SR-07 lockout guard', () => {
     expect(url).toBe(errUrl(LOGIN_GENERIC_ERROR));
     expect(signInWithPassword).not.toHaveBeenCalled();
     expect(recordLogin).not.toHaveBeenCalled();
+    // F-22 / SR-18: the lockout block is logged as a security event (hashed ref, never the email).
+    expect(logSecurityEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'login_blocked', action: 'signin', outcome: 'locked' }),
+    );
   });
 
   it('passes the forwarded IP to the guard, then signs in on ok', async () => {
@@ -90,6 +100,14 @@ describe('login action — SR-07 lockout guard', () => {
     expect(recordLogin).toHaveBeenCalledWith('a@example.com', '203.0.113.9', false);
     expect(url).toBe(errUrl(LOGIN_GENERIC_ERROR));
     expect(decodeURIComponent(url).toLowerCase()).not.toContain('invalid login');
+    // F-22 / SR-18: the failed sign-in is logged as a security event, not the raw Supabase error.
+    expect(logSecurityEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'login_failed',
+        action: 'signin',
+        outcome: 'wrong_password',
+      }),
+    );
   });
 
   it('refuses missing fields before touching the guard', async () => {
