@@ -94,8 +94,6 @@ export default function SkillRunner({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {rules.length > 0 ? <ApplicableRulesPanel rules={rules} /> : null}
-
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {multiple ? (
           <TextField
@@ -165,6 +163,8 @@ export default function SkillRunner({
           </Button>
         </Box>
       </Paper>
+
+      {rules.length > 0 ? <ApplicableRulesPanel rules={rules} /> : null}
 
       {result ? (
         <RunResultView result={result} isPending={isPending} onKeepRerun={(keep) => run(keep)} />
