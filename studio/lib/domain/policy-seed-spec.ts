@@ -184,6 +184,37 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     gate: always,
     text: () => 'We keep records that show how AI-assisted work was produced and who checked it.',
   },
+  // 1b accuracy / output-quality baselines (auto-seeded; always on; non-overridable). These reach the
+  // Challenger via the generated policy, so every governed draft is checked against them (ADR-0042 / 1b).
+  {
+    id: 'baseline-uncertainty',
+    standardCode: 'nist-uncertainty',
+    origin: 'baseline',
+    isBaselineSafety: true,
+    sourceQuestion: null,
+    gate: always,
+    text: () =>
+      'We say plainly when something is uncertain or unverified, and never present a guess as a confirmed fact.',
+  },
+  {
+    id: 'baseline-safe-abstention',
+    standardCode: 'nist-safe-abstention',
+    origin: 'baseline',
+    isBaselineSafety: true,
+    sourceQuestion: null,
+    gate: always,
+    text: () =>
+      'When we do not have enough to answer safely, we hold back the unsupported part and point to a verified next step instead of guessing.',
+  },
+  {
+    id: 'baseline-source-traceability',
+    standardCode: 'nist-source-traceability',
+    origin: 'baseline',
+    isBaselineSafety: true,
+    sourceQuestion: null,
+    gate: always,
+    text: () => 'We tie factual claims to a real, checkable source, and never make up a citation.',
+  },
   // Q7 - locked prohibited uses (always on; non-overridable).
   {
     id: 'q7-prohibit-manipulation',
@@ -196,7 +227,7 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
   },
   {
     id: 'q7-prohibit-scoring-people',
-    standardCode: 'euaiact-match-risk',
+    standardCode: 'euaiact-no-scoring',
     origin: 'baseline',
     isBaselineSafety: true,
     sourceQuestion: 'Q7',
@@ -217,7 +248,9 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
 /** Category/risk-tier assigned to custom (Q7) rules, which have no source standard. */
 export const CUSTOM_PROHIBITED_USE = { category: 'prohibited-use', riskTier: 'all' } as const;
 
-/** The nine baseline `standard_rule` codes the spec must cover (ADR-0008 seed). */
+/** The `standard_rule` codes the policy seed spec references (ADR-0008 seed + the Release 1b
+ *  accuracy / output-quality rows and the dedicated no-scoring row, ADR-0042). The spec must cover
+ *  each of these, and reference no others. */
 export const EXPECTED_STANDARD_CODES = [
   'nist-human-oversight',
   'nist-document-use',
@@ -228,6 +261,11 @@ export const EXPECTED_STANDARD_CODES = [
   'iso42001-data-governance',
   'iso42001-managed-logging',
   'iso42001-records',
+  // 1b accuracy / output-quality + dedicated no-scoring (ADR-0042).
+  'nist-uncertainty',
+  'nist-safe-abstention',
+  'nist-source-traceability',
+  'euaiact-no-scoring',
 ] as const;
 
 /**

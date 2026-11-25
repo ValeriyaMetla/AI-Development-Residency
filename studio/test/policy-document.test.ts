@@ -10,8 +10,9 @@ import { recommendedSeedAnswers } from '@/lib/domain/policy-seed-spec';
 
 /**
  * The readable policy document (Epic 1 portability). Built from the REAL seed categories and
- * citations (mirrors migration 20261113010000_seed_standards.sql), because the placement risk is
- * specific to that data: the locked prohibitions inherit `risk-tiering` from the EU AI Act standard.
+ * citations (mirrors migrations 20261113010000_seed_standards.sql and the 1b
+ * 20261125120000_seed_standards_1b_accuracy_safety.sql), because the placement risk is specific to
+ * that data: the locked prohibitions inherit `risk-tiering` from the EU AI Act standard.
  */
 const SEED: [code: string, category: string, citation: string][] = [
   ['nist-human-oversight', 'human-oversight', 'NIST AI RMF (2023), GOVERN function'],
@@ -46,6 +47,27 @@ const SEED: [code: string, category: string, citation: string][] = [
     'iso42001-records',
     'transparency-provenance',
     'ISO/IEC 42001:2023, Annex A (transparency and record-keeping controls)',
+  ],
+  // Release 1b accuracy / output-quality + the dedicated no-scoring row (ADR-0042).
+  [
+    'nist-uncertainty',
+    'accuracy-grounding',
+    'NIST AI RMF (2023), MAP function (document knowledge limits)',
+  ],
+  [
+    'nist-safe-abstention',
+    'accuracy-grounding',
+    'NIST AI RMF (2023), MEASURE function (fail safely beyond knowledge limits)',
+  ],
+  [
+    'nist-source-traceability',
+    'transparency-provenance',
+    'NIST AI 600-1 Generative AI Profile (2024), MS-2.5 (output provenance)',
+  ],
+  [
+    'euaiact-no-scoring',
+    'risk-tiering',
+    'EU AI Act (Reg. (EU) 2024/1689), Article 5 (prohibited practices)',
   ],
 ];
 
