@@ -132,6 +132,9 @@ const BY_CATEGORY: Record<string, SectionKey> = {
   'risk-tiering': 'review',
   'transparency-provenance': 'transparency',
   'accountability-logging': 'monitoring',
+  // 1b accuracy / grounding rules (uncertainty, safe abstention): honest, grounded output sits
+  // with transparency and record-keeping (ADR-0042 / 1b).
+  'accuracy-grounding': 'transparency',
 };
 
 /** Which section a rule belongs in: its question first ("Q4/Q6" → Q4), then its category. */

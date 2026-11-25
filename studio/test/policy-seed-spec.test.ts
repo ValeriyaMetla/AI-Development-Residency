@@ -15,11 +15,27 @@ const baseAnswers: PolicySeedAnswers = {
 };
 
 describe('POLICY_SEED_SPEC coverage', () => {
-  it('covers all nine baseline standard_rule codes (no orphans)', () => {
+  it('covers every expected standard_rule code (no orphans)', () => {
     const covered = new Set(POLICY_SEED_SPEC.map((r) => r.standardCode));
     for (const code of EXPECTED_STANDARD_CODES) {
       expect(covered.has(code)).toBe(true);
     }
+  });
+
+  it('seeds the 1b accuracy baselines and cites the dedicated no-scoring row (ADR-0042)', () => {
+    const byId = new Map(POLICY_SEED_SPEC.map((r) => [r.id, r]));
+    for (const id of [
+      'baseline-uncertainty',
+      'baseline-safe-abstention',
+      'baseline-source-traceability',
+    ]) {
+      const rule = byId.get(id);
+      expect(rule, `${id} missing`).toBeDefined();
+      expect(rule!.isBaselineSafety).toBe(true);
+      expect(rule!.gate(baseAnswers)).toEqual({ include: true, viaDefault: false });
+    }
+    // The no-scoring prohibition now cites its dedicated catalog row, not the generic match-risk rule.
+    expect(byId.get('q7-prohibit-scoring-people')!.standardCode).toBe('euaiact-no-scoring');
   });
 
   it('references only known standard codes', () => {

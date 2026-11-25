@@ -10,7 +10,7 @@ import {
   type PolicySeedAnswers,
 } from '@/lib/domain/policy-seed-spec';
 
-// A fake resolved-standards map covering all nine codes, so the generator can ground rules.
+// A fake resolved-standards map covering every expected code, so the generator can ground rules.
 function makeStandards(): StandardsByCode {
   const map = new Map<string, SeedStandard>();
   for (const code of EXPECTED_STANDARD_CODES) {
@@ -36,8 +36,9 @@ const fullYes: PolicySeedAnswers = {
 describe('generatePolicyRules — happy path (all yes)', () => {
   it('emits all fixed rules, each grounded with id + citation', () => {
     const rules = generatePolicyRules(fullYes, makeStandards());
-    // 12 fixed spec rules when every gate includes.
-    expect(rules).toHaveLength(12);
+    // 15 fixed spec rules when every gate includes (the Epic-0 set plus the three 1b accuracy
+    // output-quality baselines, ADR-0042 / 1b).
+    expect(rules).toHaveLength(15);
     for (const r of rules) {
       expect(r.standardRuleId).toBeTruthy();
       expect(r.citation).toBeTruthy();
