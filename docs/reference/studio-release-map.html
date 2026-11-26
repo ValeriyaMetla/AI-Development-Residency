@@ -1,0 +1,295 @@
+<title>Studio Release Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; a swimlane timeline up top (scrolls sideways on phones), then one section per release / workstream. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #17202b; --muted: #556170; --line: #dde2e8; --accent: #1559b5;
+  --ws-1a: #1559b5; --ws-1b: #0f7a66; --ws-qa: #7a4cc2; --ws-sec: #b3261e; --ws-ux: #b5600b; --ws-std: #4d6b12;
+  --ok: #1d7a3a; --warn: #9a5b00; --ok-bg: #e5f3e9; --warn-bg: #fbf0dc; --chip-bg: #eef1f5;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161d; --surface: #19202a; --fg: #e6ebf1; --muted: #9aa6b4; --line: #2b3542; --accent: #8cb8f5;
+  --ws-1a: #6ea2ee; --ws-1b: #4cc3a8; --ws-qa: #b393ea; --ws-sec: #f08a82; --ws-ux: #eca357; --ws-std: #a7cc5c;
+  --ok: #7fd197; --warn: #f0bd62; --ok-bg: #18301f; --warn-bg: #352812; --chip-bg: #232c38; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11161d; --surface: #19202a; --fg: #e6ebf1; --muted: #9aa6b4; --line: #2b3542; --accent: #8cb8f5;
+  --ws-1a: #6ea2ee; --ws-1b: #4cc3a8; --ws-qa: #b393ea; --ws-sec: #f08a82; --ws-ux: #eca357; --ws-std: #a7cc5c;
+  --ok: #7fd197; --warn: #f0bd62; --ok-bg: #18301f; --warn-bg: #352812; --chip-bg: #232c38; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 2.1rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.lede { color: var(--muted); font-size: 1.02rem; }
+.mono { font-family: var(--mono); font-size: 0.85em; }
+section { display: grid; gap: 18px; min-width: 0; }
+.sec-head { display: grid; gap: 6px; }
+.src { font-size: 0.8rem; color: var(--muted); }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+header { display: grid; gap: 12px; }
+
+/* number band */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+.stat b { font: 600 1.6rem/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.82rem; color: var(--muted); }
+
+/* timeline */
+.tl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.tl { display: grid; grid-template-columns: 172px repeat(18, minmax(36px, 1fr)); min-width: 860px; row-gap: 6px; padding: 12px 12px 14px; }
+.tl .day { font: 500 0.7rem/1 var(--mono); color: var(--muted); text-align: center; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.tl .day.wk { color: var(--fg); }
+.tl .lane { grid-column: 1; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 8px; padding-right: 8px; min-height: 30px; }
+.tl .lane i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.bar { --c: var(--accent); align-self: center; min-height: 26px; border-radius: 5px; padding: 4px 8px;
+  background: color-mix(in srgb, var(--c) 16%, var(--surface)); border-left: 3px solid var(--c);
+  font-size: 0.74rem; line-height: 1.25; color: var(--fg); overflow: hidden; }
+.bar.mile { background: var(--c); color: var(--surface); font-weight: 600; border-left: 0; text-align: center; }
+.c-1a { --c: var(--ws-1a); } .c-1b { --c: var(--ws-1b); } .c-qa { --c: var(--ws-qa); }
+.c-sec { --c: var(--ws-sec); } .c-ux { --c: var(--ws-ux); } .c-std { --c: var(--ws-std); }
+.tl-note { font-size: 0.8rem; color: var(--muted); }
+
+/* panels */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.count { font: 500 0.78rem/1 var(--mono); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+ul.items { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.88rem; }
+ul.items li::marker { color: var(--muted); }
+.ws-tag { display: inline-flex; align-items: center; gap: 6px; font: 500 0.72rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--c); }
+.ws-tag::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+
+/* tables */
+.tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.86rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--chip-bg); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.pill { display: inline-block; font: 500 0.72rem/1 var(--mono); padding: 4px 7px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.neutral { background: var(--chip-bg); color: var(--muted); }
+
+/* flags */
+.flags { display: grid; gap: 10px; }
+.flag { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.flag p { font-size: 0.88rem; }
+.flag b { font-weight: 600; }
+
+footer { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Community AI Workflow Studio · as of 25 Nov 2026</div>
+  <h1>Studio Release Map</h1>
+  <p class="lede">How Release 1a and Release 1b were built, what ran alongside them (Week 5 CI/CD, Week 6 security, UX/UI, the Standards Library), and what is left for MMP. The numbers come from the Kanban board <span class="mono">Tasks Go Here</span> and the repo, read on 25 Nov.</p>
+</header>
+
+<section aria-labelledby="h-stats">
+  <h2 id="h-stats" class="eyebrow" style="font-family:var(--mono)">At a glance</h2>
+  <div class="stats">
+    <div class="stat"><b>25 / 25</b><span>Release 1a cards Done</span></div>
+    <div class="stat"><b>74 / 82</b><span>Release 1b cards Done (8 in Backlog)</span></div>
+    <div class="stat"><b>27</b><span>MMP cards, all Backlog</span></div>
+    <div class="stat"><b>22 / 22</b><span>PenTest findings closed (21 fixed + re-tested, 1 needed no fix)</span></div>
+    <div class="stat"><b>43</b><span>ADRs recorded (0001–0043)</span></div>
+    <div class="stat"><b>9 → 16</b><span>Standards Library rules (1a → 1b)</span></div>
+  </div>
+  <p class="src">Board: 152 cards in total. 18 more have no Release set (Week 5 + Stream B cards: 13 Done, 2 In Progress, 1 Requirements, 2 Backlog). Repo: 181 merged PRs since the first one, 117 of them since 15 Nov.</p>
+</section>
+
+<section aria-labelledby="h-tl">
+  <div class="sec-head">
+    <div class="eyebrow">Timeline</div>
+    <h2 id="h-tl">Seven workstreams, 8–25 November</h2>
+    <p class="lede">Each row is one workstream. Rows that overlap ran in parallel chats, across both accounts.</p>
+  </div>
+  <div class="tl-scroll" role="region" aria-label="Workstream timeline, 8 to 25 November" tabindex="0">
+    <div class="tl">
+      <div></div>
+      <div class="day wk">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div>
+      <div class="day wk">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div>
+      <div class="day wk">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div>
+
+      <div class="lane c-1a" style="grid-row:2"><i></i>Release 1a build</div>
+      <div class="bar c-1a" style="grid-row:2;grid-column:2 / span 2">Rulebook, scaffold, CI</div>
+      <div class="bar c-1a" style="grid-row:2;grid-column:6 / span 1">Skeleton</div>
+      <div class="bar c-1a" style="grid-row:2;grid-column:7 / span 2">Policy seed, Co-Pilot</div>
+      <div class="bar mile c-1a" style="grid-row:2;grid-column:9 / span 1">1a live</div>
+
+      <div class="lane c-1b" style="grid-row:3"><i></i>Release 1b (Lanes A–D)</div>
+      <div class="bar c-1b" style="grid-row:3;grid-column:9 / span 5">Spine · Dashboard · Reporting · Onboarding lanes, chunks 1–5</div>
+
+      <div class="lane c-qa" style="grid-row:4"><i></i>Week 5 QA &amp; CI/CD</div>
+      <div class="bar c-qa" style="grid-row:4;grid-column:9 / span 2">CI on every branch, BDD checks, Node 22</div>
+
+      <div class="lane c-sec" style="grid-row:5"><i></i>Week 6 security homework</div>
+      <div class="bar c-sec" style="grid-row:5;grid-column:13 / span 3">Skill, report + deck, PenTest (22 findings)</div>
+
+      <div class="lane c-sec" style="grid-row:6"><i></i>PenTest fixes</div>
+      <div class="bar c-sec" style="grid-row:6;grid-column:15 / span 3">Groups 0–5</div>
+      <div class="bar c-sec" style="grid-row:6;grid-column:18 / span 2">Streams A · B · C</div>
+
+      <div class="lane c-ux" style="grid-row:7"><i></i>UX / UI</div>
+      <div class="bar c-ux" style="grid-row:7;grid-column:15 / span 2">Redesign, demo</div>
+      <div class="bar c-ux" style="grid-row:7;grid-column:17 / span 1">Trust, audit</div>
+      <div class="bar c-ux" style="grid-row:7;grid-column:18 / span 2">Audit fixes</div>
+
+      <div class="lane c-std" style="grid-row:8"><i></i>Standards Library</div>
+      <div class="bar c-std" style="grid-row:8;grid-column:7 / span 1">9 rules</div>
+      <div class="bar c-std" style="grid-row:8;grid-column:19 / span 1">16</div>
+    </div>
+  </div>
+  <p class="tl-note">Before 8 Nov: the repo and the first skills (12 Oct), then the Week 2 product specs and the board's 1a/1b/MMP cards (28 Oct). The 1a launch date (about 15 Nov) comes from <span class="mono">weeks-5-6-recap.md</span>. The other bars use commit and ADR dates.</p>
+</section>
+
+<section aria-labelledby="h-1a">
+  <div class="sec-head">
+    <div class="ws-tag c-1a">Release 1a · 25 cards · all Done</div>
+    <h2 id="h-1a">Release 1a: the Co-Pilot-first MVP</h2>
+    <p class="lede">A thin walking skeleton through every layer, then the hero feature: <em>should we use AI for this?</em></p>
+  </div>
+  <div class="grid2">
+    <div class="panel"><div class="panel-head"><h3>Epic 0 · Foundation</h3><span class="count">8</span></div>
+      <ul class="items"><li>Next.js + TypeScript app on Vercel; Supabase auth with org, profile and roles</li><li>Default-deny row-level security; append-only audit log</li><li>Data model and migrations; governed-run pipeline shell</li><li>CI gate (lint, types, tests, build, dependency + secret scan)</li><li>Standards library authored: NIST / EU AI Act / ISO 42001 as plain rules</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Epic 4 · Governance Co-Pilot</h3><span class="count">6</span></div>
+      <ul class="items"><li>The "should we use AI for this?" flow</li><li>Use / conditional / don't answers, each citing its standard</li><li>Safer alternatives; "no safe path"; out-of-scope points to a human</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Epic 1 · Policy seed</h3><span class="count">5</span></div>
+      <ul class="items"><li>Seed questions, step-by-step intake, plain-language rule format</li><li>Starter policy generated from the answers (risk first)</li><li>Policy inheritance into every governed run</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Epics 2 + 5 · Registry and rule-check</h3><span class="count">3 + 3</span></div>
+      <ul class="items"><li>Automatic logging of every governed task, with no sensitive content stored</li><li>Deterministic rule-check engine; block or flag with a plain reason</li><li>Provenance label on every output</li></ul></div>
+  </div>
+  <p class="src">Key decisions: ADR-0003 (layers), 0007 (sign-up trigger), 0008–0010 (standards, policy, Co-Pilot data and logic), 0011–0013 (Next.js, Vercel, Supabase), 0014 (rule-check is code, not an LLM).</p>
+</section>
+
+<section aria-labelledby="h-1b">
+  <div class="sec-head">
+    <div class="ws-tag c-1b">Release 1b · 74 of 82 cards Done</div>
+    <h2 id="h-1b">Release 1b: from one hero feature to the full governed loop</h2>
+    <p class="lede">The plan had 5 chunks built in parallel lanes. 49 of the Done cards belong to those chunks. The other 25 were added along the way, mostly from the UX audit, the trust plan and the Standards Library.</p>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Chunk (planned)</th><th>Lane</th><th>Done</th><th>What it delivered</th></tr></thead>
+      <tbody>
+        <tr><td>1 · Doer core</td><td>A · Spine</td><td class="num">9</td><td>Governed Skill runner, the Challenger self-critique, the thank-you starter Skill + tone check, rule shown in context, app shell, role-aware home</td></tr>
+        <tr><td>2 · Safety net</td><td>A · Spine</td><td class="num">10</td><td>PII detection and stripping, in-the-moment warning, risk flagging tuned for few false alarms, human approval gate, "AI-assisted + human-reviewed" provenance</td></tr>
+        <tr><td>3 · Registry view</td><td>B · Dashboard</td><td class="num">4</td><td>Usage dashboard, "my entries", empty state, correction notes</td></tr>
+        <tr><td>4 · Living policy</td><td>A · Spine</td><td class="num">11</td><td>Rule editor (versioned), rule suggestions from usage, expert defaults, overrides that persist, export/import, readable policy document, 5-minute promise verified</td></tr>
+        <tr><td>5 · Coach / Report / Onboard</td><td>C · Reporting<br>D · Onboarding</td><td class="num">15</td><td>In-task coaching with no nagging; audit trail + one-click responsible-AI summary; self-serve onboarding, resume, unblock help; free safety tier that a plan can't switch off</td></tr>
+        <tr><td>Added during 1b</td><td>UX, trust, standards</td><td class="num">25</td><td>See the UX/UI and Standards sections below. Also: the "myself reviews" policy fix and a required "none of these apply" confirmation on the Co-Pilot</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">Key decisions: ADR-0015 (Challenger), 0018 (no policy → baseline safety), 0020–0027 (approval, corrections, reviewer edits, free tier, policy versions, suggestions, audit stamping, degraded runs).</p>
+</section>
+
+<section aria-labelledby="h-sec">
+  <div class="sec-head">
+    <div class="ws-tag c-sec">Week 6 · Security</div>
+    <h2 id="h-sec">Security: test the app, then fix every finding</h2>
+    <p class="lede">You built the <span class="mono">security-testing</span> skill, wrote a research report and deck on securing the Service layer, then ran a PenTest on a separate test database (<span class="mono">studio-pentest</span>): 63 audit rows and 22 findings (2 P1, 6 P2, 13 P3, 1 Pass). Each fix was re-tested on both the test and the live database.</p>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Fix group</th><th>Findings</th><th>What changed</th><th>ADR</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>0 · Supabase settings</td><td class="mono">F-12 F-19 F-04*</td><td>Password rules, database access and SSL settings</td><td>—</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>1 · Review once</td><td class="mono">F-01 F-21</td><td>A run's review decision happens once, through one protected step</td><td class="mono">0028</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>2 · AI rate limit</td><td class="mono">F-02</td><td>Every AI request is counted and capped by one protected step</td><td class="mono">0030</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>3 · Leader-only policy</td><td class="mono">F-03 F-18</td><td>Only the leader changes policy; activation is all-or-nothing</td><td class="mono">0031</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>4 · Policy text as data</td><td class="mono">F-20 F-08</td><td>Policy text reaches the AI marked as data; imports are reviewed drafts</td><td class="mono">0032</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>5 · Sessions + headers</td><td class="mono">F-05 F-06 F-09</td><td>24 h / 1 h idle sessions, secure cookies, CSP and security headers</td><td class="mono">0033</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>Stream A · Auth hardening</td><td class="mono">F-04 F-07 F-10 F-11 F-22</td><td>Login lockout, sign-up limits, one generic sign-up message, wizard draft cleared at logout, PII-safe security log</td><td class="mono">0034 0037 0040</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>Stream B · CI gate + settings</td><td class="mono">F-17 F-16 X3</td><td>Security checks block merges (CodeQL, permission tests, a ruleset on main), Vitest 4 + a blocking audit, previews moved off the live database</td><td class="mono">0035 0038</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>Stream C · Data path</td><td class="mono">F-14 F-15</td><td>Audit events written only by one protected step; the Claude call has a timeout, retry limit and size cap</td><td class="mono">0039</td><td><span class="pill ok">re-tested</span></td></tr>
+        <tr><td>No fix needed</td><td class="mono">F-13</td><td>Logged-out visitors already had no table access</td><td>—</td><td><span class="pill neutral">pass</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">* F-04's password rules were fixed in group 0 and its lockout in Stream A. Also from this period: ADR-0036 (a Co-Pilot "don't" can never be approved), the "Forgot password?" flow, and one shared strict migration-replay test helper (PR #155). Evidence: <span class="mono">security/pentest-evidence/retest-*.md</span> (14 files).</p>
+</section>
+
+<section aria-labelledby="h-ux">
+  <div class="sec-head">
+    <div class="ws-tag c-ux">UX / UI</div>
+    <h2 id="h-ux">UX/UI: redesign, trust pages, then an audit and its fixes</h2>
+  </div>
+  <div class="grid2">
+    <div class="panel"><div class="panel-head"><h3>Redesign (21–22 Nov)</h3><span class="count">5 cards</span></div>
+      <ul class="items"><li>Split, branded sign-in and sign-up pages</li><li>Top menu grouped under "Your AI Governance" (Co-Pilot → AI Policy → Human Review → Monitoring → Audit Trail)</li><li>Governance-lifecycle path on the Leader home</li><li>Landing page with a distinct layout for each section</li><li>No-login demo at <span class="mono">/demo</span>, using fixed sample data (ADR-0029)</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Trust plan (22–23 Nov)</h3><span class="count">8 cards</span></div>
+      <ul class="items"><li>"How we handle your data" page, FAQ and footer</li><li>Decisions on the data contact, the privacy policy, and Supabase/Vercel terms and regions</li><li>Co-Pilot strips personal details before the AI sees them</li><li>Team promises reworded so they're true until invites exist</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>UX audit fixes (23–25 Nov)</h3><span class="count">10 cards</span></div>
+      <ul class="items"><li>Must: reviewers see why something was flagged; leaders see what's waiting for review; "Forgot password?"; no more "myself reviews"</li><li>Should: branded 404/error pages, loading states, the Skill task above the rules, AI drafts cleaned of stray markdown and sign-offs</li><li>Earlier: honest policy review screen, plain-word Co-Pilot questions</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Still in 1b Backlog</h3><span class="count">5 Should</span></div>
+      <ul class="items"><li>One date format in the visitor's time zone</li><li>Review reason matches the final draft shown</li><li>Account settings (name, email, password, org name)</li><li>Plain-language sign-in and sign-up errors</li><li>Main navigation visible on narrow screens</li></ul></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-std">
+  <div class="sec-head">
+    <div class="ws-tag c-std">Standards Library</div>
+    <h2 id="h-std">Standards Library: 9 rules in 1a, 16 in 1b</h2>
+  </div>
+  <div class="grid2">
+    <div class="panel"><div class="panel-head"><h3>Shipped in 1b (25 Nov)</h3><span class="count">+7 rules</span></div>
+      <ul class="items"><li>Accuracy and grounding: evidence grounding, uncertainty, safe abstention, source traceability</li><li>High-stakes boundary, capability and limits disclosure, no scoring of people</li><li>Wired into the Co-Pilot's citations and into every new policy, which the Challenger checks drafts against</li><li>ADR-0042 (never score people) refined by ADR-0043 (people decide; AI may support human-governed prioritization), both Accepted</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>Planned next</h3><span class="count">roadmap</span></div>
+      <ul class="items"><li>Finish Accuracy: source freshness, conflicting information (1b Backlog card)</li><li>1c Privacy and recourse · 1d Evaluation and fairness (needs an eval harness)</li><li>1e Selection engine: Co-Pilot v2 picks the standards that apply to a workflow</li><li>MMP: accessibility, translation, crisis and community standards</li></ul></div>
+  </div>
+  <p class="src">Source: the Notion page "Standards Library 1b — Handover (2026-11-25)" and migrations <span class="mono">20261125120000 / 130000 / 140000</span>.</p>
+</section>
+
+<section aria-labelledby="h-next">
+  <div class="sec-head">
+    <div class="eyebrow">What's left</div>
+    <h2 id="h-next">Still open: 8 cards in 1b, 27 in MMP</h2>
+  </div>
+  <div class="grid2">
+    <div class="panel"><div class="panel-head"><h3>1b Backlog</h3><span class="count">8</span></div>
+      <ul class="items"><li><b>Configure custom SMTP for auth emails</b> (Must; invites depend on it)</li><li>The 5 UX "Should" cards above</li><li>Let a leader set up their AI policy again</li><li>Finish accuracy standards: source freshness + conflicting info</li></ul></div>
+    <div class="panel"><div class="panel-head"><h3>MMP Backlog</h3><span class="count">27</span></div>
+      <ul class="items"><li>Team invites (ADR-0041): 1 parent card + 8 tasks, T1–T8</li><li>Epic 9 Workflows: chain Skills, re-run in one click, review each step (6)</li><li>Epic 10 Justice layer: equity and stigma checks, fairness export, a person makes the final call (6)</li><li>Privacy policy + terms (Must), account deletion, detecting more kinds of personal data, walkthrough video, and 2 more (6)</li></ul></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-flags">
+  <div class="sec-head">
+    <div class="eyebrow">Loose ends</div>
+    <h2 id="h-flags">Things I noticed on the board and in the repo</h2>
+  </div>
+  <div class="flags">
+    <div class="flag"><span class="pill warn">board</span><p><b>Week 5 cards may be stale.</b> "W5 — Run manual QA" (×2) still say In Progress, and "W5 — Merge, verify deployment, and assemble submission evidence" says Requirements. 18 cards have no Release set.</p></div>
+    <div class="flag"><span class="pill warn">prod</span><p><b>Confirm the AGI-001 <span class="mono">nist-evidence-grounding</span> INSERT ran on the live database.</b> This is the one open check in the Standards handover. A test High-risk Co-Pilot assessment is also sitting in the review queue.</p></div>
+    <div class="flag"><span class="pill warn">code</span><p><b>The ADR-0040 §5 follow-up isn't wired yet.</b> <span class="mono">logSecurityEvent</span> is only called from <span class="mono">app/auth/actions.ts</span>, so leader-only, rate-limit and denied-write refusals aren't logged. (I checked this with a code search. No card for it is on the board.)</p></div>
+    <div class="flag"><span class="pill neutral">backlog</span><p><b>Two unassigned cards:</b> the bug "Co-Pilot says 'checked against your active policy' but doesn't check the rules" (Should) and "Isolate preview deployments from the live Claude budget" (Could).</p></div>
+    <div class="flag"><span class="pill neutral">tidy</span><p><b>5 old worktrees sit on merged branches</b> under <span class="mono">.claude/worktrees/</span> (docs-f07-retest, forgot-password, stream-a-auth, stream-b, stream-c-data).</p></div>
+  </div>
+</section>
+
+<footer>
+  <p class="src">Built from: the Notion Kanban "Tasks Go Here" (queried 25 Nov 2026); git history on <span class="mono">main</span> through PR #171; <span class="mono">docs/adr/0001–0043</span>; <span class="mono">docs/handovers/</span>; <span class="mono">docs/reference/weeks-5-6-recap.md</span>; and the Notion Standards Library 1b handover. Each card belongs to the section its Epic and Chunk point to. The groupings are my synthesis.</p>
+</footer>
+
+</div>
