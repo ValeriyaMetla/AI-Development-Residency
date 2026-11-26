@@ -28,6 +28,7 @@ describe('POLICY_SEED_SPEC coverage', () => {
       'baseline-uncertainty',
       'baseline-safe-abstention',
       'baseline-source-traceability',
+      'baseline-evidence-grounding',
     ]) {
       const rule = byId.get(id);
       expect(rule, `${id} missing`).toBeDefined();

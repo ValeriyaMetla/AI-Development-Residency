@@ -65,6 +65,11 @@ const SEED: [code: string, category: string, citation: string][] = [
     'NIST AI 600-1 Generative AI Profile (2024), MS-2.5 (output provenance)',
   ],
   [
+    'nist-evidence-grounding',
+    'accuracy-grounding',
+    'NIST AI 600-1 Generative AI Profile (2024), MS-2.5 (grounding of claims)',
+  ],
+  [
     'euaiact-no-scoring',
     'risk-tiering',
     'EU AI Act (Reg. (EU) 2024/1689), Article 5 (prohibited practices)',

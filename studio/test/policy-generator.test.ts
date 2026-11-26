@@ -36,9 +36,9 @@ const fullYes: PolicySeedAnswers = {
 describe('generatePolicyRules — happy path (all yes)', () => {
   it('emits all fixed rules, each grounded with id + citation', () => {
     const rules = generatePolicyRules(fullYes, makeStandards());
-    // 15 fixed spec rules when every gate includes (the Epic-0 set plus the three 1b accuracy
+    // 16 fixed spec rules when every gate includes (the Epic-0 set plus the four 1b accuracy
     // output-quality baselines, ADR-0042 / 1b).
-    expect(rules).toHaveLength(15);
+    expect(rules).toHaveLength(16);
     for (const r of rules) {
       expect(r.standardRuleId).toBeTruthy();
       expect(r.citation).toBeTruthy();

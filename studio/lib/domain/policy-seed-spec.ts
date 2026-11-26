@@ -215,6 +215,16 @@ export const POLICY_SEED_SPEC: RuleSpec[] = [
     gate: always,
     text: () => 'We tie factual claims to a real, checkable source, and never make up a citation.',
   },
+  {
+    id: 'baseline-evidence-grounding',
+    standardCode: 'nist-evidence-grounding',
+    origin: 'baseline',
+    isBaselineSafety: true,
+    sourceQuestion: null,
+    gate: always,
+    text: () =>
+      "We back factual claims with evidence from a reviewed source, keep confirmed facts separate from guesses, and don't fill gaps by making things up.",
+  },
   // Q7 - locked prohibited uses (always on; non-overridable).
   {
     id: 'q7-prohibit-manipulation',
@@ -266,6 +276,7 @@ export const EXPECTED_STANDARD_CODES = [
   'nist-uncertainty',
   'nist-safe-abstention',
   'nist-source-traceability',
+  'nist-evidence-grounding',
   'euaiact-no-scoring',
 ] as const;
 
