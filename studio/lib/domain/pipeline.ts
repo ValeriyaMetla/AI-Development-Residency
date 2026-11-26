@@ -14,6 +14,7 @@ import { getSkillDef } from '@/lib/domain/skills';
 import { redactPii, piiSummary, type PiiFinding, type PiiCategory } from '@/lib/domain/pii';
 import { riskyUseFinding, detectRiskyUse } from '@/lib/domain/risky-use';
 import { AI_PROVENANCE } from '@/lib/domain/provenance';
+import { cleanDraft } from '@/lib/domain/draft-clean';
 import {
   buildCritiquePrompt,
   parseCritique,
@@ -207,6 +208,12 @@ export async function runGovernedSkill(params: {
     result: critiqueFinding.result,
     reasonPlain: critiqueFinding.reason,
   });
+
+  // Clean the final draft for display and storage: strip stray markdown emphasis and any
+  // AI-attribution sign-off the model added despite the prompt (the app owns provenance via
+  // lib/domain/provenance.ts). Pure + deterministic (ADR-0014), so the rule-check, storage, and
+  // returned output all see the same clean text.
+  finalText = cleanDraft(finalText);
 
   // 5. Deterministic, policy-grounded rule-check (Domain, ADR-0014) — checks the (possibly revised)
   // output against the org's active policy rules; code outside the model, so injection can't disable

@@ -26,7 +26,8 @@ export const SKILL_DEFS: Record<string, SkillDef> = {
     key: 'draft_thank_you',
     basePrompt:
       'You help a small nonprofit write a short, warm, sincere thank-you note. ' +
-      'Keep it to 2-3 sentences. Return only the note text.',
+      'Keep it to 2-3 sentences. Return only the note text as plain prose — no markdown, ' +
+      'asterisks, or other formatting, and no sign-off, signature, or mention of AI.',
     critiqueCriteria:
       'The note must sound warm, sincere, and personal — like a real person thanking a supporter. ' +
       'Flag or revise a draft that is cold, stiff, transactional, generic/form-letter, or ' +
