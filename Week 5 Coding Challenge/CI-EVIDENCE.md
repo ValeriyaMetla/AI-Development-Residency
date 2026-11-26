@@ -64,8 +64,8 @@ steps, expected, **actual**, pass/fail) are recorded there by Valeriya after run
 
 | Test case | Use case | Status |
 |---|---|---|
-| MT-1 — Co-Pilot consequential-use flow | F4.1 / F4.2 (`/copilot`) | ⬜ to be run on the live app |
-| MT-2 — Policy seed + activation walk-through | F1.1 / F1.3 | ⬜ to be run on the live app |
+| MT-1 — Co-Pilot consequential-use flow (Test Case 2 in `manual-test-cases.md`) | F4.1 / F4.2 (`/copilot`) | ✅ **Pass 11/11** — run by Valeriya on a physical iPhone, 2026-11-26 |
+| MT-2 — Policy seed + activation walk-through (Test Case 1 in `manual-test-cases.md`) | F1.1 / F1.3 | ✅ **Pass 11/11** — run by Valeriya on a MacBook, 2026-11-25 |
 
 ## 6. Live app
 

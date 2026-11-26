@@ -7,10 +7,12 @@
 > the two Kanban cards *W5 — Run manual QA: policy seed and activation* and
 > *W5 — Run manual QA: Co-Pilot consequential-use flow*. This file mirrors them.
 >
-> **Status:** Executed 2026-11-22 — both cases **Pass (11/11 each)**. Run by Claude in the Claude
-> desktop built-in browser on Valeriya's behalf; Valeriya created the test account. Valeriya to
-> confirm or re-run personally. One finding (F-1) and two UX observations are under
-> [Findings](#findings).
+> **Status:** Both test cases were run by Valeriya in person: **Test Case 1** on 2026-11-25
+> (**Pass 11/11**, about 4 minutes) and **Test Case 2** on 2026-11-26 on a physical iPhone
+> (**Pass 11/11**, about 5 minutes); times are the tester's estimates. Both scenarios were also run
+> earlier by an AI agent (Claude, in the Claude desktop built-in browser, 2026-11-22), and both
+> passed 11/11; those results were replaced by these personal runs and remain in git history.
+> Findings for each case are under [Findings](#findings).
 >
 > **Safety rule:** fictional information only — never real client, staff, donor, applicant, health,
 > financial, contact, or other sensitive information.
@@ -89,37 +91,40 @@ confirms the dashboard shows an active policy.
 
 ### Actual Results
 
+> **Execution status:** Run personally by Valeriya on 2026-11-25 on the live application, using a
+> new test account she created. Claude recorded her spoken observations. Only fictional information
+> was used. An earlier run by Claude (2026-11-22) was replaced by this one; it remains in git history.
+
 | Step | What did you do / input? | What should happen? | What actually happened? | Pass or Fail? | Notes / evidence |
 |---|---|---|---|---|---|
-| 1 | Record environment and start timer | Test context and start time are captured | Environment recorded (see execution record); timer started 15:59:04 PST on the first signed-in screen | Pass | Account was created immediately before the test (setup, not timed) |
-| 2–3 | Open production and sign in | App loads and valid Accountable Leader reaches the dashboard | App loaded and the session was accepted. A new org lands on `/setup` ("Get set up — 1 of 3 steps done"); `/dashboard` redirects there until setup is finished or skipped | Pass | First screen is the setup checklist, not the dashboard — appears intentional for a new org |
-| 4–5 | Start policy seed and inspect orientation/progress | Seed is easy to find and the sequence is understandable | Found as "Step 2: Set your AI rules" on the setup checklist. Intro explains the task ("Takes about five minutes"); "Step 1 of 7" label and progress bar; a "Use recommended answers" shortcut is offered | Pass | — |
-| 6 | Enter fictional required answers | Valid answers are accepted | Q1 QA Test Leader / Executive Director; Q2 Drafting emails, letters, or communications + Summarizing documents or notes; Q3 sensitive information = Yes; Q4 higher-stakes = No. All accepted; Next stays disabled until each required answer is given | Pass | After Q4 = No the counter changed from "of 7" to "Step 5 of 6" (reviewer question dropped) |
-| 7 | Skip or mark one optional answer "Not sure" | The flow permits the optional uncertainty without blocking | Chose "Not sure" on optional Q5 (AI content shared outside the org; labelled "You can skip this"). Next stayed enabled and the flow continued | Pass | Q6 custom limit added: "Decisions that affect a person stay with a human." |
-| 8–9 | Submit and wait for generation | A draft policy generates without an unexpected error | Button showed "Generating…"; the draft appeared in about 10 seconds without refreshing | Pass | No console errors |
-| 10 | Review draft status, rules, and skipped-answer cue | Draft remains unactivated; rules are plain-language; safe default or review cue is visible | "Review your starter policy — We drafted 10 rules from your answers — 1 flagged for your review." The transparency rule carries an orange **Needs review** badge, explained as "We filled this in from a default answer" | Pass | The page does not use the word "draft"; it says "Review… then activate" |
-| 11 | Inspect grounding and human-review cues | Sources or standards and the user's review responsibility are understandable | Every rule shows "Based on …" with NIST AI RMF (2023), ISO/IEC 42001:2023, or EU AI Act Art. 5 / Art. 50. Always-on rules are badged "Safety floor — always on"; the custom rule is badged "Added by your team" | Pass | — |
-| 12 | Activate the draft | Activation requires a deliberate user action and succeeds | Clicked "Activate this policy" → "Your AI policy is active — It now applies to your organization's AI use." | Pass | Nothing activated before the click |
-| 13–14 | Return to and refresh dashboard | Dashboard shows the active policy and the state persists | Setup showed "2 of 3 steps done". After "Skip for now — go to Home", Home showed "Policy active"; still shown after one refresh | Pass | Reaching Home requires skipping setup step 3 |
-| 15 | Stop timer and assess usability | Flow remains usable; observations and elapsed time are recorded | Timer stopped 16:01:35 PST (2 min 31 s). No errors, no clipped layout; keyboard focus moved to each new question | Pass | Automated run; a person reading each screen will take longer |
+| 1 | Record environment and start timer | Test context and start time are captured | MacBook Pro M5, 14-inch, Chrome, full-size window. Timer first started 23:12, then restarted at 23:16 for the manual run | Pass | Chrome version not recorded |
+| 2–3 | Open production and sign in | App loads and valid Accountable Leader reaches the dashboard | Signed up and signed in; the app loaded and showed a 3-step setup checklist: your organization, set your AI rules, run your first Skill. "Your AI Governance" menu visible at the top | Pass | Everything looked good |
+| 4–5 | Start policy seed and inspect orientation/progress | Seed is easy to find and the sequence is understandable | Clicked "Set your AI rules" from the checklist. The screen offers "Use recommended answers" or a step-by-step flow with a step counter and progress bar. All questions are multiple choice and easy to follow | Pass | — |
+| 6 | Enter fictional required answers | Valid answers are accepted | Q1 name and role entered; Q2 picked all 5 uses, left "Something else" blank; Q3 sensitive information = Yes; Q4 higher-stakes = Yes. All accepted | Pass | First attempt: "Use recommended answers" pre-filled everything, including role and uses (drafting emails, letters, or communications; summarizing documents; administrative help). It worked; the tester pressed Start over to answer by hand, timed from 23:16 |
+| 7 | Skip or mark one optional answer "Not sure" | The flow permits the optional uncertainty without blocking | Optional Q5 (AI content shared outside the org) shows Yes / No / Not sure. First answered Yes, then went back and changed it to Not sure; the flow continued. Q6 reviewer: Val. Q7: read the three built-in limits; nothing added (no "Added by your team" rules in the policy) | Pass | Tester UX note on Q7: "Are there things you want to rule out completely?" is a hard question; people think of what they want AI to do, not what it shouldn't. Suggest a pick-list or presets. The three listed limits are already built in, but that isn't obvious from the screen |
+| 8–9 | Submit and wait for generation | A draft policy generates without an unexpected error | Pressed "Generate my policy"; the draft appeared in about a second. No errors | Pass | — |
+| 10 | Review draft status, rules, and skipped-answer cue | Draft remains unactivated; rules are plain-language; safe default or review cue is visible | Draft shown, not active. Header says "1 flagged for your review"; one rule has an orange **Needs review** tag, matching the "Not sure" answer on Q5. The other rules carry grey "Safety floor — always on" tags | Pass | Tester note: the Needs review tags aren't clickable, and it's hard to tell what they mean or what they're based on |
+| 11 | Inspect grounding and human-review cues | Sources or standards and the user's review responsibility are understandable | Every rule has a "Based on …" line naming its standard (EU AI Act, NIST AI RMF) | Pass | Tester observation: at first the "Based on" line seemed missing. It sits below the more prominent tags and is easy to overlook |
+| 12 | Activate the draft | Activation requires a deliberate user action and succeeds | Clicked "Activate this policy" deliberately. The page then showed the same rules with a "Your rules" section below. Each rule is listed separately and every rule, including the first, can be retired; rules also appear to be editable (tester not fully sure). The first rule holds more detail: the accountable person's role and the AI uses. Options at the bottom: Publish changes, Add a rule, Download policy, Download backup, Import from file | Pass | Nothing was active before the click. The tester did not notice a confirmation message and was unsure whether "Publish changes" was still needed to finish |
+| 13–14 | Return to and refresh dashboard | Dashboard shows the active policy and the state persists | Going home first shows the setup checklist: step 2 "Set your AI rules" marked done; step 3 "Run your first Skill" still open. Chose "Skip for now — go to Home". Home shows "Policy active", a "Run a Skill" button at the top, and a "Your AI Governance" section with 5 items, each a verb, what it means, and a link: Decide (Ask the Co-Pilot), Set the rules, Review, Monitor, Prove. It also says nothing is waiting for review. Refreshed once: "Policy active" still shown | Pass | A new org reaches Home only by skipping setup step 3. On the checklist screen it isn't obvious the policy is active, only that the step is done |
+| 15 | Stop timer and assess usability | Flow remains usable; observations and elapsed time are recorded | Manual run 23:16–23:20, about 4 minutes (the tester's own start and end times; approximate). No errors or broken layout | Pass | Within the ~5-minute target. UX notes are under [Findings](#findings) |
 
 ### Execution record
-- **Test date/time:** 2026-11-22, 15:59:04–16:01:35 PST
-- **Tester:** Claude (Opus 5.5) in the Claude desktop built-in browser, on Valeriya's behalf (test
-  account created by Valeriya)
+- **Test date/time:** 2026-11-25, 23:16–23:20 (approximate)
+- **Tester:** Valeriya Metla, in person (Claude recorded her spoken observations)
 - **Production URL:** https://ai-development-residency-nine.vercel.app
-- **Deployment/commit:** `7db391a` (head of `main`); the Vercel deployment itself was not checked
-  separately
-- **Browser and version:** Chromium 156.0.8078.100 (Claude desktop built-in browser)
-- **Device, operating system, and viewport:** MacBook, macOS 26.6.2, 666 × 640
-- **Elapsed time:** 2 min 31 s
+- **Deployment/commit:** not checked during the run (head of `main` at the time: `0a18676`; not
+  confirmed against Vercel)
+- **Browser and version:** Chrome (version not recorded)
+- **Device, operating system, and viewport:** MacBook Pro M5, 14-inch, macOS, full-size window
+- **Elapsed time:** about 4 minutes
 - **Overall result — Pass or Fail:** Pass
 - **Passed steps / total steps:** 11 / 11
 - **Pass percentage:** 100%
-- **Actual-result summary:** The seed is easy to find; required answers are enforced; the "Not sure"
-  answer became a labelled "Needs review" rule; every rule cites a named standard; activation
-  required a deliberate click; "Policy active" persisted after refresh. UX notes: the step total
-  changes mid-flow (7 → 6), and a new org reaches Home only by skipping setup step 3.
+- **Actual-result summary:** Both paths worked: the "Use recommended answers" shortcut and the manual
+  answers. "Not sure" on optional Q5 produced exactly one labelled "Needs review" rule. Every rule
+  names its standard. Activation needed a deliberate click, and "Policy active" stayed after
+  refresh. The UX issues found are about clarity, not function (see Findings UX-1 to UX-5).
 - **Bug ticket link(s), if any:** None
 
 ---
@@ -209,57 +214,82 @@ Do not add real names, case histories, contact details, or other sensitive infor
 
 ### Actual Results
 
+> **Execution status:** Run personally by Valeriya on 2026-11-26 on the live application on a
+> physical phone, using the account from Test Case 1. Claude recorded her spoken observations. Only
+> the fixed fictional prompt was used (plus one earlier attempt with her own short description,
+> noted below). An earlier run by Claude (2026-11-22) was replaced by this one; it remains in git
+> history.
+
 | Step | What did you do / input? | What should happen? | What actually happened? | Pass or Fail? | Notes / evidence |
 |---|---|---|---|---|---|
-| 1–2 | Record environment, set phone viewport, open production, and sign in | Live app loads and remains usable at phone size | Viewport 390 × 844; Home loaded showing "Policy active"; page width 390 with no horizontal scroll | Pass | At phone size the primary nav is hidden; the full menu sits under the avatar ("Account menu"), which is not obvious |
-| 3–4 | Open Co-Pilot and inspect the prompt UI | Prompt and controls are readable, reachable, and not clipped | "Should we use AI for this?" with a description box, 6 quick risk questions, and "Get advice". Everything wraps; nothing is clipped | Pass | Script gap: the Co-Pilot also asks 6 risk questions that the script did not anticipate |
-| 5–7 | Enter the fixed fictional prompt, submit once, and wait | Input is accepted; processing feedback is clear; no duplicate request is needed | Entered the fixed prompt exactly (261 characters) and ticked the true risk questions: judges/ranks a person, high-stakes area, sensitive personal data. Submitted once; the button became "Checking…" and was disabled; result arrived in under 10 seconds | Pass | Disabling the button prevents a duplicate request |
-| 8 | Review tier and recommendation | Result avoids unsafe unconditional approval and uses a clear recommendation | "Use with conditions" with badge "High-risk (EU AI Act framework)" | Pass | — |
-| 9 | Review reasons | Reasons are plain-language and relevant to the risk signals in the prompt | Names ranking and deciding emergency housing and the health, disability, family, and financial details; calls for "real human oversight rather than automatic decisions" | Pass | — |
-| 10 | Check human authority | Result keeps the person-impacting decision with a human | "A person must approve" badge; footer "AI-assisted governance advice — a person decides." | Pass | — |
-| 11 | Inspect citations/grounding | Visible standards or sources support the recommendation | "Why — and the standards behind it" lists EU AI Act Art. 14, NIST AI RMF (GOVERN, MEASURE), and ISO/IEC 42001 Annex A per risk signal, plus the always-applicable baseline | Pass | See finding F-1: the org's own "won't score, rank, or judge people" rule is not cited |
-| 12–13 | Review safer-way or no-safe-path guidance | Guidance is concrete, consistent with the recommendation, and removes unsafe automated decision-making | "Restructure so the AI only does the work (organizing, drafting) and a person makes the judgment about people"; mandatory human review; "Strip, minimize, or anonymize the sensitive details before they reach the AI." | Pass | Then says "If you apply these, this would become High-risk" — the same tier (see O-2) |
-| 14 | Inspect the full mobile result | Text and controls wrap correctly with no overlap or horizontal scrolling | No element extends past 390 px; the expandable section works; badges wrap | Pass | — |
-| 15 | Navigate back and return | Navigation works and the app remains usable | Home via the account menu, then back via "Ask the Co-Pilot →"; the Co-Pilot reloaded cleanly | Pass | The previous result is not kept after leaving (expected) |
-| 16 | Assess comprehension and trust | Tester records whether the result was understandable and trustworthy | Understandable: yes. Trustworthy: partly — see F-1 | Pass | — |
+| 1–2 | Record environment, set phone viewport, open production, and sign in | Live app loads and remains usable at phone size | Physical phone: iPhone Air, Chrome. Started 00:33. Signed in; the landing page loads, all boxes fit, and everything looks good | Pass | Physical phone, not an emulated window |
+| 3–4 | Open Co-Pilot and inspect the prompt UI | Prompt and controls are readable, reachable, and not clipped | Found via Home → "Your AI Governance" (shows "Policy active") → step 1 "Decide" → Ask the Co-Pilot. The screen explains its purpose well; it has a description box, quick risk questions, and "Get advice". Everything fits on screen with no sideways scrolling | Pass | — |
+| 5–7 | Enter the fixed fictional prompt, submit once, and wait | Input is accepted; processing feedback is clear; no duplicate request is needed | Pasted the fixed prompt exactly. Ticked all six risk questions, including the banned-purpose one (ranking applicants treated as scoring). Pressed Get advice once; the button changed to "Checking…" and greyed out, and the answer appeared after about 3–4 seconds | Pass | First attempt (own description, roughly "finding housing and qualifying clients automatically"; all six ticked) gave the same result. Tester UX note: no way to reset or start over after getting advice |
+| 8 | Review tier and recommendation | Result avoids unsafe unconditional approval and uses a clear recommendation | "Don't use AI for this", "Prohibited (EU AI Act framework)" | Pass | Differs from the 2026-11-22 run ("Use with conditions / High-risk"), which did not tick the banned-purpose question (see CP-1) |
+| 9 | Review reasons | Reasons are plain-language and relevant to the risk signals in the prompt | The reasons explain that ranking applicants and deciding who gets housing means a machine would be making a high-stakes judgment. The reasons make sense | Pass | — |
+| 10 | Check human authority | Result keeps the person-impacting decision with a human | "A person must decide" | Pass | — |
+| 11 | Inspect citations/grounding | Visible standards or sources support the recommendation | "Why — and the standards behind it" lists the standards and sources behind each reason, and mentions the organization's own rules | Pass | F-1 re-check: the footer still says "Checked against your organization's active policy" (see Findings) |
+| 12–13 | Review safer-way or no-safe-path guidance | Guidance is concrete, consistent with the recommendation, and removes unsafe automated decision-making | "There's no safe way to do this", followed by why, and the standards behind it | Pass | No-safe-path branch: the result recommends against the automated decision outright |
+| 14 | Inspect the full mobile result | Text and controls wrap correctly with no overlap or horizontal scrolling | Scrolled through the whole result: nothing overlapping or cut off, everything readable | Pass | — |
+| 15 | Navigate back and return | Navigation works and the app remains usable | Went to Home, then back to the Co-Pilot; it works smoothly and the Co-Pilot is empty and ready to go | Pass | The previous result is not kept (expected) |
+| 16 | Assess comprehension and trust | Tester records whether the result was understandable and trustworthy | Understandable: more or less — hard to read and not interactive. Trustworthy: more or less, for the same reason | Pass | The tester suggests color codes, showing the actual standard names more clearly (now grey and low on the page), and a more interactive, dashboard-like result |
 
 ### Execution record
-- **Test date/time:** 2026-11-22, 16:01:45–16:03:33 PST
-- **Tester:** Claude (Opus 5.5) in the Claude desktop built-in browser, on Valeriya's behalf
+- **Test date/time:** 2026-11-26, started 00:33; end not recorded
+- **Tester:** Valeriya Metla, in person (Claude recorded her spoken observations)
 - **Production URL:** https://ai-development-residency-nine.vercel.app
-- **Deployment/commit:** `7db391a` (head of `main`); the Vercel deployment itself was not checked
-  separately
-- **Browser and version:** Chromium 156.0.8078.100, mobile emulation (Android / Pixel 8 user agent)
-- **Device, operating system, and viewport:** Emulated phone, 390 × 844, on macOS 26.6.2 — not a
-  physical phone
+- **Deployment/commit:** not checked during the run (head of `main` at the time: `0a18676`; not
+  confirmed against Vercel)
+- **Browser and version:** Chrome (version not recorded)
+- **Device, operating system, and viewport:** iPhone Air (physical phone), iOS
+- **Elapsed time:** about 5 minutes, including reviewing the result (tester estimate; the run
+  included voice note-taking)
 - **Overall result — Pass or Fail:** Pass
 - **Passed steps / total steps:** 11 / 11
 - **Pass percentage:** 100%
-- **Was the recommendation understandable?** Yes
-- **Was the recommendation trustworthy?** Partly — see F-1
-- **Actual-result summary:** The Co-Pilot rated the scenario High-risk and "Use with conditions",
-  kept the decision with a person, cited named standards for each risk signal, and gave concrete
-  safer-way steps. The layout works at phone size and there were no errors. See F-1 and O-2.
-- **Bug ticket link(s), if any:** F-1 — [Bug — Co-Pilot says "checked against your active policy" but doesn't check the rules](https://app.notion.com/p/421975c3b9508186b7fcccc3fbdc19cd) (Notion Kanban)
+- **Was the recommendation understandable?** More or less — hard to read, not interactive
+- **Was the recommendation trustworthy?** More or less
+- **Actual-result summary:** With the fixed prompt and all six risk questions ticked, the Co-Pilot
+  said "Don't use AI for this" (Prohibited, EU AI Act framework), "A person must decide", and
+  "There's no safe way to do this", with reasons and standards. The layout works on a physical
+  phone, and navigation is smooth. The issues found are about readability and trust presentation,
+  not safety (see Findings CP-1 to CP-4).
+- **Bug ticket link(s), if any:** F-1 — [Bug — Co-Pilot says "checked against your active policy" but doesn't check the rules](https://app.notion.com/p/421975c3b9508186b7fcccc3fbdc19cd) (Notion Kanban; re-checked 2026-11-26)
 
 ---
 
 ## Findings
 
-- **F-1 — Co-Pilot claims a policy check it does not yet perform (medium; responsible-AI disclosure
-  accuracy).** The result footer says "Checked against your organization's active policy", but for a
-  proposal to rank housing applicants it does not mention the active policy's always-on rule "We
-  won't use AI to score, rank, or judge people (for example, who deserves help)." The code records
-  the active policy for provenance only; the per-rule check is planned for Epic 5
-  ([`studio/lib/domain/copilot-pipeline.ts`](../studio/lib/domain/copilot-pipeline.ts), lines 49–50).
-  Fix options: soften the footer wording now, or build the per-rule check.
-- **O-2 — Safer-way projection wording (UX, low).** "If you apply these, this would become
-  High-risk" repeats the current tier. This is by design (the high-stakes housing setting cannot be
-  mitigated away — `neutralizes: false` in
-  [`studio/lib/domain/copilot.ts`](../studio/lib/domain/copilot.ts)), but it reads as no improvement.
-  Suggested wording: "would still be High-risk, with a person deciding."
-- **O-3 — Minor UX notes.** The seed step total changes mid-flow (7 → 6); at phone size the full
-  menu is only under the avatar; a new org reaches Home only by skipping setup step 3.
+### Test Case 1 — run by Valeriya, 2026-11-25
+- **UX-1 — Q7 is a hard question.** People think of what they want AI to do, not what it shouldn't.
+  Suggest a pick-list or presets. The three listed limits are already built in, but the screen
+  doesn't make that obvious.
+- **UX-2 — "Needs review" tags are unclear.** They aren't clickable, and it's hard to tell what they
+  mean or what they're based on.
+- **UX-3 — The "Based on …" source line is easy to overlook** next to the tags.
+- **UX-4 — No clear "done" after activating.** The tester didn't notice a confirmation and was unsure
+  whether "Publish changes" was still needed.
+- **UX-5 — The setup checklist hides the result.** It shows step 2 "done" but not "Policy active",
+  and a new org reaches Home only by skipping step 3.
+
+### Test Case 2 — run by Valeriya, 2026-11-26
+- **CP-1 — The verdict depends on the user ticking the banned-purpose box.** The same fixed prompt
+  got "Use with conditions / High-risk" on 2026-11-22, without that box, and "Don't use /
+  Prohibited" in this run, with it. Both outcomes keep AI away from the decision, but the stronger
+  verdict relies on the user recognising that ranking applicants is scoring.
+- **CP-2 — No reset or start over** after getting advice.
+- **CP-3 — The footer reads like marketing and hides the key claim.** "AI-assisted governance
+  advice — a person decides" comes first, and "Checked against your organization's active policy"
+  is at the very bottom. The tester suggests dropping the first sentence and moving the policy check
+  further up, where it can be seen. To discuss.
+- **CP-4 — The standards are hard to read.** They sit in grey low on the page, and their names
+  aren't prominent. The tester suggests color codes, clearer standard names, and a more interactive,
+  dashboard-like result. This made the result only "more or less" understandable and trustworthy.
+- **F-1 — re-check of the existing bug (Co-Pilot claims a policy check).** The footer still says
+  "Checked against your organization's active policy". In this run the result also mentioned the
+  organization's own rules, which the 2026-11-22 run did not; this suggests a partial fix from the
+  recent no-scoring work, not yet confirmed in code. Bug card:
+  [Bug — Co-Pilot says "checked against your active policy" but doesn't check the rules](https://app.notion.com/p/421975c3b9508186b7fcccc3fbdc19cd).
 
 ---
 
